@@ -1,6 +1,6 @@
 #ifndef AWK_H
 #define AWK_H
-static void awAwk(char delim, char inStr[], int nStr, char outStr[])
+static void awAwk(char delim, char *inStr, int nStr, char *outStr)
 {
 	int i = 0;
 	while (inStr[i] == delim && inStr[i])
