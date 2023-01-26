@@ -58,8 +58,27 @@ static void awk(char delim, char *inStr, int nStr, char *outStr)
 	outStr[++j] = '\0';
 }
 
-static void awkFile(char delim, int nStr, char *file, char *outStr)
+static void awkMult(char delim, int nStr, char *filename, char *outStr)
 {
-
+	char *fileBuff;
+	cat(filename, &fileBuff);
+	int j;
+	for (int currLine=0, lineNum = wcl(filename), fileSize = sizeOfFile(filename), i;
+			currLine<lineNum; ++currLine) {
+		while (fileBuff[i] == delim && fileBuff[i] != '\n' && i<fileSize)
+			++i;
+		if (nStr > 1)
+			for (int nDelim = 1; nDelim<nStr; ++nDelim) {
+				while (fileBuff[i] != delim && fileBuff[i] != '\n' && i<fileSize)
+					++i;
+				while (fileBuff[i] == delim && fileBuff[i] != '\n' && i<fileSize)
+					++i;
+			}
+		for (j = 0; fileBuff[i] != delim && fileBuff[i] != '\n'; ++i, ++j)
+			outStr[j] = fileBuff[i];
+		if (currLine != --lineNum)
+			outStr[++j] = '\n';
+	}
+	outStr[++j] = '\0';
 }
 #endif
