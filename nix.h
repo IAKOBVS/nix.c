@@ -29,22 +29,20 @@ static int wcl(char *filename)
 static void cat(char *filename, char **outFile)
 {
 	int fileSize = sizeOfFile(filename);
-	*outFile = malloc(fileSize+1);
+	*outFile = malloc(fileSize);
 	FILE *file = fopen(filename, "r");
 	if (!file)
 		return;
-	fread(*outFile, fileSize+1, 1, file);
+	fread(*outFile, 1, fileSize, file);
 	if (ferror(file))
 		return;
 	fclose(file);
-	*outFile[fileSize+1] = '\0';
 }
 
 static void awk(char delim, char *inStr, int nStr, char *outStr)
 {
 	int i = 0;
-	while (inStr[i] == delim && inStr[i])
-		++i;
+	while (inStr[i] == delim && inStr[i]) ++i;
 	if (nStr > 1)
 		for (int nDelim = 1; nDelim<nStr; ++nDelim) {
 			while (inStr[i] != delim && inStr[i])
@@ -52,19 +50,19 @@ static void awk(char delim, char *inStr, int nStr, char *outStr)
 			while (inStr[i] == delim && inStr[i])
 				++i;
 		}
-	int j;
-	for (j = 0; inStr[i] != delim && inStr[i]; ++i, ++j)
+	for (int j = 0; inStr[i] != delim && inStr[i]; ++i, ++j)
 		outStr[j] = inStr[i];
-	outStr[++j] = '\0';
 }
 
-static void awkMult(char delim, int nStr, char *filename, char *outStr)
+static void awkMult(char delim, int nStr, char *filename, char **outStr)
 {
+	int fileSize = sizeOfFile(filename);
 	char *fileBuff;
+	*outStr = malloc(fileSize);
 	cat(filename, &fileBuff);
-	int j;
-	for (int currLine=0, lineNum = wcl(filename), fileSize = sizeOfFile(filename), i;
-			currLine<lineNum; ++currLine) {
+	if (!fileBuff)
+		return;
+	for (int lineNum = wcl(filename), i=0, j=0, curr=0; curr<lineNum; ++curr) {
 		while (fileBuff[i] == delim && fileBuff[i] != '\n' && i<fileSize)
 			++i;
 		if (nStr > 1)
@@ -74,11 +72,15 @@ static void awkMult(char delim, int nStr, char *filename, char *outStr)
 				while (fileBuff[i] == delim && fileBuff[i] != '\n' && i<fileSize)
 					++i;
 			}
-		for (j = 0; fileBuff[i] != delim && fileBuff[i] != '\n'; ++i, ++j)
-			outStr[j] = fileBuff[i];
-		if (currLine != --lineNum)
-			outStr[++j] = '\n';
+		while (fileBuff[i] != '\n') {
+			if (i >= fileSize)
+				return;
+			else if (fileBuff[i] != delim)
+				(*outStr)[j++] = fileBuff[i];
+			++i;
+		}
+		(*outStr)[j++] = '\n';
 	}
-	outStr[++j] = '\0';
+	free(fileBuff);
 }
 #endif
