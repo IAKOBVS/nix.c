@@ -1,5 +1,5 @@
-#ifndef AWK_H
-#define AWK_H
+#ifndef AWK_H_DEF
+#define AWK_H_DEF
 static void awAwk(char delim, char *inStr, int nStr, char *outStr)
 {
 	int i = 0;
