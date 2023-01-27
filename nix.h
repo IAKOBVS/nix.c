@@ -12,6 +12,9 @@ static int sizeOfFile(char *filename)
 	return fileInfo.st_size;
 }
 
+/* flags: */
+/* 'l' =  line */
+/* 'w' =  word */
 static int wc(char flag, char *filename)
 {
 	FILE *fd = fopen(filename, "r");
@@ -46,6 +49,9 @@ static int wc(char flag, char *filename)
 	return cnt;
 }
 
+/* editMode: */
+/* 'w' = overwrite */
+/* 'a' = append */
 static int tee(char *editMode, char *inStr, char *filename)
 {
 	FILE *fd = fopen(filename, editMode);
