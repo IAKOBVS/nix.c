@@ -1,9 +1,9 @@
 #ifndef NIX_H_DEF
 #define NIX_H_DEF
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <string.h>
 
 static int sizeOfFile(char *filename)
 {
@@ -12,26 +12,45 @@ static int sizeOfFile(char *filename)
 	return fileInfo.st_size;
 }
 
-static int wcl(char *filename)
+static int wc(char flag, char *filename)
 {
 	FILE *fd = fopen(filename, "r");
 	if (!fd) {
-		fprintf(stderr, "wcl: fd is 0\n");
+		fprintf(stderr, "wc %c: fd is 0\n", flag);
 		return 0;
 	}
-	int count = 0;
-	for (int c; c != EOF; c = fgetc(fd))
-		if (c == '\n')
-			++count;
+	int cnt;
+	switch (flag) {
+	case 'l':
+		cnt=0;
+		for (int c = fgetc(fd); c != EOF; c = fgetc(fd))
+			if (c == '\n')
+				++cnt;
+		break;
+	case 'w':
+		cnt=0;
+		for (int c = fgetc(fd); c != EOF; c = fgetc(fd))
+			switch (c) {
+			case ' ':
+			case '\n':
+				continue;
+			default:
+				++cnt;
+			}
+		break;
+	default:
+		fprintf(stderr, "wc %c: invalid flag (not 'l' nor 'w')\n", flag);
+		return 0;
+	}
 	fclose(fd);
-	return count;
+	return cnt;
 }
 
-static int tee(char *inStr, char *filename)
+static int tee(char *editMode, char *inStr, char *filename)
 {
-	FILE *fd = fopen(filename, "w");
+	FILE *fd = fopen(filename, editMode);
 	if (!fd) {
-		fprintf(stderr, "tee: fopen failed\n");
+		fprintf(stderr, "tee: fopen failed\nuse \"a\" to append and \"w\" for overwrite");
 		return 0;
 	}
 	fprintf(fd, "%s", inStr);
@@ -82,7 +101,7 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 	if (nStr > 1) {
 		int i=0;
 		int j=0;
-		int lines = wcl(filename);
+		int lines = wc('l', filename);
 		for (int line=0; i<fileSize && line<lines; ++line) {
 			for (int n=1; n<nStr; ++n) {
 				for ( ; fileStr[i] != delim; ++i)
@@ -104,7 +123,7 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 	} else {
 		int i=0;
 		int j=0;
-		int lines = wcl(filename);
+		int lines = wc('l', filename);
 		for (int line=0; line<lines; ++line) {
 			while (fileStr[i] != delim) {
 				if (i >= fileSize)
