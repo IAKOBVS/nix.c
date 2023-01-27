@@ -12,7 +12,7 @@ static int sizeOfFile(char *filename)
 	return fileInfo.st_size;
 }
 
-/* flags: */
+/* flag: */
 /* 'l' =  line */
 /* 'w' =  word */
 static int wc(char flag, char *filename)
@@ -122,8 +122,8 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 					goto RETURN_SUCCESS;
 			(*outStr)[j++] = '\n';
 		}
-		break;
 		}
+		break;
 	default:
 		{
 		int i=0;
