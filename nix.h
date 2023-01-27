@@ -74,18 +74,19 @@ static int cat(char *filename, char **outStr)
 	}
 	int fileSize = sizeOfFile(filename);
 	*outStr = malloc(fileSize);
-	if (!*outStr) {
-		fprintf(stderr, "cat: *outStr is 0\n");
-		goto RETURN_ERROR;
-	}
-	fread(*outStr, 1, fileSize, fd);
-	if (ferror(fd)) {
-		fprintf(stderr, "cat: ferror(fd) is 0\n");
-		goto RETURN_ERROR;
-	}
-	fclose(fd);
-	return fileSize;
-	RETURN_ERROR:;
+	do {
+		if (!*outStr) {
+			fprintf(stderr, "cat: *outStr is 0\n");
+			break;
+		}
+		fread(*outStr, 1, fileSize, fd);
+		if (ferror(fd)) {
+			fprintf(stderr, "cat: ferror(fd) is 0\n");
+			break;
+		}
+		fclose(fd);
+		return fileSize;
+	} while (0);
 	fclose(fd);
 	return 0;
 }
@@ -104,7 +105,27 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 		fprintf(stderr, "awk: *outStr is 0\n");
 		goto RETURN_ERROR;
 	}
-	if (nStr > 1) {
+	switch (nStr) {
+	case 1:
+		{
+		int i=0;
+		int j=0;
+		int lines = wc('l', filename);
+		for (int line=0; line<lines; ++line) {
+			while (fileStr[i] != delim) {
+				if (i >= fileSize)
+					goto RETURN_SUCCESS;
+				(*outStr)[j++] = fileStr[i++];
+			}
+			for ( ; fileStr[i] != '\n'; ++i)
+				if (i >= fileSize)
+					goto RETURN_SUCCESS;
+			(*outStr)[j++] = '\n';
+		}
+		break;
+		}
+	default:
+		{
 		int i=0;
 		int j=0;
 		int lines = wc('l', filename);
@@ -126,20 +147,6 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 					goto RETURN_SUCCESS;
 			(*outStr)[j++] = '\n';
 		}
-	} else {
-		int i=0;
-		int j=0;
-		int lines = wc('l', filename);
-		for (int line=0; line<lines; ++line) {
-			while (fileStr[i] != delim) {
-				if (i >= fileSize)
-					goto RETURN_SUCCESS;
-				(*outStr)[j++] = fileStr[i++];
-			}
-			for ( ; fileStr[i] != '\n'; ++i)
-				if (i >= fileSize)
-					goto RETURN_SUCCESS;
-			(*outStr)[j++] = '\n';
 		}
 	}
 	RETURN_SUCCESS:;
