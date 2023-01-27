@@ -12,49 +12,12 @@ static int sizeOfFile(char *filename)
 	return fileInfo.st_size;
 }
 
-/* flag: */
-/* 'l' =  line */
-/* 'w' =  word */
-static int wc(char flag, char *filename)
-{
-	FILE *fd = fopen(filename, "r");
-	if (!fd) {
-		perror("wc: fopen failed");
-		return 0;
-	}
-	int cnt;
-	switch (flag) {
-	case 'l':
-		cnt=0;
-		for (int c = fgetc(fd); c != EOF; c = fgetc(fd))
-			if (c == '\n')
-				++cnt;
-		break;
-	case 'w':
-		cnt=0;
-		for (int c = fgetc(fd); c != EOF; c = fgetc(fd))
-			switch (c) {
-			case ' ':
-			case '\n':
-				continue;
-			default:
-				++cnt;
-			}
-		break;
-	default:
-		perror("wc: invalid flag ('l' or 'w')");
-		return 0;
-	}
-	fclose(fd);
-	return cnt;
-}
-
-/* editMode: */
+/* fopenMode: */
 /* 'w' = overwrite */
 /* 'a' = append */
-static int tee(char *editMode, char *inStr, char *filename)
+static int tee(char *fopenMode, char *inStr, char *filename)
 {
-	FILE *fd = fopen(filename, editMode);
+	FILE *fd = fopen(filename, fopenMode);
 	if (!fd) {
 		perror("tee: fopen failed");
 		return 0;
@@ -69,7 +32,7 @@ static int cat(char *filename, char **outStr)
 	/* outStr must be freed after used */
 	FILE *fd = fopen(filename, "r");
 	if (!fd) {
-		perror("cat: fopen failed")
+		perror("cat: fopen failed");
 		return 0;
 	}
 	int fileSize = sizeOfFile(filename);
@@ -91,13 +54,48 @@ static int cat(char *filename, char **outStr)
 	return 0;
 }
 
+/* flag: */
+/* 'l' =  line */
+/* 'w' =  word */
+static int wc(char flag, char *filename)
+{
+	char *fileStr;
+	int fileSize = cat(filename, &fileStr);
+	if (!fileSize) {
+		perror("wc: cat failed");
+		return 0;
+	}
+	int i;
+	switch (flag) {
+	case 'l':
+		for (i=0 ; i<fileSize; ++i)
+			if (fileStr[i] == 'c')
+				++i;
+		break;
+	case 'w':
+		for (i=0 ; i<fileSize; ++i)
+			switch (fileStr[i]) {
+			case ' ':
+			case '\n':
+				continue;
+			default:
+				++i;
+			}
+		break;
+	default:
+		perror("wc: invalid flag ('l' or 'w')");
+		return 0;
+	}
+	return i;
+}
+
 static int awk(char delim, int nStr, char *filename, char **outStr)
 {
 	/* fileStr must be freed */
 	char *fileStr;
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize) {
-		perror("awk: file size is 0");
+		perror("awk: cat failed");
 		goto RETURN_ERROR;
 	}
 	*outStr = malloc(fileSize);
@@ -112,10 +110,10 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 		int j=0;
 		int lines = wc('l', filename);
 		for (int line=0; line<lines; ++line) {
-			while (fileStr[i] != delim) {
+			for ( ; fileStr[i] != delim; ++i) {
 				if (i >= fileSize)
 					goto RETURN_SUCCESS;
-				(*outStr)[j++] = fileStr[i++];
+				(*outStr)[j++] = fileStr[i];
 			}
 			for ( ; fileStr[i] != '\n'; ++i)
 				if (i >= fileSize)
