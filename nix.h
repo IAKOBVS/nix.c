@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <string.h>
 
 static int sizeOfFile(char *filename)
 {
@@ -13,42 +14,54 @@ static int sizeOfFile(char *filename)
 
 static int wcl(char *filename)
 {
-	FILE *file = fopen(filename, "r");
-	if (!file) {
-		fprintf(stderr, "wcl: file is 0\n");
+	FILE *fd = fopen(filename, "r");
+	if (!fd) {
+		fprintf(stderr, "wcl: fd is 0\n");
 		return 0;
 	}
 	int count = 0;
-	for (int c; c != EOF; c = fgetc(file))
+	for (int c; c != EOF; c = fgetc(fd))
 		if (c == '\n')
 			++count;
-	fclose(file);
+	fclose(fd);
 	return count;
 }
 
-static int cat(char *filename, char **outFile)
+static int tee(char *inStr, char *filename)
 {
-	/* outFile must be freed after used */
-	FILE *file = fopen(filename, "r");
-	if (!file) {
+	FILE *fd = fopen(filename, "w");
+	if (!fd) {
+		fprintf(stderr, "tee: fopen failed\n");
+		return 0;
+	}
+	fprintf(fd, "%s", inStr);
+	fclose(fd);
+	return 1;
+}
+
+static int cat(char *filename, char **outStr)
+{
+	/* outStr must be freed after used */
+	FILE *fd = fopen(filename, "r");
+	if (!fd) {
 		fprintf(stderr, "cat: fopen failed\n");
 		return 0;
 	}
 	int fileSize = sizeOfFile(filename);
-	*outFile = malloc(fileSize);
-	if (!*outFile) {
-		fprintf(stderr, "cat: *outFile is 0\n");
+	*outStr = malloc(fileSize);
+	if (!*outStr) {
+		fprintf(stderr, "cat: *outStr is 0\n");
 		goto RETURN_ERROR;
 	}
-	fread(*outFile, 1, fileSize, file);
-	if (ferror(file)) {
-		fprintf(stderr, "cat: ferror(file) is 0\n");
+	fread(*outStr, 1, fileSize, fd);
+	if (ferror(fd)) {
+		fprintf(stderr, "cat: ferror(fd) is 0\n");
 		goto RETURN_ERROR;
 	}
-	fclose(file);
+	fclose(fd);
 	return fileSize;
 	RETURN_ERROR:;
-	fclose(file);
+	fclose(fd);
 	return 0;
 }
 
