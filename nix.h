@@ -15,9 +15,9 @@ static int sizeOfFile(char *filename)
 /* fopenMode: */
 /* 'w' = overwrite */
 /* 'a' = append */
-static int tee(char *fopenMode, char *inStr, char *filename)
+static int tee(char *flag, char *inStr, char *filename)
 {
-	FILE *fd = fopen(filename, fopenMode);
+	FILE *fd = fopen(filename, flag);
 	if (!fd) {
 		perror("tee: fopen failed");
 		return 0;
@@ -29,7 +29,7 @@ static int tee(char *fopenMode, char *inStr, char *filename)
 
 static int cat(char *filename, char **outStr)
 {
-	/* outStr must be freed after used */
+	/* outStr must be freed */
 	FILE *fd = fopen(filename, "r");
 	if (!fd) {
 		perror("cat: fopen failed");
@@ -147,10 +147,10 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 		}
 		}
 	}
-	RETURN_SUCCESS:;
+RETURN_SUCCESS:;
 	free(fileStr);
 	return 1;
-	RETURN_ERROR:;
+RETURN_ERROR:;
 	free(fileStr);
 	return 0;
 }
