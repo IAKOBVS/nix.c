@@ -15,7 +15,7 @@ static int wcl(char *filename)
 {
 	FILE *file = fopen(filename, "r");
 	if (!file) {
-		fprintf(stderr, "cat: file is 0");
+		fprintf(stderr, "wcl: file is 0\n");
 		return 0;
 	}
 	int count = 0;
@@ -31,18 +31,18 @@ static int cat(char *filename, char **outFile)
 	/* outFile must be freed after used */
 	FILE *file = fopen(filename, "r");
 	if (!file) {
-		fprintf(stderr, "cat: fopen failed");
+		fprintf(stderr, "cat: fopen failed\n");
 		return 0;
 	}
 	int fileSize = sizeOfFile(filename);
 	*outFile = malloc(fileSize);
 	if (!*outFile) {
-		fprintf(stderr, "cat: *outFile is 0");
+		fprintf(stderr, "cat: *outFile is 0\n");
 		goto RETURN_ERROR;
 	}
 	fread(*outFile, 1, fileSize, file);
 	if (ferror(file)) {
-		fprintf(stderr, "cat: ferror(file) is 0");
+		fprintf(stderr, "cat: ferror(file) is 0\n");
 		goto RETURN_ERROR;
 	}
 	fclose(file);
@@ -58,32 +58,32 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 	char *fileStr;
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize) {
-		fprintf(stderr, "awk: fileSize is 0");
+		fprintf(stderr, "awk: fileSize is 0\n");
 		goto RETURN_ERROR;
 	}
 	*outStr = malloc(fileSize);
 	if (!*outStr) {
-		fprintf(stderr, "awk: *outStr is 0");
+		fprintf(stderr, "awk: *outStr is 0\n");
 		goto RETURN_ERROR;
 	}
 	if (nStr > 1) {
 		int i=0;
-		int lineNum = wcl(filename);
-		for (int curr=0; curr<lineNum; ++curr) {
+		int j=0;
+		int lines = wcl(filename);
+		for (int line=0; i<fileSize && line<lines; ++line) {
 			for (int n=1; n<nStr; ++n) {
-				while (fileStr[i++] != delim)
-					if (i < fileSize)
+				for ( ; fileStr[i] != delim; ++i)
+					if (i >= fileSize)
 						goto RETURN_SUCCESS;
 				while (fileStr[i] == delim)
 					++i;
 			}
-			int j=0;
-			while (fileStr[i++] != delim) {
+			for ( ; fileStr[i] != delim; ++i) {
 				if (i >= fileSize)
 					goto RETURN_SUCCESS;
 				(*outStr)[j++] = fileStr[i];
 			}
-			while (fileStr[i++] != '\n')
+			for ( ; fileStr[i] != '\n'; ++i)
 				if (i >= fileSize)
 					goto RETURN_SUCCESS;
 			(*outStr)[j++] = '\n';
@@ -91,14 +91,14 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 	} else {
 		int i=0;
 		int j=0;
-		int lineNum = wcl(filename);
-		for (int curr=0; curr<lineNum; ++curr) {
-			while (fileStr[i++] != delim) {
-				if (i<fileSize)
+		int lines = wcl(filename);
+		for (int line=0; line<lines; ++line) {
+			while (fileStr[i] != delim) {
+				if (i >= fileSize)
 					goto RETURN_SUCCESS;
-				(*outStr)[j++] = fileStr[i];
+				(*outStr)[j++] = fileStr[i++];
 			}
-			while (fileStr[i++] != '\n')
+			for ( ; fileStr[i] != '\n'; ++i)
 				if (i >= fileSize)
 					goto RETURN_SUCCESS;
 			(*outStr)[j++] = '\n';
