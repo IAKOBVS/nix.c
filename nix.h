@@ -19,7 +19,7 @@ static int wc(char flag, char *filename)
 {
 	FILE *fd = fopen(filename, "r");
 	if (!fd) {
-		fprintf(stderr, "wc %c: fd is 0\n", flag);
+		perror("wc: fopen failed");
 		return 0;
 	}
 	int cnt;
@@ -42,7 +42,7 @@ static int wc(char flag, char *filename)
 			}
 		break;
 	default:
-		fprintf(stderr, "wc %c: invalid flag (not 'l' nor 'w')\n", flag);
+		perror("wc: invalid flag ('l' or 'w')");
 		return 0;
 	}
 	fclose(fd);
@@ -56,7 +56,7 @@ static int tee(char *editMode, char *inStr, char *filename)
 {
 	FILE *fd = fopen(filename, editMode);
 	if (!fd) {
-		fprintf(stderr, "tee: fopen failed\nuse \"a\" to append and \"w\" for overwrite");
+		perror("tee: fopen failed");
 		return 0;
 	}
 	fprintf(fd, "%s", inStr);
@@ -69,19 +69,19 @@ static int cat(char *filename, char **outStr)
 	/* outStr must be freed after used */
 	FILE *fd = fopen(filename, "r");
 	if (!fd) {
-		fprintf(stderr, "cat: fopen failed\n");
+		perror("cat: fopen failed")
 		return 0;
 	}
 	int fileSize = sizeOfFile(filename);
 	*outStr = malloc(fileSize);
 	do {
 		if (!*outStr) {
-			fprintf(stderr, "cat: *outStr is 0\n");
+			perror("cat: *outStr malloc failed");
 			break;
 		}
 		fread(*outStr, 1, fileSize, fd);
 		if (ferror(fd)) {
-			fprintf(stderr, "cat: ferror(fd) is 0\n");
+			perror("cat: fread failed");
 			break;
 		}
 		fclose(fd);
@@ -97,12 +97,12 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 	char *fileStr;
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize) {
-		fprintf(stderr, "awk: fileSize is 0\n");
+		perror("awk: file size is 0");
 		goto RETURN_ERROR;
 	}
 	*outStr = malloc(fileSize);
 	if (!*outStr) {
-		fprintf(stderr, "awk: *outStr is 0\n");
+		perror("awk: malloc failed");
 		goto RETURN_ERROR;
 	}
 	switch (nStr) {
