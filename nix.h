@@ -14,104 +14,101 @@ static int sizeOfFile(char *filename)
 static int wcl(char *filename)
 {
 	FILE *file = fopen(filename, "r");
-	if (!file)
+	if (!file) {
+		fprintf(stderr, "cat: file is 0");
 		return 0;
-	int c;
-	int count=0;
-	do {
-		c = fgetc(file);
+	}
+	int count = 0;
+	for (int c; c != EOF; c = fgetc(file))
 		if (c == '\n')
-			count++;
-	} while (c != EOF);
+			++count;
 	fclose(file);
 	return count;
 }
 
-static void cat(char *filename, char **outFile)
+static int cat(char *filename, char **outFile)
 {
+	/* outFile must be freed after used */
+	FILE *file = fopen(filename, "r");
+	if (!file) {
+		fprintf(stderr, "cat: fopen failed");
+		return 0;
+	}
 	int fileSize = sizeOfFile(filename);
 	*outFile = malloc(fileSize);
-	FILE *file = fopen(filename, "r");
-	if (!file)
-		return;
+	if (!*outFile) {
+		fprintf(stderr, "cat: *outFile is 0");
+		goto RETURN_ERROR;
+	}
 	fread(*outFile, 1, fileSize, file);
-	if (ferror(file))
-		return;
+	if (ferror(file)) {
+		fprintf(stderr, "cat: ferror(file) is 0");
+		goto RETURN_ERROR;
+	}
 	fclose(file);
+	return fileSize;
+	RETURN_ERROR:;
+	fclose(file);
+	return 0;
 }
 
-static void awk(char delim, int nStr, char *filename, char **outStr)
+static int awk(char delim, int nStr, char *filename, char **outStr)
 {
-	int fileSize = sizeOfFile(filename);
+	/* fileStr must be freed */
 	char *fileStr;
+	int fileSize = cat(filename, &fileStr);
+	if (!fileSize) {
+		fprintf(stderr, "awk: fileSize is 0");
+		goto RETURN_ERROR;
+	}
 	*outStr = malloc(fileSize);
-	cat(filename, &fileStr);
-	if (!fileStr)
-		return;
-	for (int lineNum = wcl(filename), i=0, j=0, curr=0; curr<lineNum; ++curr) {
-		if (nStr > 1)
+	if (!*outStr) {
+		fprintf(stderr, "awk: *outStr is 0");
+		goto RETURN_ERROR;
+	}
+	if (nStr > 1) {
+		int i=0;
+		int lineNum = wcl(filename);
+		for (int curr=0; curr<lineNum; ++curr) {
 			for (int n=1; n<nStr; ++n) {
-				while (fileStr[i] != delim && i<fileSize)
-					++i;
-				while (fileStr[i] == delim && i<fileSize)
+				while (fileStr[i++] != delim)
+					if (i < fileSize)
+						goto RETURN_SUCCESS;
+				while (fileStr[i] == delim)
 					++i;
 			}
-		/* assigns matched column to string */
-		while (fileStr[i] != delim && i<fileSize)
-			*outStr[j++] = fileStr[i++];
-		while (fileStr[i] != '\n')
-			if (i++<fileSize)
-				return;
-		*outStr[j] = '\n';
+			int j=0;
+			while (fileStr[i++] != delim) {
+				if (i >= fileSize)
+					goto RETURN_SUCCESS;
+				(*outStr)[j++] = fileStr[i];
+			}
+			while (fileStr[i++] != '\n')
+				if (i >= fileSize)
+					goto RETURN_SUCCESS;
+			(*outStr)[j++] = '\n';
+		}
+	} else {
+		int i=0;
+		int j=0;
+		int lineNum = wcl(filename);
+		for (int curr=0; curr<lineNum; ++curr) {
+			while (fileStr[i++] != delim) {
+				if (i<fileSize)
+					goto RETURN_SUCCESS;
+				(*outStr)[j++] = fileStr[i];
+			}
+			while (fileStr[i++] != '\n')
+				if (i >= fileSize)
+					goto RETURN_SUCCESS;
+			(*outStr)[j++] = '\n';
+		}
 	}
+	RETURN_SUCCESS:;
 	free(fileStr);
+	return 1;
+	RETURN_ERROR:;
+	free(fileStr);
+	return 0;
 }
-
-/* static void awk(char delim, char *inStr, int nStr, char *outStr) */
-/* { */
-/* 	int i = 0; */
-/* 	while (inStr[i] == delim && inStr[i]) ++i; */
-/* 	if (nStr > 1) */
-/* 		for (int nDelim = 1; nDelim<nStr; ++nDelim) { */
-/* 			while (inStr[i] != delim && inStr[i]) */
-/* 				++i; */
-/* 			while (inStr[i] == delim && inStr[i]) */
-/* 				++i; */
-/* 		} */
-/* 	for (int j = 0; inStr[i] != delim && inStr[i]; ++i, ++j) */
-/* 		outStr[j] = inStr[i]; */
-/* } */
-
-/* static void awkMult(char delim, int nStr, char *filename, char **outStr) */
-/* { */
-/* 	int fileSize = sizeOfFile(filename); */
-/* 	char *fileBuff; */
-/* 	*outStr = malloc(fileSize); */
-/* 	cat(filename, &fileBuff); */
-/* 	if (!fileBuff) */
-/* 		return; */
-/* 	for (int lineNum = wcl(filename), i=0, j=0, curr=0; curr<lineNum; ++curr) { */
-/* 		while (fileBuff[i] == delim && fileBuff[i] != '\n' && i<fileSize) */
-/* 			++i; */
-/* 		if (nStr > 1) */
-/* 			for (int nDelim = 1; nDelim<nStr; ++nDelim) { */
-/* 				while (fileBuff[i] != delim && fileBuff[i] != '\n' && i<fileSize) */
-/* 					++i; */
-/* 				while (fileBuff[i] == delim && fileBuff[i] != '\n' && i<fileSize) */
-/* 					++i; */
-/* 			} */
-/* 		while (fileBuff[i] != '\n') { */
-/* 			if (i >= fileSize) */
-/* 				return; */
-/* 			else if (fileBuff[i] != delim) */
-/* 				(*outStr)[j++] = fileBuff[i]; */
-/* 			else */
-/* 				break; */
-/* 			++i; */
-/* 		} */
-/* 		(*outStr)[j++] = '\n'; */
-/* 	} */
-/* 	free(fileBuff); */
-/* } */
-
 #endif
