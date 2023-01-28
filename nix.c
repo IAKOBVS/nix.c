@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <string.h>
 #include "nix.h"
 
 int sizeOfFile(char *filename)
@@ -25,6 +26,43 @@ int tee(char *flag, char *inStr, char *filename)
 	fputs(inStr, fd);
 	fclose(fd);
 	return 1;
+}
+
+/* get first line of file */
+int head(char *filename, char **outStr)
+{
+	FILE *fd;
+	fd = fopen(filename, "r");
+	if (!fd) {
+		fprintf(stderr, "head(%s, %s): fopen failed", filename, *outStr);
+		perror("");
+		return 0;
+	}
+	char *tmpStr = malloc(1024);
+	if (!tmpStr) {
+		fprintf(stderr, "head(%s, %s): fgets failed", filename, *outStr);
+		fclose(fd);
+		return 0;
+	}
+	fgets(tmpStr, 1024, stdin);
+	if (ferror(fd)) {
+		fprintf(stderr, "head(%s, %s): fgets failed", filename, *outStr);
+		goto RETURN_ERROR;
+	}
+	int strLen = strlen(tmpStr);
+	*outStr = realloc(tmpStr, strLen);
+	if (!*outStr) {
+		fprintf(stderr, "head(%s, %s): *outStr realloc failed", filename, *outStr);
+		goto RETURN_ERROR;
+	}
+	fclose(fd);
+	return strLen;
+RETURN_ERROR:;
+	fclose(fd);
+	free(tmpStr);
+	perror("");
+	return 0;
+
 }
 
 int cat(char *filename, char **outStr)
@@ -121,8 +159,7 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 		perror("");
 		return 0;
 	}
-	char *tmpStr;
-	tmpStr = malloc(fileSize);
+	char *tmpStr = malloc(fileSize);
 	if (!tmpStr) {
 		fprintf(stderr, "awk(%c, %d, %s, %s): malloc failed", delim, nStr, filename, *outStr);
 		goto RETURN_ERROR;
@@ -179,7 +216,8 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 		}
 	}
 EXIT_LOOPS:;
-	*outStr = realloc(tmpStr, j);
+	if (j)
+		*outStr = realloc(tmpStr, j);
 	if (!*outStr) {
 		fprintf(stderr, "awk(%c, %d, %s, %s): *outStr realloc failed", delim, nStr, filename, *outStr);
 		free(tmpStr);
