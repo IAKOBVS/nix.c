@@ -37,22 +37,21 @@ static int cat(char *filename, char **outStr)
 		perror("cat: fopen failed");
 		return 0;
 	}
-	do {
-		int fileSize = sizeOfFile(filename);
-		*outStr = malloc(fileSize);
-		if (!*outStr) {
-			perror("cat: *outStr malloc failed");
-			break;
-		}
-		fread(*outStr, 1, fileSize, fd);
-		if (ferror(fd)) {
-			free(outStr);
-			perror("cat: fread failed");
-			break;
-		}
-		fclose(fd);
-		return fileSize;
-	} while (0);
+	int fileSize = sizeOfFile(filename);
+	*outStr = malloc(fileSize);
+	if (!*outStr) {
+		perror("cat: *outStr malloc failed");
+		goto RETURN_ERROR;
+	}
+	fread(*outStr, 1, fileSize, fd);
+	if (ferror(fd)) {
+		free(outStr);
+		perror("cat: fread failed");
+		goto RETURN_ERROR;
+	}
+	fclose(fd);
+	return fileSize;
+RETURN_ERROR:;
 	fclose(fd);
 	return 0;
 }
@@ -70,21 +69,27 @@ static int wc(char flag, char *filename)
 		return 0;
 	}
 	int i;
+	int count;
 	switch (flag) {
 	case 'l':
-		for (i=0 ; i<fileSize; ++i)
-			if (fileStr[i] == 'c')
-				++i;
+		i=0;
+		do {
+			if (fileStr[i] == '\n')
+				++count;
+			++i;
+		} while (i<fileSize);
 		break;
 	case 'w':
-		for (i=0 ; i<fileSize; ++i)
+		do {
 			switch (fileStr[i]) {
 			case ' ':
 			case '\n':
-				continue;
+				break;
 			default:
-				++i;
+				++count;
 			}
+			++i;
+		} while (i<fileSize);
 		break;
 	default:
 		perror("wc: invalid flag ('l' or 'w')");
@@ -117,8 +122,9 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 		{
 		i=0;
 		j=0;
+		int line=0;
 		int lines = wc('l', filename);
-		for (int line=0; line<lines; ++line) {
+		do {
 			for ( ; fileStr[i] != delim; ++i) {
 				if (i >= fileSize)
 					goto RETURN_SUCCESS;
@@ -128,22 +134,26 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 				if (i >= fileSize)
 					goto RETURN_SUCCESS;
 			tmpStr[j++] = '\n';
-		}
+			++line;
+		} while (line<lines);
 		}
 		break;
 	default:
 		{
 		i=0;
 		j=0;
+		int line=0;
 		int lines = wc('l', filename);
-		for (int line=0; i<fileSize && line<lines; ++line) {
-			for (int n=1; n<nStr; ++n) {
+		do {
+			int n=1;
+			do {
 				for ( ; fileStr[i] != delim; ++i)
 					if (i >= fileSize)
 						goto RETURN_SUCCESS;
 				while (fileStr[i] == delim)
 					++i;
-			}
+				++n;
+			} while (n<nStr);
 			for ( ; fileStr[i] != delim; ++i) {
 				if (i >= fileSize)
 					goto RETURN_SUCCESS;
@@ -153,7 +163,8 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 				if (i >= fileSize)
 					goto RETURN_SUCCESS;
 			tmpStr[j++] = '\n';
-		}
+			++line;
+		} while (line<lines);
 		}
 	}
 	*outStr = realloc(tmpStr, j);
