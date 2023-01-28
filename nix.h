@@ -118,8 +118,7 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 	int i;
 	int j;
 	switch (nStr) {
-	case 1:
-		{
+	case 1: {
 		i=0;
 		j=0;
 		int line=0;
@@ -127,12 +126,12 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 		do {
 			for ( ; fileStr[i] != delim; ++i) {
 				if (i >= fileSize)
-					goto RETURN_SUCCESS;
+					goto EXIT_LOOPS;
 				tmpStr[j++] = fileStr[i];
 			}
 			for ( ; fileStr[i] != '\n'; ++i)
 				if (i >= fileSize)
-					goto RETURN_SUCCESS;
+					goto EXIT_LOOPS;
 			tmpStr[j++] = '\n';
 			++line;
 		} while (line<lines);
@@ -149,35 +148,36 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 			do {
 				for ( ; fileStr[i] != delim; ++i)
 					if (i >= fileSize)
-						goto RETURN_SUCCESS;
+						goto EXIT_LOOPS;
 				while (fileStr[i] == delim)
 					++i;
 				++n;
 			} while (n<nStr);
 			for ( ; fileStr[i] != delim; ++i) {
 				if (i >= fileSize)
-					goto RETURN_SUCCESS;
+					goto EXIT_LOOPS;
 				tmpStr[j++] = fileStr[i];
 			}
 			for ( ; fileStr[i] != '\n'; ++i)
 				if (i >= fileSize)
-					goto RETURN_SUCCESS;
+					goto EXIT_LOOPS;
 			tmpStr[j++] = '\n';
 			++line;
 		} while (line<lines);
 		}
 	}
+EXIT_LOOPS:;
 	*outStr = realloc(tmpStr, j);
 	if (!*outStr) {
 		perror("awk: *outStr realloc failed");
 		free(tmpStr);
 		goto RETURN_ERROR;
 	}
-RETURN_SUCCESS:;
 	free(fileStr);
 	return j;
 RETURN_ERROR:;
 	free(fileStr);
 	return 0;
 }
+
 #endif
