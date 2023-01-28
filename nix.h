@@ -88,13 +88,11 @@ static int wc(char flag, char *filename)
 		break;
 	default:
 		perror("wc: invalid flag ('l' or 'w')");
-		goto RETURN_ERROR;
+		free(fileStr);
+		return 0;
 	}
 	free(fileStr);
 	return i;
-RETURN_ERROR:;
-	free(fileStr);
-	return 0;
 }
 
 static int awk(char delim, int nStr, char *filename, char **outStr)
