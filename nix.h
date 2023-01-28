@@ -17,6 +17,7 @@ static int sizeOfFile(char *filename)
 /* 'a' = append */
 static int tee(char *flag, char *inStr, char *filename)
 {
+	/* fd must be fclosed */
 	FILE *fd = fopen(filename, flag);
 	if (!fd) {
 		perror("tee: fopen failed");
@@ -29,21 +30,23 @@ static int tee(char *flag, char *inStr, char *filename)
 
 static int cat(char *filename, char **outStr)
 {
-	/* outStr must be freed */
-	FILE *fd = fopen(filename, "r");
+	/* fd must be fclosed */
+	FILE *fd;
+	fd = fopen(filename, "r");
 	if (!fd) {
 		perror("cat: fopen failed");
 		return 0;
 	}
-	int fileSize = sizeOfFile(filename);
-	*outStr = malloc(fileSize);
 	do {
+		int fileSize = sizeOfFile(filename);
+		*outStr = malloc(fileSize);
 		if (!*outStr) {
 			perror("cat: *outStr malloc failed");
 			break;
 		}
 		fread(*outStr, 1, fileSize, fd);
 		if (ferror(fd)) {
+			free(outStr);
 			perror("cat: fread failed");
 			break;
 		}
@@ -59,6 +62,7 @@ static int cat(char *filename, char **outStr)
 /* 'w' =  word */
 static int wc(char flag, char *filename)
 {
+	/* fileStr must be freed */
 	char *fileStr;
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize) {
@@ -84,9 +88,13 @@ static int wc(char flag, char *filename)
 		break;
 	default:
 		perror("wc: invalid flag ('l' or 'w')");
-		return 0;
+		goto RETURN_ERROR;
 	}
+	free(fileStr);
 	return i;
+RETURN_ERROR:;
+	free(fileStr);
+	return 0;
 }
 
 static int awk(char delim, int nStr, char *filename, char **outStr)
@@ -96,7 +104,7 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize) {
 		perror("awk: cat failed");
-		goto RETURN_ERROR;
+		return 0;
 	}
 	char *tmpStr;
 	*tmpStr = malloc(fileSize);
