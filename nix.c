@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include "nix.h"
+
 int sizeOfFile(char *filename)
 {
 	struct stat fileInfo;
