@@ -84,7 +84,8 @@ static int wc(char flag, char *filename)
 			switch (fileStr[i]) {
 			case ' ':
 			case '\n':
-				break;
+				++i;
+				continue;
 			default:
 				++count;
 			}
