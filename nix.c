@@ -18,14 +18,16 @@ int tee(char *flag, char *inStr, char *filename)
 {
 	/* fd must be fclosed */
 	FILE *fd = fopen(filename, flag);
-	if (!fd) {
-		fprintf(stderr, "tee(%s, %s, %s): fopen failed", flag, inStr, filename);
-		perror("");
-		return 0;
-	}
+	if (!fd)
+		goto RETURN_ERROR;
 	fputs(inStr, fd);
 	fclose(fd);
 	return 1;
+
+RETURN_ERROR:;
+	fprintf(stderr, "tee(%s, %s, %s):", flag, inStr, filename);
+	perror("");
+	return 0;
 }
 
 /* get first line of file */
@@ -33,36 +35,36 @@ int head(char *filename, char **outStr)
 {
 	FILE *fd;
 	fd = fopen(filename, "r");
-	if (!fd) {
-		fprintf(stderr, "head(%s, %s): fopen failed", filename, *outStr);
-		perror("");
-		return 0;
-	}
-	char *tmpStr = malloc(1024);
-	if (!tmpStr) {
-		fprintf(stderr, "head(%s, %s): fgets failed", filename, *outStr);
-		fclose(fd);
-		return 0;
-	}
-	fgets(tmpStr, 1024, stdin);
-	if (ferror(fd)) {
-		fprintf(stderr, "head(%s, %s): fgets failed", filename, *outStr);
+	if (!fd)
 		goto RETURN_ERROR;
-	}
+	char *tmpStr = malloc(1024);
+	if (!tmpStr)
+		goto RETURN_ERROR_CLOSE;
+	fgets(tmpStr, 1024, stdin);
+	if (ferror(fd))
+		goto RETURN_ERROR_CLOSE_FREE;
 	int strLen = strlen(tmpStr);
 	*outStr = realloc(tmpStr, strLen);
-	if (!*outStr) {
-		fprintf(stderr, "head(%s, %s): *outStr realloc failed", filename, *outStr);
-		goto RETURN_ERROR;
-	}
+	if (!*outStr)
+		goto RETURN_ERROR_CLOSE_FREE;
 	fclose(fd);
 	return strLen;
+
 RETURN_ERROR:;
-	fclose(fd);
-	free(tmpStr);
+	fprintf(stderr, "head(%s, %s):", filename, *outStr);
 	perror("");
 	return 0;
-
+RETURN_ERROR_CLOSE:;
+	fprintf(stderr, "head(%s, %s):", filename, *outStr);
+	perror("");
+	fclose(fd);
+	return 0;
+RETURN_ERROR_CLOSE_FREE:;
+	fprintf(stderr, "head(%s, %s):", filename, *outStr);
+	perror("");
+	fclose(fd);
+	free(tmpStr);
+	return 0;
 }
 
 int cat(char *filename, char **outStr)
@@ -70,26 +72,30 @@ int cat(char *filename, char **outStr)
 	/* fd must be fclosed */
 	FILE *fd;
 	fd = fopen(filename, "r");
-	if (!fd) {
-		fprintf(stderr, "cat(%s, %s): fopen failed", filename, *outStr);
-		perror("");
-		return 0;
-	}
+	if (!fd)
+		goto RETURN_ERROR;
 	int fileSize = sizeOfFile(filename);
 	*outStr = malloc(fileSize);
-	if (!*outStr) {
-		fprintf(stderr, "cat(%s, %s): *outStr malloc failed", filename, *outStr);
-		goto RETURN_ERROR;
-	}
+	if (!*outStr)
+		goto RETURN_ERROR_CLOSE;
 	fread(*outStr, 1, fileSize, fd);
-	if (ferror(fd)) {
-		free(*outStr);
-		fprintf(stderr, "cat(%s, %s): fread failed", filename, *outStr);
-		goto RETURN_ERROR;
-	}
+	if (ferror(fd))
+		goto RETURN_ERROR_CLOSE_FREE;
 	fclose(fd);
 	return fileSize;
+
 RETURN_ERROR:;
+	fprintf(stderr, "cat(%s, *outStr):", filename);
+	perror("");
+	return 0;
+RETURN_ERROR_CLOSE:;
+	fprintf(stderr, "cat(%s, *outStr):", filename);
+	perror("");
+	fclose(fd);
+	return 0;
+RETURN_ERROR_CLOSE_FREE:;
+	free(*outStr);
+	fprintf(stderr, "cat(%s, *outStr):", filename);
 	perror("");
 	fclose(fd);
 	return 0;
@@ -103,10 +109,8 @@ int wc(char flag, char *filename)
 	/* fileStr must be freed */
 	char *fileStr;
 	int fileSize = cat(filename, &fileStr);
-	if (!fileSize) {
-		fprintf(stderr, "wc(%c, %s): cat failed", flag, filename);
+	if (!fileSize)
 		goto RETURN_ERROR;
-	}
 	int count;
 	switch (flag) {
 	case 'l':
@@ -138,15 +142,14 @@ int wc(char flag, char *filename)
 		}
 		break;
 	default:
-		fprintf(stderr, "wc(%c, %s): invalid flag (use 'l' or 'w')", flag, filename);
-		perror("");
 		goto RETURN_ERROR;
 	}
 	free(fileStr);
 	return count;
 RETURN_ERROR:;
-	     perror("");
-	     return 0;
+	fprintf(stderr, "wc(%c, %s):", flag, filename);
+	perror("");
+	return 0;
 }
 
 int awk(char delim, int nStr, char *filename, char **outStr)
@@ -155,13 +158,12 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 	char *fileStr;
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize) {
-		fprintf(stderr, "awk(%c, %d, %s, %s): cat failed", delim, nStr, filename, *outStr);
+		fprintf(stderr, "awk(%c, %d, %s, %s):", delim, nStr, filename, *outStr);
 		perror("");
 		return 0;
 	}
 	char *tmpStr = malloc(fileSize);
 	if (!tmpStr) {
-		fprintf(stderr, "awk(%c, %d, %s, %s): malloc failed", delim, nStr, filename, *outStr);
 		goto RETURN_ERROR;
 	}
 	int j;
@@ -218,14 +220,18 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 EXIT_LOOPS:;
 	if (j)
 		*outStr = realloc(tmpStr, j);
-	if (!*outStr) {
-		fprintf(stderr, "awk(%c, %d, %s, %s): *outStr realloc failed", delim, nStr, filename, *outStr);
-		free(tmpStr);
-		goto RETURN_ERROR;
-	}
+	if (!*outStr)
+		goto RETURN_ERROR_FREE;
 	free(fileStr);
 	return j;
+
 RETURN_ERROR:;
+	fprintf(stderr, "awk(%c, %d, %s, %s):", delim, nStr, filename, *outStr);
+	perror("");
+	free(fileStr);
+	return 0;
+RETURN_ERROR_FREE:;
+	fprintf(stderr, "awk(%c, %d, %s, %s):", delim, nStr, filename, *outStr);
 	perror("");
 	free(fileStr);
 	return 0;
