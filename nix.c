@@ -4,6 +4,8 @@
 #include <string.h>
 #include "nix.h"
 
+#define MAX_LINE 1024
+
 int sizeOfFile(char *filename)
 {
 	struct stat fileInfo;
@@ -19,12 +21,12 @@ int tee(char *flag, char *inStr, char *filename)
 	/* fd must be fclosed */
 	FILE *fd = fopen(filename, flag);
 	if (!fd)
-		goto ERROR;
+		goto ERR;
 	fputs(inStr, fd);
 	fclose(fd);
 	return 1;
 
-ERROR:;
+ERR:
 	fprintf(stderr, "tee(%s, %s, %s):", flag, inStr, filename);
 	perror("");
 	return 0;
@@ -36,30 +38,30 @@ int head(char *filename, char **outStr)
 	FILE *fd;
 	fd = fopen(filename, "r");
 	if (!fd)
-		goto ERROR;
-	char *tmpStr = malloc(1024);
+		goto ERR;
+	char *tmpStr = malloc(MAX_LINE);
 	if (!tmpStr)
-		goto ERROR_CLOSE;
-	fgets(tmpStr, 1024, stdin);
+		goto ERR_CLOSE;
+	fgets(tmpStr, MAX_LINE, stdin);
 	if (ferror(fd))
-		goto ERROR_CLOSE_FREE;
+		goto ERR_CLOSE_FREE;
 	int strLen = strlen(tmpStr);
 	*outStr = realloc(tmpStr, strLen);
 	if (!*outStr)
-		goto ERROR_CLOSE_FREE;
+		goto ERR_CLOSE_FREE;
 	fclose(fd);
 	return strLen;
 
-ERROR:;
+ERR:
 	fprintf(stderr, "head(%s, %s):", filename, *outStr);
 	perror("");
 	return 0;
-ERROR_CLOSE:;
+ERR_CLOSE:
 	fprintf(stderr, "head(%s, %s):", filename, *outStr);
 	perror("");
 	fclose(fd);
 	return 0;
-ERROR_CLOSE_FREE:;
+ERR_CLOSE_FREE:
 	fprintf(stderr, "head(%s, %s):", filename, *outStr);
 	perror("");
 	fclose(fd);
@@ -73,27 +75,27 @@ int cat(char *filename, char **outStr)
 	FILE *fd;
 	fd = fopen(filename, "r");
 	if (!fd)
-		goto ERROR;
+		goto ERR;
 	int fileSize = sizeOfFile(filename);
 	*outStr = malloc(fileSize);
 	if (!*outStr)
-		goto ERROR_CLOSE;
+		goto ERR_CLOSE;
 	fread(*outStr, 1, fileSize, fd);
 	if (ferror(fd))
-		goto ERROR_CLOSE_FREE;
+		goto ERR_CLOSE_FREE;
 	fclose(fd);
 	return fileSize;
 
-ERROR:;
+ERR:
 	fprintf(stderr, "cat(%s, *outStr):", filename);
 	perror("");
 	return 0;
-ERROR_CLOSE:;
+ERR_CLOSE:
 	fclose(fd);
 	fprintf(stderr, "cat(%s, *outStr):", filename);
 	perror("");
 	return 0;
-ERROR_CLOSE_FREE:;
+ERR_CLOSE_FREE:
 	fclose(fd);
 	free(*outStr);
 	fprintf(stderr, "cat(%s, *outStr):", filename);
@@ -110,7 +112,7 @@ int wc(char flag, char *filename)
 	char *fileStr;
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize)
-		goto ERROR;
+		goto ERR;
 	int count;
 	switch (flag) {
 	case 'l':
@@ -142,12 +144,12 @@ int wc(char flag, char *filename)
 		}
 		break;
 	default:
-		goto ERROR;
+		goto ERR;
 	}
 	free(fileStr);
 	return count;
 
-ERROR:;
+ERR:
 	fprintf(stderr, "wc(%c, %s):", flag, filename);
 	perror("");
 	return 0;
@@ -165,7 +167,7 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 	}
 	char *tmpStr = malloc(fileSize);
 	if (!tmpStr) {
-		goto ERROR;
+		goto ERR;
 	}
 	int j;
 	switch (nStr) {
@@ -178,12 +180,12 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 		do {
 			for ( ; fileStr[i] != delim; ++i) {
 				if (i >= fileSize)
-					goto EXIT_LOOPS;
+					goto OUT;
 				tmpStr[j++] = fileStr[i];
 			}
 			for ( ; fileStr[i] != '\n'; ++i)
 				if (i >= fileSize)
-					goto EXIT_LOOPS;
+					goto OUT;
 			tmpStr[j++] = '\n';
 			++line;
 		} while (line<lines);
@@ -200,37 +202,42 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 			do {
 				for ( ; fileStr[i] != delim; ++i)
 					if (i >= fileSize)
-						goto EXIT_LOOPS;
+						goto OUT;
 				while (fileStr[i] == delim)
 					++i;
 				++n;
 			} while (n<nStr);
 			for ( ; fileStr[i] != delim; ++i) {
 				if (i >= fileSize)
-					goto EXIT_LOOPS;
+					goto OUT;
 				tmpStr[j++] = fileStr[i];
 			}
 			for ( ; fileStr[i] != '\n'; ++i)
 				if (i >= fileSize)
-					goto EXIT_LOOPS;
+					goto OUT;
 			tmpStr[j++] = '\n';
 			++line;
 		} while (line<lines);
 		}
 	}
-EXIT_LOOPS:;
-	if (j)
-		*outStr = realloc(tmpStr, j);
+	*outStr = realloc(tmpStr, j);
 	if (!*outStr)
-		goto ERROR_FREE;
+		goto ERR_FREE;
 	free(fileStr);
 	return j;
 
-ERROR:;
+OUT:
+	if (j)
+		*outStr = realloc(tmpStr, j);
+	if (!*outStr)
+		goto ERR_FREE;
+	free(fileStr);
+	return j;
+ERR:
 	fprintf(stderr, "awk(%c, %d, %s, %s):", delim, nStr, filename, *outStr);
 	perror("");
 	return 0;
-ERROR_FREE:;
+ERR_FREE:
 	free(fileStr);
 	fprintf(stderr, "awk(%c, %d, %s, %s):", delim, nStr, filename, *outStr);
 	perror("");
