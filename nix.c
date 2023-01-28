@@ -89,15 +89,15 @@ ERROR:;
 	perror("");
 	return 0;
 ERROR_CLOSE:;
+	fclose(fd);
 	fprintf(stderr, "cat(%s, *outStr):", filename);
 	perror("");
-	fclose(fd);
 	return 0;
 ERROR_CLOSE_FREE:;
+	fclose(fd);
 	free(*outStr);
 	fprintf(stderr, "cat(%s, *outStr):", filename);
 	perror("");
-	fclose(fd);
 	return 0;
 }
 
@@ -231,8 +231,8 @@ ERROR:;
 	perror("");
 	return 0;
 ERROR_FREE:;
+	free(fileStr);
 	fprintf(stderr, "awk(%c, %d, %s, %s):", delim, nStr, filename, *outStr);
 	perror("");
-	free(fileStr);
 	return 0;
 }
