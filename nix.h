@@ -22,7 +22,7 @@ static int tee(char *flag, char *inStr, char *filename)
 		perror("tee: fopen failed");
 		return 0;
 	}
-	fprintf(fd, "%s", inStr);
+	fputs(inStr, fd);
 	fclose(fd);
 	return 1;
 }
@@ -98,34 +98,37 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 		perror("awk: cat failed");
 		goto RETURN_ERROR;
 	}
-	*outStr = malloc(fileSize);
-	if (!*outStr) {
-		perror("awk: malloc failed");
+	char *tmpStr;
+	*tmpStr = malloc(fileSize);
+	if (!tmpStr) {
+		perror("awk: tmpStr malloc failed");
 		goto RETURN_ERROR;
 	}
+	int i;
+	int j;
 	switch (nStr) {
 	case 1:
 		{
-		int i=0;
-		int j=0;
+		i=0;
+		j=0;
 		int lines = wc('l', filename);
 		for (int line=0; line<lines; ++line) {
 			for ( ; fileStr[i] != delim; ++i) {
 				if (i >= fileSize)
 					goto RETURN_SUCCESS;
-				(*outStr)[j++] = fileStr[i];
+				tmpStr[j++] = fileStr[i];
 			}
 			for ( ; fileStr[i] != '\n'; ++i)
 				if (i >= fileSize)
 					goto RETURN_SUCCESS;
-			(*outStr)[j++] = '\n';
+			tmpStr[j++] = '\n';
 		}
 		}
 		break;
 	default:
 		{
-		int i=0;
-		int j=0;
+		i=0;
+		j=0;
 		int lines = wc('l', filename);
 		for (int line=0; i<fileSize && line<lines; ++line) {
 			for (int n=1; n<nStr; ++n) {
@@ -138,18 +141,24 @@ static int awk(char delim, int nStr, char *filename, char **outStr)
 			for ( ; fileStr[i] != delim; ++i) {
 				if (i >= fileSize)
 					goto RETURN_SUCCESS;
-				(*outStr)[j++] = fileStr[i];
+				tmpStr[j++] = fileStr[i];
 			}
 			for ( ; fileStr[i] != '\n'; ++i)
 				if (i >= fileSize)
 					goto RETURN_SUCCESS;
-			(*outStr)[j++] = '\n';
+			tmpStr[j++] = '\n';
 		}
 		}
 	}
+	*outStr = realloc(tmpStr, j);
+	if (!*outStr) {
+		perror("awk: *outStr realloc failed");
+		free(tmpStr);
+		goto RETURN_ERROR;
+	}
 RETURN_SUCCESS:;
 	free(fileStr);
-	return 1;
+	return j;
 RETURN_ERROR:;
 	free(fileStr);
 	return 0;
