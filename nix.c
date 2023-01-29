@@ -4,8 +4,6 @@
 #include <string.h>
 #include "nix.h"
 
-#define MAX_LINE 1024
-
 int sizeOfFile(char *filename)
 {
 	struct stat fileInfo;
