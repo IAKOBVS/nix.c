@@ -42,7 +42,7 @@ int head(char *filename, char **outStr)
 	char *tmpStr = malloc(MAX_LINE);
 	if (!tmpStr)
 		goto ERR_CLOSE;
-	fgets(tmpStr, MAX_LINE, stdin);
+	fgets(tmpStr, MAX_LINE, fd);
 	if (ferror(fd))
 		goto ERR_CLOSE_FREE;
 	int strLen = strlen(tmpStr);
