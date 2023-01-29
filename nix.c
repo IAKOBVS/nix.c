@@ -53,11 +53,11 @@ int head(char *filename, char **outStr)
 	return strLen;
 
 ERR:
-	fprintf(stderr, "head(%s, %s):", filename, *outStr);
+	fprintf(stderr, "head(%s, char **outStr):", filename);
 	perror("");
 	return 0;
 ERR_CLOSE:
-	fprintf(stderr, "head(%s, %s):", filename, *outStr);
+	fprintf(stderr, "head(%s, char **outStr):", filename);
 	perror("");
 	fclose(fd);
 	return 0;
@@ -161,9 +161,7 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 	char *fileStr;
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize) {
-		fprintf(stderr, "awk(%c, %d, %s, %s):", delim, nStr, filename, *outStr);
-		perror("");
-		return 0;
+		goto ERR;
 	}
 	char *tmpStr = malloc(fileSize);
 	if (!tmpStr) {
@@ -234,12 +232,12 @@ OUT:
 	free(fileStr);
 	return j;
 ERR:
-	fprintf(stderr, "awk(%c, %d, %s, %s):", delim, nStr, filename, *outStr);
+	fprintf(stderr, "awk(%c, %d, %s, char **outStr):", delim, nStr, filename);
 	perror("");
 	return 0;
 ERR_FREE:
 	free(fileStr);
-	fprintf(stderr, "awk(%c, %d, %s, %s):", delim, nStr, filename, *outStr);
+	fprintf(stderr, "awk(%c, %d, %s, char **outStr):", delim, nStr, filename);
 	perror("");
 	return 0;
 }
