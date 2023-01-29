@@ -35,22 +35,28 @@ ERR:
 /* get first line of file */
 int head(char *filename, char **outStr)
 {
+	int mallocSize = 512;
 	FILE *fd;
 	fd = fopen(filename, "r");
 	if (!fd)
 		goto ERR;
-	char *tmpStr = malloc(MAX_LINE);
-	if (!tmpStr)
+	*outStr = malloc(mallocSize);
+	if (!*outStr)
 		goto ERR_CLOSE;
-	fgets(tmpStr, MAX_LINE, fd);
+	fgets(*outStr, mallocSize, fd);
 	if (ferror(fd))
 		goto ERR_CLOSE_FREE;
-	int strLen = strlen(tmpStr);
-	*outStr = realloc(tmpStr, strLen);
-	if (!*outStr)
-		goto ERR_CLOSE_FREE;
+	int strLen = strlen(*outStr);
+	if (mallocSize > (strLen * 2)) {
+		mallocSize = strLen * 2;
+		char *tmp = realloc(*outStr, mallocSize);
+		if (!tmp)
+			goto ERR_CLOSE_FREE;
+		*outStr = tmp;
+		free(tmp);
+	}
 	fclose(fd);
-	return strLen;
+	return mallocSize;
 
 ERR:
 	fprintf(stderr, "head(%s, char **outStr):", filename);
@@ -65,7 +71,7 @@ ERR_CLOSE_FREE:
 	fprintf(stderr, "head(%s, %s):", filename, *outStr);
 	perror("");
 	fclose(fd);
-	free(tmpStr);
+	free(*outStr);
 	return 0;
 }
 
@@ -163,8 +169,8 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 	if (!fileSize) {
 		goto ERR;
 	}
-	char *tmpStr = malloc(fileSize);
-	if (!tmpStr) {
+	*outStr = malloc(fileSize);
+	if (!*outStr) {
 		goto ERR;
 	}
 	int j;
@@ -179,12 +185,12 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 			for ( ; fileStr[i] != delim; ++i) {
 				if (i >= fileSize)
 					goto OUT;
-				tmpStr[j++] = fileStr[i];
+				*outStr[j++] = fileStr[i];
 			}
 			for ( ; fileStr[i] != '\n'; ++i)
 				if (i >= fileSize)
 					goto OUT;
-			tmpStr[j++] = '\n';
+			*outStr[j++] = '\n';
 			++line;
 		} while (line<lines);
 		}
@@ -208,29 +214,41 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 			for ( ; fileStr[i] != delim; ++i) {
 				if (i >= fileSize)
 					goto OUT;
-				tmpStr[j++] = fileStr[i];
+				*outStr[j++] = fileStr[i];
 			}
 			for ( ; fileStr[i] != '\n'; ++i)
 				if (i >= fileSize)
 					goto OUT;
-			tmpStr[j++] = '\n';
+			*outStr[j++] = '\n';
 			++line;
 		} while (line<lines);
 		}
 	}
-	*outStr = realloc(tmpStr, j);
-	if (!*outStr)
-		goto ERR_FREE;
+	if (fileSize > (j * 2)) {
+		fileSize = j * 2;
+		char *tmp = realloc(*outStr, fileSize);
+		if (!tmp)
+			goto ERR_FREE;
+		*outStr = tmp;
+		free(tmp);
+		
+	}
 	free(fileStr);
-	return j;
+	return fileSize;
 
 OUT:
-	if (j)
-		*outStr = realloc(tmpStr, j);
-	if (!*outStr)
+	if (!j)
 		goto ERR_FREE;
+	if (fileSize > (j * 2)) {
+		fileSize = j * 2;
+		char *tmp = realloc(*outStr, fileSize);
+		if (!tmp)
+			goto ERR_FREE;
+		*outStr = tmp;
+		free(tmp);
+	}
 	free(fileStr);
-	return j;
+	return fileSize;
 ERR:
 	fprintf(stderr, "awk(%c, %d, %s, char **outStr):", delim, nStr, filename);
 	perror("");
