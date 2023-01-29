@@ -100,7 +100,7 @@ int wc(char flag, char *filename)
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize)
 		flag=0;
-	int count=0;
+	int count;
 	switch (flag) {
 	case 'l':
 		{
