@@ -11,7 +11,7 @@ int sizeOfFile(char *filename)
 	return fileInfo.st_size;
 }
 
-/* fopenMode:
+/* modes
 'w' = overwrite
 'a' = append */
 int tee(char *flag, char *inStr, char *filename)
@@ -99,8 +99,8 @@ int wc(char flag, char *filename)
 	char *fileStr;
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize)
-		goto ERR;
-	int count;
+		flag=0;
+	int count=0;
 	switch (flag) {
 	case 'l':
 		{
@@ -130,16 +130,14 @@ int wc(char flag, char *filename)
 		} while (i<fileSize);
 		}
 		break;
+	case 0:
 	default:
-		goto ERR;
+		fprintf(stderr, "wc(%c, %s):", flag, filename);
+		perror("");
+		return 0;
 	}
 	free(fileStr);
 	return count;
-
-ERR:
-	fprintf(stderr, "wc(%c, %s):", flag, filename);
-	perror("");
-	return 0;
 }
 
 int awk(char delim, int nStr, char *filename, char **outStr)
@@ -189,7 +187,7 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 			}
 			for ( ; fileStr[i] != '\n'; ++i)
 				if (i >= fileSize)
-					goto EXIT_LOOPS;
+					goto MALLOC;
 			*outStr[j++] = '\n';
 			++line;
 		} while (line<lines);
