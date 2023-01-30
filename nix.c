@@ -45,7 +45,7 @@ int head(char *filename, char **outStr)
 	if (!*outStr)
 		goto ERR_CLOSE;
 	fgets(*outStr, mallocSize, fd);
-	if (ferror(fd))
+	if (ferror_unlocked(fd))
 		goto ERR_CLOSE_FREE;
 	int strLen = strlen(*outStr);
 	if (mallocSize > (strLen * 2)) {
