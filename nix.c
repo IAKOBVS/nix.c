@@ -4,12 +4,6 @@
 #include <string.h>
 
 #include "nix.h"
-
-struct sizeOfPtr {
-	void *p;
-	int size; 
-};
-
 int sizeOfFile(char *filename)
 {
 	struct stat fileInfo;
@@ -98,22 +92,20 @@ int wc(char flag, char *filename)
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize)
 		flag=0;
+	int i;
 	int count;
 	switch (flag) {
 	case 'l':
-		{
-		int i=0;
+		i=0;
 		count=0;
 		do {
 			if (fileStr[i] == '\n')
 				++count;
 			++i;
 		} while (i<fileSize);
-		}
 		break;
 	case 'w':
-		{
-		int i=0;
+		i=0;
 		count=0;
 		do {
 			switch (fileStr[i]) {
@@ -126,7 +118,6 @@ int wc(char flag, char *filename)
 			}
 			++i;
 		} while (i<fileSize);
-		}
 		break;
 	case 0:
 	default:
