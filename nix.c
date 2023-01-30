@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <string.h>
+
 #include "nix.h"
 
 struct sizeOfPtr {
@@ -54,8 +55,10 @@ int head(char *filename, char **outStr)
 		if (!*outStr)
 			goto ERR_CLOSE_FREE;
 	}
+	*outStr[strLen + 1] = '\0';
 	fclose(fd);
 	return mallocSize;
+
 ERR_CLOSE_FREE:
 	free(*outStr);
 ERR_CLOSE:
@@ -74,17 +77,15 @@ int cat(char *filename, char **outStr)
 	if (!fd)
 		goto ERR;
 	int fileSize = sizeOfFile(filename);
-	*outStr = malloc(fileSize);
+	*outStr = malloc(++fileSize);
 	if (!*outStr)
 		goto ERR_CLOSE;
-	/* fread(*outStr, 1, fileSize, fd); */
-	fread_unlocked(*outStr, 1, fileSize, fd);
-	if (ferror(fd))
-		goto ERR_CLOSE_FREE;
-	fclose(fd);
-	return fileSize;
-
-ERR_CLOSE_FREE:
+	int sizeRead = fread_unlocked(*outStr, 1, fileSize, fd);
+	if (sizeRead) {
+		(*outStr)[sizeRead + 1] = '\0';
+		fclose(fd);
+		return sizeRead;
+	}
 	free(*outStr);
 ERR_CLOSE:
 	fclose(fd);
@@ -151,7 +152,7 @@ int awk(char delim, int nStr, char **src, int strLen)
 		if (!strLen)
 			goto ERR;
 	}
-	char *tmp = malloc(strLen);
+	char *tmp = malloc(++strLen);
 	if (!tmp)
 		goto ERR;
 	int j=0;
@@ -196,10 +197,11 @@ CLEANUP:
 		*src = realloc(tmp, strLen);
 		if (!*src)
 			goto ERR_FREE;
+		(*src)[++j] = '\0';
+		return j;
 	} else {
 		goto ERR_FREE;
 	}
-	return j;
 
 ERR_FREE:
 	free(tmp);
@@ -220,13 +222,9 @@ int awkFile(char delim, int nStr, char *filename, char **src)
 	int fileSize = cat(filename, &(*src));
 	if (!fileSize)
 		goto ERR;
-	*src = malloc(fileSize);
-	if (!*src)
-		goto ERR;
 	int ret = awk(delim, nStr, &(*src), fileSize);
-	if (ret) {
+	if (ret)
 		return ret;
-	}
 	free(*src);
 ERR:
 	fprintf(stderr, "awk(%c, %d, char **src): ", delim, nStr);
