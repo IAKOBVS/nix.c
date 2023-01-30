@@ -17,12 +17,9 @@ int sizeOfFile(char *filename)
 	return fileInfo.st_size;
 }
 
-/* modes
-'w' = overwrite
-'a' = append */
+/* modes 'w' = overwrite; 'a' = append */
 int tee(char *flag, char *inStr, char *filename)
 {
-	/* fd must be fclosed */
 	FILE *fd = fopen(filename, flag);
 	if (fd) {
 		fputs(inStr, fd);
@@ -71,7 +68,6 @@ ERR:
 
 int cat(char *filename, char **dest)
 {
-	/* fd must be fclosed */
 	FILE *fd;
 	fd = fopen(filename, "r");
 	if (!fd)
@@ -95,12 +91,9 @@ ERR:
 	return 0;
 }
 
-/* flag: */
-/* 'l' =  line */
-/* 'w' =  word */
+/* flag: l' =  line; 'w' =  word */
 int wc(char flag, char *filename)
 {
-	/* fileStr must be freed */
 	char *fileStr;
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize)
@@ -218,7 +211,6 @@ EXIT_LOOPS:
 
 int awkFile(char delim, int nStr, char *filename, char **src)
 {
-	/* fileStr must be freed */
 	int fileSize = cat(filename, &(*src));
 	if (!fileSize)
 		goto ERR;
