@@ -17,7 +17,7 @@ int sizeOfFile(char *filename)
 	return fileInfo.st_size;
 }
 
-/* modes 'w' = overwrite; 'a' = append */
+/* flags: 'w' = overwrite; 'a' = append */
 int tee(char *flag, char *inStr, char *filename)
 {
 	FILE *fd = fopen(filename, flag);
@@ -91,7 +91,7 @@ ERR:
 	return 0;
 }
 
-/* flag: l' =  line; 'w' =  word */
+/* flags: l' =  line; 'w' =  word */
 int wc(char flag, char *filename)
 {
 	char *fileStr;
