@@ -34,7 +34,6 @@ int tee(char *flag, char *inStr, char *filename)
 	return 0;
 }
 
-#include <errno.h>
 /* get first line of file */
 int head(char *filename, char **dest)
 {
