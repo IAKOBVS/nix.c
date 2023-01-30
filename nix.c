@@ -34,42 +34,43 @@ int tee(char *flag, char *inStr, char *filename)
 	return 0;
 }
 
+#include <errno.h>
 /* get first line of file */
-int head(char *filename, char **outStr)
+int head(char *filename, char **dest)
 {
 	int mallocSize = 512;
 	FILE *fd;
 	fd = fopen(filename, "r");
 	if (!fd)
 		goto ERR;
-	*outStr = malloc(mallocSize);
-	if (!*outStr)
+	*dest = malloc(mallocSize);
+	if (!*dest)
 		goto ERR_CLOSE;
-	fgets(*outStr, mallocSize, fd);
+	fgets(*dest, mallocSize, fd);
 	if (ferror_unlocked(fd))
 		goto ERR_CLOSE_FREE;
-	int strLen = strlen(*outStr);
+	int strLen = strlen(*dest);
 	if (mallocSize > (strLen * 2)) {
 		mallocSize = strLen * 2;
-		*outStr = realloc(*outStr, mallocSize);
-		if (!*outStr)
+		*dest = realloc(*dest, mallocSize);
+		if (!*dest)
 			goto ERR_CLOSE_FREE;
 	}
-	*outStr[strLen + 1] = '\0';
+	*dest[strLen + 1] = '\0';
 	fclose(fd);
 	return mallocSize;
 
 ERR_CLOSE_FREE:
-	free(*outStr);
+	free(*dest);
 ERR_CLOSE:
 	fclose(fd);
 ERR:
-	fprintf(stderr, "head(%s, char **outStr): ", filename);
+	fprintf(stderr, "head(%s, char **dest): ", filename);
 	perror("");
 	return 0;
 }
 
-int cat(char *filename, char **outStr)
+int cat(char *filename, char **dest)
 {
 	/* fd must be fclosed */
 	FILE *fd;
@@ -77,20 +78,20 @@ int cat(char *filename, char **outStr)
 	if (!fd)
 		goto ERR;
 	int fileSize = sizeOfFile(filename);
-	*outStr = malloc(++fileSize);
-	if (!*outStr)
+	*dest = malloc(++fileSize);
+	if (!*dest)
 		goto ERR_CLOSE;
-	int sizeRead = fread_unlocked(*outStr, 1, fileSize, fd);
+	int sizeRead = fread_unlocked(*dest, 1, fileSize, fd);
 	if (sizeRead) {
-		(*outStr)[sizeRead + 1] = '\0';
+		(*dest)[sizeRead + 1] = '\0';
 		fclose(fd);
 		return sizeRead;
 	}
-	free(*outStr);
+	free(*dest);
 ERR_CLOSE:
 	fclose(fd);
 ERR:
-	fprintf(stderr, "cat(%s, *outStr): ", filename);
+	fprintf(stderr, "cat(%s, *dest): ", filename);
 	perror("");
 	return 0;
 }
@@ -187,11 +188,11 @@ int awk(char delim, int nStr, char **src, int strLen)
 			}
 			for ( ; (*src)[i] != '\n'; ++i)
 				if (i >= strLen)
-					goto CLEANUP;
+					goto EXIT_LOOPS;
 			tmp[j++] = '\n';
 		}
 	}
-CLEANUP:
+SUCCESS:
 	if (strLen > (j * 2)) {
 		strLen = j * 2;
 		*src = realloc(tmp, strLen);
@@ -211,7 +212,7 @@ ERR:
 	return 0;
 EXIT_LOOPS:
 	if (j)
-		goto CLEANUP;
+		goto SUCCESS;
 	fprintf(stderr, "string is found\n");
 	goto ERR_FREE;
 }
