@@ -4,6 +4,11 @@
 #include <string.h>
 #include "nix.h"
 
+struct sizeOfPtr {
+	void *p;
+	int size; 
+};
+
 int sizeOfFile(char *filename)
 {
 	struct stat fileInfo;
@@ -158,12 +163,12 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 			for ( ; fileStr[i] != delim; ++i) {
 				if (i >= fileSize)
 					goto EXIT_LOOPS;
-				*outStr[j++] = fileStr[i];
+				(*outStr)[j++] = fileStr[i];
 			}
 			for ( ; fileStr[i] != '\n'; ++i)
 				if (i >= fileSize)
 					goto EXIT_LOOPS;
-			*outStr[j++] = '\n';
+			(*outStr)[j++] = '\n';
 			++line;
 		} while (line<lines);
 		break;
@@ -181,12 +186,12 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 			for ( ; fileStr[i] != delim; ++i) {
 				if (i >= fileSize)
 					goto EXIT_LOOPS;
-				*outStr[j++] = fileStr[i];
+				(*outStr)[j++] = fileStr[i];
 			}
 			for ( ; fileStr[i] != '\n'; ++i)
 				if (i >= fileSize)
 					goto MALLOC;
-			*outStr[j++] = '\n';
+			(*outStr)[j++] = '\n';
 			++line;
 		} while (line<lines);
 	}
