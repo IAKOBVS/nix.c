@@ -77,7 +77,8 @@ int cat(char *filename, char **outStr)
 	*outStr = malloc(fileSize);
 	if (!*outStr)
 		goto ERR_CLOSE;
-	fread(*outStr, 1, fileSize, fd);
+	/* fread(*outStr, 1, fileSize, fd); */
+	fread_unlocked(*outStr, 1, fileSize, fd);
 	if (ferror(fd))
 		goto ERR_CLOSE_FREE;
 	fclose(fd);
