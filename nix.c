@@ -45,11 +45,9 @@ int head(char *filename, char **outStr)
 	int strLen = strlen(*outStr);
 	if (mallocSize > (strLen * 2)) {
 		mallocSize = strLen * 2;
-		char *tmp = realloc(*outStr, mallocSize);
-		if (!tmp)
+		*outStr = realloc(*outStr, mallocSize);
+		if (!*outStr)
 			goto ERR_CLOSE_FREE;
-		*outStr = tmp;
-		free(tmp);
 	}
 	fclose(fd);
 	return mallocSize;
@@ -195,11 +193,9 @@ int awk(char delim, int nStr, char *filename, char **outStr)
 MALLOC:
 	if (fileSize > (j * 2)) {
 		fileSize = j * 2;
-		char *tmp = realloc(*outStr, fileSize);
-		if (!tmp)
+		*outStr = realloc(*outStr, fileSize);
+		if (!*outStr)
 			goto FREE;
-		*outStr = tmp;
-		free(tmp);
 	}
 	free(fileStr);
 	return fileSize;
