@@ -1,9 +1,5 @@
 #ifndef NIX_H_DEF
 #define NIX_H_DEF
-struct strSize {
-	char **p;
-	int size; 
-};
 int sizeOfFile(char *filename);
 /* flags: 'w' = overwrite; 'a' = append */
 int tee(char *flag, char *inStr, char *filename);

@@ -4,6 +4,8 @@
 #include <string.h>
 
 #include "nix.h"
+#include "../jstr.c/jstr.h"
+
 int sizeOfFile(char *filename)
 {
 	struct stat fileInfo;
@@ -29,12 +31,10 @@ int tee(char *flag, char *inStr, char *filename)
 int head(char *filename, char **dest)
 {
 	int mallocSize = 512;
-	FILE *fd;
-	fd = fopen(filename, "r");
+	FILE *fd = fopen(filename, "r");
 	if (!fd)
 		goto ERR;
-	*dest = malloc(mallocSize);
-	if (!*dest)
+	if (!(*dest = malloc(mallocSize)))
 		goto ERR_CLOSE;
 	fgets(*dest, mallocSize, fd);
 	if (ferror_unlocked(fd))
@@ -42,11 +42,10 @@ int head(char *filename, char **dest)
 	int strLen = strlen(*dest);
 	if (mallocSize > (strLen * 2)) {
 		mallocSize = strLen * 2;
-		*dest = realloc(*dest, mallocSize);
-		if (!*dest)
+		if (!(*dest = realloc(*dest, mallocSize)))
 			goto ERR_CLOSE_FREE;
 	}
-	*dest[strLen + 1] = '\0';
+	(*dest)[strLen + 1] = '\0';
 	fclose(fd);
 	return mallocSize;
 
@@ -66,9 +65,8 @@ int cat(char *filename, char **dest)
 	fd = fopen(filename, "r");
 	if (!fd)
 		goto ERR;
-	int fileSize = sizeOfFile(filename);
-	*dest = malloc(++fileSize);
-	if (!*dest)
+	int fileSize = sizeOfFile(filename) + 1;
+	if (!(*dest = malloc(fileSize)))
 		goto ERR_CLOSE;
 	int sizeRead = fread_unlocked(*dest, 1, fileSize, fd);
 	if (sizeRead) {
@@ -131,16 +129,15 @@ int wc(char flag, char *filename)
 
 int awk(char delim, int nStr, char **src, int strLen)
 {
-	if (!strLen) {
-		strLen = strlen(*src);
-		if (!strLen)
-			goto ERR;
-	}
+	if (!strLen && !(strLen = strlen(*src)))
+		goto ERR;
 	char *tmp = malloc(++strLen);
 	if (!tmp)
 		goto ERR;
 	int j=0;
 	switch (nStr) {
+	case 0:
+		goto ERR_FREE;
 	case 1:
 		for (int i=0;;) {
 			for ( ; (*src)[i] != delim; ++i) {
@@ -183,8 +180,6 @@ SUCCESS:
 			goto ERR_FREE;
 		(*src)[++j] = '\0';
 		return j;
-	} else {
-		goto ERR_FREE;
 	}
 
 ERR_FREE:
