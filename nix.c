@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "nix.h"
-#include "../jstr.c/jstr.h"
+#include "../jString/jstr.h"
 
 int sizeOfFile(char *filename)
 {
