@@ -6,6 +6,20 @@
 #include "nix.h"
 #include "../jString/jstr.h"
 
+#define IF_DO(STATE, DO) \
+	if (STATE) \
+		DO
+#define ERROR_IF(STATE) \
+	IF_DO(STATE, goto ERROR)
+#define ERROR_CLOSE_IF(STATE) \
+	IF_DO(STATE, goto ERROR_CLOSE)
+#define ERROR_FREE_IF(STATE) \
+	IF_DO(STATE, goto ERROR_FREE)
+#define ERROR_CLOSE_FREE_IF(STATE) \
+	IF_DO(STATE, goto ERROR_CLOSE_FREE)
+#define EXIT_LOOPS_IF(STATE) \
+	IF_DO(STATE, goto EXIT_LOOPS)
+
 int sizeOfFile(char *filename)
 {
 	struct stat fileInfo;
@@ -32,28 +46,24 @@ int head(char *filename, char **dest)
 {
 	int mallocSize = 512;
 	FILE *fd = fopen(filename, "r");
-	if (!fd)
-		goto ERR;
-	if (!(*dest = malloc(mallocSize)))
-		goto ERR_CLOSE;
+	ERROR_IF( !fd);
+	ERROR_CLOSE_IF( !(*dest = malloc(mallocSize)));
 	fgets(*dest, mallocSize, fd);
-	if (ferror_unlocked(fd))
-		goto ERR_CLOSE_FREE;
+	ERROR_CLOSE_FREE_IF( ferror_unlocked(fd));
 	int strLen = strlen(*dest);
 	if (mallocSize > (strLen * 2)) {
 		mallocSize = strLen * 2;
-		if (!(*dest = realloc(*dest, mallocSize)))
-			goto ERR_CLOSE_FREE;
+		ERROR_CLOSE_FREE_IF( !(*dest = realloc(*dest, mallocSize)));
 	}
 	(*dest)[strLen + 1] = '\0';
 	fclose(fd);
 	return mallocSize;
 
-ERR_CLOSE_FREE:
+ERROR_CLOSE_FREE:
 	free(*dest);
-ERR_CLOSE:
+ERROR_CLOSE:
 	fclose(fd);
-ERR:
+ERROR:
 	fprintf(stderr, "head(%s, char **dest): ", filename);
 	perror("");
 	return 0;
@@ -63,11 +73,9 @@ int cat(char *filename, char **dest)
 {
 	FILE *fd;
 	fd = fopen(filename, "r");
-	if (!fd)
-		goto ERR;
+	ERROR_IF( !fd);
 	int fileSize = sizeOfFile(filename) + 1;
-	if (!(*dest = malloc(fileSize)))
-		goto ERR_CLOSE;
+	ERROR_CLOSE_IF( !(*dest = malloc(fileSize)));
 	int sizeRead = fread_unlocked(*dest, 1, fileSize, fd);
 	if (sizeRead) {
 		(*dest)[sizeRead + 1] = '\0';
@@ -75,9 +83,9 @@ int cat(char *filename, char **dest)
 		return sizeRead;
 	}
 	free(*dest);
-ERR_CLOSE:
+ERROR_CLOSE:
 	fclose(fd);
-ERR:
+ERROR:
 	fprintf(stderr, "cat(%s, *dest): ", filename);
 	perror("");
 	return 0;
@@ -129,25 +137,21 @@ int wc(char flag, char *filename)
 
 int awk(char delim, int nStr, char **src, int strLen)
 {
-	if (!strLen && !(strLen = strlen(*src)))
-		goto ERR;
+	ERROR_IF( !strLen && !(strLen = strlen(*src)) );
 	char *tmp = malloc(++strLen);
-	if (!tmp)
-		goto ERR;
+	ERROR_IF( !tmp);
 	int j=0;
 	switch (nStr) {
 	case 0:
-		goto ERR_FREE;
+		goto ERROR_FREE;
 	case 1:
 		for (int i=0;;) {
 			for ( ; (*src)[i] != delim; ++i) {
-				if (i >= strLen)
-					goto EXIT_LOOPS;
+				EXIT_LOOPS_IF( i >= strLen);
 				tmp[j++] = (*src)[i];
 			}
 			for ( ; (*src)[i] != '\n'; ++i)
-				if (i >= strLen)
-					goto EXIT_LOOPS;
+				EXIT_LOOPS_IF( i >= strLen);
 			tmp[j++] = '\n';
 		}
 		break;
@@ -155,20 +159,17 @@ int awk(char delim, int nStr, char **src, int strLen)
 		for (int i=0, n=1 ;;) {
 			do {
 				for ( ; (*src)[i] != delim; ++i)
-					if (i >= strLen)
-						goto EXIT_LOOPS;
+					EXIT_LOOPS_IF( i >= strLen);
 				while ((*src)[i] == delim)
 					++i;
 				++n;
 			} while (n<nStr);
 			for ( ; (*src)[i] != delim; ++i) {
-				if (i >= strLen)
-					goto EXIT_LOOPS;
+				EXIT_LOOPS_IF( i >= strLen);
 				tmp[j++] = (*src)[i];
 			}
 			for ( ; (*src)[i] != '\n'; ++i)
-				if (i >= strLen)
-					goto EXIT_LOOPS;
+				EXIT_LOOPS_IF( i >= strLen);
 			tmp[j++] = '\n';
 		}
 	}
@@ -176,15 +177,14 @@ SUCCESS:
 	if (strLen > (j * 2)) {
 		strLen = j * 2;
 		*src = realloc(tmp, strLen);
-		if (!*src)
-			goto ERR_FREE;
+		ERROR_FREE_IF( !*src);
 		(*src)[++j] = '\0';
 		return j;
 	}
 
-ERR_FREE:
+ERROR_FREE:
 	free(tmp);
-ERR:
+ERROR:
 	fprintf(stderr, "awk(%c, %d, char **src): ", delim, nStr);
 	perror("");
 	return 0;
@@ -192,19 +192,18 @@ EXIT_LOOPS:
 	if (j)
 		goto SUCCESS;
 	fprintf(stderr, "string is found\n");
-	goto ERR_FREE;
+	goto ERROR_FREE;
 }
 
 int awkFile(char delim, int nStr, char *filename, char **src)
 {
 	int fileSize = cat(filename, &(*src));
-	if (!fileSize)
-		goto ERR;
+	ERROR_IF( !fileSize);
 	int ret = awk(delim, nStr, &(*src), fileSize);
 	if (ret)
 		return ret;
 	free(*src);
-ERR:
+ERROR:
 	fprintf(stderr, "awk(%c, %d, char **src): ", delim, nStr);
 	perror("");
 	return 0;
