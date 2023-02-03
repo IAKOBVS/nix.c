@@ -46,14 +46,14 @@ int head(char *filename, char **dest)
 {
 	int mallocSize = 512;
 	FILE *fd = fopen(filename, "r");
-	ERROR_IF( !fd);
-	ERROR_CLOSE_IF( !(*dest = malloc(mallocSize)));
+	ERROR_IF(!fd);
+	ERROR_CLOSE_IF(!(*dest = malloc(mallocSize)));
 	fgets(*dest, mallocSize, fd);
-	ERROR_CLOSE_FREE_IF( ferror_unlocked(fd));
+	ERROR_CLOSE_FREE_IF(ferror_unlocked(fd));
 	int strLen = strlen(*dest);
 	if (mallocSize > (strLen * 2)) {
 		mallocSize = strLen * 2;
-		ERROR_CLOSE_FREE_IF( !(*dest = realloc(*dest, mallocSize)));
+		ERROR_CLOSE_FREE_IF(!(*dest = realloc(*dest, mallocSize)));
 	}
 	(*dest)[strLen + 1] = '\0';
 	fclose(fd);
@@ -73,9 +73,9 @@ int cat(char *filename, char **dest)
 {
 	FILE *fd;
 	fd = fopen(filename, "r");
-	ERROR_IF( !fd);
+	ERROR_IF(!fd);
 	int fileSize = sizeOfFile(filename) + 1;
-	ERROR_CLOSE_IF( !(*dest = malloc(fileSize)));
+	ERROR_CLOSE_IF(!(*dest = malloc(fileSize)));
 	int sizeRead = fread_unlocked(*dest, 1, fileSize, fd);
 	if (sizeRead) {
 		(*dest)[sizeRead + 1] = '\0';
@@ -137,9 +137,9 @@ int wc(char flag, char *filename)
 
 int awk(char delim, int nStr, char **src, int strLen)
 {
-	ERROR_IF( !strLen && !(strLen = strlen(*src)) );
+	ERROR_IF(!strLen && !(strLen = strlen(*src)) );
 	char *tmp = malloc(++strLen);
-	ERROR_IF( !tmp);
+	ERROR_IF(!tmp);
 	int j=0;
 	switch (nStr) {
 	case 0:
@@ -147,11 +147,11 @@ int awk(char delim, int nStr, char **src, int strLen)
 	case 1:
 		for (int i=0;;) {
 			for ( ; (*src)[i] != delim; ++i) {
-				EXIT_LOOPS_IF( i >= strLen);
+				EXIT_LOOPS_IF(i >= strLen);
 				tmp[j++] = (*src)[i];
 			}
 			for ( ; (*src)[i] != '\n'; ++i)
-				EXIT_LOOPS_IF( i >= strLen);
+				EXIT_LOOPS_IF(i >= strLen);
 			tmp[j++] = '\n';
 		}
 		break;
@@ -159,17 +159,17 @@ int awk(char delim, int nStr, char **src, int strLen)
 		for (int i=0, n=1 ;;) {
 			do {
 				for ( ; (*src)[i] != delim; ++i)
-					EXIT_LOOPS_IF( i >= strLen);
+					EXIT_LOOPS_IF(i >= strLen);
 				while ((*src)[i] == delim)
 					++i;
 				++n;
 			} while (n<nStr);
 			for ( ; (*src)[i] != delim; ++i) {
-				EXIT_LOOPS_IF( i >= strLen);
+				EXIT_LOOPS_IF(i >= strLen);
 				tmp[j++] = (*src)[i];
 			}
 			for ( ; (*src)[i] != '\n'; ++i)
-				EXIT_LOOPS_IF( i >= strLen);
+				EXIT_LOOPS_IF(i >= strLen);
 			tmp[j++] = '\n';
 		}
 	}
@@ -177,7 +177,7 @@ SUCCESS:
 	if (strLen > (j * 2)) {
 		strLen = j * 2;
 		*src = realloc(tmp, strLen);
-		ERROR_FREE_IF( !*src);
+		ERROR_FREE_IF(!*src);
 		(*src)[++j] = '\0';
 		return j;
 	}
@@ -198,7 +198,7 @@ EXIT_LOOPS:
 int awkFile(char delim, int nStr, char *filename, char **src)
 {
 	int fileSize = cat(filename, &(*src));
-	ERROR_IF( !fileSize);
+	ERROR_IF(!fileSize);
 	int ret = awk(delim, nStr, &(*src), fileSize);
 	if (ret)
 		return ret;
