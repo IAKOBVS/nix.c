@@ -36,57 +36,49 @@ int tee(char *flag, char *inStr, char *filename)
 		fclose(fd);
 		return 1;
 	}
-	fprintf(stderr, "tee(%s, %s, %s): ", flag, inStr, filename);
 	perror("");
 	return 0;
 }
 
 /* get first line of file */
-int head(char *filename, char **dest)
+int head(char *filename, Jstr *dest)
 {
-	int mallocSize = 512;
 	FILE *fd = fopen(filename, "r");
 	ERROR_IF(!fd);
-	ERROR_CLOSE_IF(!(*dest = malloc(mallocSize)));
-	fgets(*dest, mallocSize, fd);
-	ERROR_CLOSE_FREE_IF(ferror_unlocked(fd));
-	int strLen = strlen(*dest);
-	if (mallocSize > (strLen * 2)) {
-		mallocSize = strLen * 2;
-		ERROR_CLOSE_FREE_IF(!(*dest = realloc(*dest, mallocSize)));
-	}
-	(*dest)[strLen + 1] = '\0';
+	ERROR_CLOSE_IF(!(dest->str = malloc((dest->size=512))));
+	fgets(dest->str, dest->size, fd);
+	ERROR_CLOSE_FREE_IF(ferror(fd)
+	|| (dest->size > (dest->len * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))))));
+	dest->str[dest->len + 1] = '\0';
 	fclose(fd);
-	return mallocSize;
+	return dest->size;
 
 ERROR_CLOSE_FREE:
-	free(*dest);
+	jstrDeletePtr(dest);
+	dest->size = 0;
 ERROR_CLOSE:
 	fclose(fd);
 ERROR:
-	fprintf(stderr, "head(%s, char **dest): ", filename);
 	perror("");
 	return 0;
 }
 
-int cat(char *filename, char **dest)
+int cat(char *filename, Jstr *dest)
 {
 	FILE *fd;
 	fd = fopen(filename, "r");
 	ERROR_IF(!fd);
-	int fileSize = sizeOfFile(filename) + 1;
-	ERROR_CLOSE_IF(!(*dest = malloc(fileSize)));
-	int sizeRead = fread_unlocked(*dest, 1, fileSize, fd);
-	if (sizeRead) {
-		(*dest)[sizeRead + 1] = '\0';
+	ERROR_CLOSE_IF(!(dest->str = malloc((dest->size = sizeOfFile(filename)))));
+	dest->len = fread(dest, 1, dest->size, fd);
+	if (dest->len) {
+		dest->str[dest->len + 1] = '\0';
 		fclose(fd);
-		return sizeRead;
+		return dest->len;
 	}
-	free(*dest);
+	jstrDeletePtr(dest);
 ERROR_CLOSE:
 	fclose(fd);
 ERROR:
-	fprintf(stderr, "cat(%s, *dest): ", filename);
 	perror("");
 	return 0;
 }
@@ -94,7 +86,7 @@ ERROR:
 /* flags: l' =  line; 'w' =  word */
 int wc(char flag, char *filename)
 {
-	char *fileStr;
+	Jstr fileStr;
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize)
 		flag = 0;
@@ -105,7 +97,7 @@ int wc(char flag, char *filename)
 		i=0;
 		count=0;
 		do {
-			if (fileStr[i] == '\n')
+			if (fileStr.str[i] == '\n')
 				++count;
 			++i;
 		} while (i<fileSize);
@@ -114,7 +106,7 @@ int wc(char flag, char *filename)
 		i=0;
 		count=0;
 		do {
-			switch (fileStr[i]) {
+			switch (fileStr.str[i]) {
 			case ' ':
 			case '\n':
 				++i;
@@ -127,84 +119,78 @@ int wc(char flag, char *filename)
 		break;
 	case 0:
 	default:
-		fprintf(stderr, "wc(%c, %s): ", flag, filename);
 		perror("");
 		return 0;
 	}
-	free(fileStr);
+	jstrDelete(fileStr);
 	return count;
 }
 
-int awk(char delim, int nStr, char **src, int strLen)
+int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 {
-	ERROR_IF(!strLen && !(strLen = strlen(*src)) );
-	char *tmp = malloc(++strLen);
-	ERROR_IF(!tmp);
+	ERROR_IF(!srcLen && !(srcLen = strlen(src)));
 	int j=0;
 	switch (nStr) {
 	case 0:
 		goto ERROR_FREE;
 	case 1:
 		for (int i=0;;) {
-			for ( ; (*src)[i] != delim; ++i) {
-				EXIT_LOOPS_IF(i >= strLen);
-				tmp[j++] = (*src)[i];
+			for ( ; src[i] != delim; ++i) {
+				EXIT_LOOPS_IF(i >= srcLen);
+				dest->str[j++] = src[i];
 			}
-			for ( ; (*src)[i] != '\n'; ++i)
-				EXIT_LOOPS_IF(i >= strLen);
-			tmp[j++] = '\n';
+			for ( ; src[i] != '\n'; ++i)
+				EXIT_LOOPS_IF(i >= srcLen);
+			dest->str[j++] = '\n';
 		}
 		break;
 	default:
 		for (int i=0, n=1 ;;) {
 			do {
-				for ( ; (*src)[i] != delim; ++i)
-					EXIT_LOOPS_IF(i >= strLen);
-				while ((*src)[i] == delim)
+				for ( ; src[i] != delim; ++i)
+					EXIT_LOOPS_IF(i >= srcLen);
+				while (src[i] == delim)
 					++i;
 				++n;
 			} while (n<nStr);
-			for ( ; (*src)[i] != delim; ++i) {
-				EXIT_LOOPS_IF(i >= strLen);
-				tmp[j++] = (*src)[i];
+			for ( ; src[i] != delim; ++i) {
+				EXIT_LOOPS_IF(i >= srcLen);
+				dest->str[j++] = src[i];
 			}
-			for ( ; (*src)[i] != '\n'; ++i)
-				EXIT_LOOPS_IF(i >= strLen);
-			tmp[j++] = '\n';
+			for ( ; src[i] != '\n'; ++i)
+				EXIT_LOOPS_IF(i >= srcLen);
+			dest->str[j++] = '\n';
 		}
 	}
 SUCCESS:
-	if (strLen > (j * 2)) {
-		strLen = j * 2;
-		*src = realloc(tmp, strLen);
-		ERROR_FREE_IF(!*src);
-		(*src)[++j] = '\0';
+	if (srcLen > (j * 2)) {
+		srcLen = j * 2;
+		ERROR_FREE_IF(!(dest->str = realloc(dest->str, srcLen)));
+		dest->str[++j] = '\0';
 		return j;
 	}
 
 ERROR_FREE:
-	free(tmp);
+	jstrDeletePtr(dest);
 ERROR:
-	fprintf(stderr, "awk(%c, %d, char **src): ", delim, nStr);
 	perror("");
 	return 0;
 EXIT_LOOPS:
 	if (j)
 		goto SUCCESS;
-	fprintf(stderr, "string is found\n");
 	goto ERROR_FREE;
 }
 
-int awkFile(char delim, int nStr, char *filename, char **src)
+int awkFile(char delim, int nStr, char *filename, Jstr *dest)
 {
-	int fileSize = cat(filename, &(*src));
+	int fileSize = cat(filename, dest);
 	ERROR_IF(!fileSize);
-	int ret = awk(delim, nStr, &(*src), fileSize);
+	int ret = awk(delim, nStr, dest->str, fileSize, dest);
 	if (ret)
 		return ret;
-	free(*src);
+	jstrDeletePtr(dest);
+
 ERROR:
-	fprintf(stderr, "awk(%c, %d, char **src): ", delim, nStr);
 	perror("");
 	return 0;
 }
