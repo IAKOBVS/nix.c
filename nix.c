@@ -46,8 +46,7 @@ int head(char *filename, Jstr *dest)
 	ERROR_IF(!fd);
 	ERROR_CLOSE_IF(!(dest->str = malloc((dest->size=512))));
 	fgets(dest->str, dest->size, fd);
-	ERROR_CLOSE_FREE_IF(ferror(fd)
-	|| (dest->size > (dest->len * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))))));
+	ERROR_CLOSE_FREE_IF(ferror(fd) || (dest->size > (dest->len * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))))));
 	dest->str[dest->len + 1] = '\0';
 	fclose(fd);
 	return dest->size;
@@ -85,11 +84,11 @@ ERROR:
 int wc(char flag, char *filename)
 {
 	Jstr fileStr;
+	int i;
+	int count;
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize)
 		flag = 0;
-	int i;
-	int count;
 	switch (flag) {
 	case 'l':
 		i=0;
