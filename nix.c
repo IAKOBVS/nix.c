@@ -22,9 +22,8 @@
 
 int sizeOfFile(char *filename)
 {
-	struct stat fileInfo;
-	stat(filename, &fileInfo);
-	return fileInfo.st_size;
+	struct stat st;
+	return (!(stat(filename, &st)) ? st.st_size : 0);
 }
 
 /* flags: 'w' = overwrite; 'a' = append */
