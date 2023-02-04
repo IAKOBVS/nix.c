@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "nix.h"
-#include "../jString/jstr.h"
+#include "/home/james/c/jString/jstr.h"
 
 #define IF_DO(STATE, DO) \
 	if (STATE) \
@@ -97,7 +97,7 @@ int wc(char flag, char *filename)
 	char *fileStr;
 	int fileSize = cat(filename, &fileStr);
 	if (!fileSize)
-		flag=0;
+		flag = 0;
 	int i;
 	int count;
 	switch (flag) {
