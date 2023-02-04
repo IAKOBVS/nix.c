@@ -65,11 +65,10 @@ ERROR:
 
 int cat(char *filename, Jstr *dest)
 {
-	FILE *fd;
-	fd = fopen(filename, "r");
+	FILE *fd = fopen(filename, "r");
 	ERROR_IF(!fd);
 	ERROR_CLOSE_IF(!(dest->str = malloc((dest->size = sizeOfFile(filename) + 1))));
-	dest->len = fread(dest, 1, dest->size, fd);
+	dest->len = fread(dest->str, 1, dest->size, fd);
 	if (dest->len) {
 		dest->str[dest->len + 1] = '\0';
 		fclose(fd);
