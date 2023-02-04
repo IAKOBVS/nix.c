@@ -1,6 +1,9 @@
 #ifndef NIX_H_DEF
 #define NIX_H_DEF
+
+#include <stdlib.h>
 #include "/home/james/c/jString/jstr.h"
+
 int sizeOfFile(char *filename);
 /* flags: 'w' = overwrite; 'a' = append */
 int tee(char *flag, char *inStr, char *filename);
