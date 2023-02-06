@@ -44,7 +44,7 @@ int head(char *filename, Jstr *dest)
 {
 	FILE *fd = fopen(filename, "r");
 	ERROR_IF(!fd);
-	ERROR_CLOSE_IF(!(dest->str = malloc((dest->size=512))));
+	ERROR_CLOSE_IF(!(dest->str = malloc((dest->size = 512))));
 	fgets(dest->str, dest->size, fd);
 	ERROR_CLOSE_FREE_IF(ferror(fd)
 	|| (dest->size > (dest->len * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))))));
