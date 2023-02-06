@@ -92,8 +92,8 @@ int wc(char flag, char *filename)
 		flag = 0;
 	switch (flag) {
 	case 'l':
-		i=0;
-		count=0;
+		i = 0;
+		count = 0;
 		do {
 			if (fileStr.str[i] == '\n')
 				++count;
@@ -101,8 +101,8 @@ int wc(char flag, char *filename)
 		} while (i<fileSize);
 		break;
 	case 'w':
-		i=0;
-		count=0;
+		i = 0;
+		count = 0;
 		do {
 			switch (fileStr.str[i]) {
 			case ' ':
@@ -127,12 +127,12 @@ int wc(char flag, char *filename)
 int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 {
 	ERROR_IF(!srcLen && !(srcLen = strlen(src)));
-	int j=0;
+	int j = 0;
 	switch (nStr) {
 	case 0:
 		goto ERROR_FREE;
 	case 1:
-		for (int i=0;;) {
+		for (int i = 0;; ) {
 			for ( ; src[i] != delim; ++i) {
 				EXIT_LOOPS_IF(i >= srcLen);
 				dest->str[j++] = src[i];
@@ -143,7 +143,7 @@ int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 		}
 		break;
 	default:
-		for (int i=0, n=1 ;;) {
+		for (int i = 0, n = 1;; ) {
 			do {
 				for ( ; src[i] != delim; ++i)
 					EXIT_LOOPS_IF(i >= srcLen);
