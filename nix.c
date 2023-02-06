@@ -186,8 +186,8 @@ int awkFile(char delim, int nStr, char *filename, Jstr *dest)
 	int ret = awk(delim, nStr, dest->str, fileSize, dest);
 	if (ret)
 		return ret;
-	jstrDeletePtr(dest);
 
+	jstrDeletePtr(dest);
 ERROR:
 	perror("");
 	return 0;
