@@ -5,6 +5,7 @@
 
 #include "nix.h"
 #include "/home/james/c/jString/jstr.h"
+#include "/home/james/c/jArray/jarr.h"
 
 #define IF_DO(STATE, DO) \
 	if (STATE) \
