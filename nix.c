@@ -48,14 +48,13 @@ int head(char *filename, Jstr *dest)
 	ERROR_CLOSE_IF(!(dest->str = malloc((dest->size = 512))));
 	fgets(dest->str, dest->size, fd);
 	ERROR_CLOSE_FREE_IF(ferror(fd)
-	|| (dest->size > (dest->len * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))))));
+	|| (dest->size > ((dest->len = strlen(dest->str)) * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))))));
 	dest->str[dest->len + 1] = '\0';
 	fclose(fd);
 	return dest->size;
 
 ERROR_CLOSE_FREE:
 	jstrDeletePtr(dest);
-	dest->size = 0;
 ERROR_CLOSE:
 	fclose(fd);
 ERROR:
@@ -85,12 +84,15 @@ ERROR:
 /* flags: l' =  line; 'w' =  word */
 int wc(char flag, char *filename)
 {
+	int fileSize;
 	Jstr fileStr;
+	fileStr.str = malloc((fileSize = sizeOfFile(filename)));
+	ERROR_IF(!fileStr.str);
+	fileStr.size = fileSize;
+	fileSize = cat(filename, &fileStr);
+	ERROR_FREE_IF(!fileSize);
 	int i;
 	int count;
-	int fileSize = cat(filename, &fileStr);
-	if (!fileSize)
-		flag = 0;
 	switch (flag) {
 	case 'l':
 		i = 0;
@@ -116,13 +118,17 @@ int wc(char flag, char *filename)
 			++i;
 		} while (i<fileSize);
 		break;
-	case 0:
 	default:
-		perror("");
-		return 0;
+		goto ERROR;
 	}
 	jstrDelete(fileStr);
 	return count;
+
+ERROR_FREE:
+	jstrDelete(fileStr);
+ERROR:
+	perror("");
+	return 0;
 }
 
 int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
@@ -166,7 +172,7 @@ SUCCESS:
 		srcLen = j * 2;
 		ERROR_FREE_IF(!(dest->str = realloc(dest->str, srcLen)));
 		dest->str[++j] = '\0';
-		return j;
+		return (dest->len = j);
 	}
 
 ERROR_FREE:
