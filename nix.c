@@ -135,7 +135,7 @@ ERROR:
 int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 {
 	ERROR_IF((!srcLen && !(srcLen = strlen(src)))
-	|| (!dest->size && !(dest->str = malloc(srcLen))));
+	|| (!dest->size && !(dest->str = malloc((dest->size = srcLen)))));
 	int j = 0;
 	switch (nStr) {
 	case 0:
