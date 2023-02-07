@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <assert.h>
 
 #include "nix.h"
 #include "/home/james/c/jString/jstr.h"
@@ -133,20 +134,21 @@ ERROR:
 
 int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 {
-	ERROR_IF(!srcLen && !(srcLen = strlen(src)));
+	ERROR_IF((!srcLen && !(srcLen = strlen(src)))
+	|| (!dest->size && !(dest->str = malloc(srcLen))));
 	int j = 0;
 	switch (nStr) {
 	case 0:
 		goto ERROR_FREE;
 	case 1:
 		for (int i = 0;; ) {
-			for ( ; src[i] != delim; ++i, ++j) {
+			for ( ; src[i] != delim; ++i) {
 				EXIT_LOOPS_IF(i >= srcLen);
-				dest->str[j] = src[i];
+				dest->str[j++] = src[i];
 			}
-			for ( ; src[i] != '\n'; ++i, ++j)
+			for ( ; src[i] != '\n'; ++i)
 				EXIT_LOOPS_IF(i >= srcLen);
-			dest->str[j] = '\n';
+			dest->str[j++] = '\n';
 		}
 		break;
 	default:
@@ -158,13 +160,13 @@ int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 					++i;
 				++n;
 			} while (n<nStr);
-			for ( ; src[i] != delim; ++i, ++j) {
+			for ( ; src[i] != delim; ++i) {
 				EXIT_LOOPS_IF(i >= srcLen);
-				dest->str[j] = src[i];
+				dest->str[j++] = src[i];
 			}
-			for ( ; src[i] != '\n'; ++i, ++j)
+			for ( ; src[i] != '\n'; ++i)
 				EXIT_LOOPS_IF(i >= srcLen);
-			dest->str[j] = '\n';
+			dest->str[j++] = '\n';
 		}
 	}
 SUCCESS:
