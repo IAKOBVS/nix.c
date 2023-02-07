@@ -142,7 +142,7 @@ int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 		goto ERROR_FREE;
 	case 1:
 		for (int i = 0;; ) {
-			for ( ; src[i] != delim; ++i) {
+			for ( ; src[i] != delim && src[i] != '\n'; ++i) {
 				EXIT_LOOPS_IF(i >= srcLen);
 				dest->str[j++] = src[i];
 			}
@@ -154,13 +154,13 @@ int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 	default:
 		for (int i = 0, n = 1;; ) {
 			do {
-				for ( ; src[i] != delim; ++i)
+				for ( ; src[i] != delim && src[i] != '\n'; ++i)
 					EXIT_LOOPS_IF(i >= srcLen);
 				while (src[i] == delim)
 					++i;
 				++n;
 			} while (n<nStr);
-			for ( ; src[i] != delim; ++i) {
+			for ( ; src[i] != delim && src[i] != '\n'; ++i) {
 				EXIT_LOOPS_IF(i >= srcLen);
 				dest->str[j++] = src[i];
 			}

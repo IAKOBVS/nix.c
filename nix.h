@@ -12,5 +12,5 @@ int cat(char *filename, Jstr *dest);
 /* flags: 'l' =  line; 'w' =  word */
 int wc(char flag, char *filename);
 int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest);
-int awkFile(char delim, int nStr, char *filename, Jstr *src);
+int awkFile(char delim, int nStr, char *filename, Jstr *dest);
 #endif
