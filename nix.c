@@ -49,7 +49,7 @@ int head(char *filename, Jstr *dest)
 	fgets(dest->str, dest->size, fd);
 	ERROR_CLOSE_FREE_IF(ferror(fd)
 	|| (dest->size > ((dest->len = strlen(dest->str)) * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))))));
-	dest->str[dest->len + 1] = '\0';
+	dest->str[dest->len] = '\0';
 	fclose(fd);
 	return dest->size;
 
@@ -69,7 +69,7 @@ int cat(char *filename, Jstr *dest)
 	ERROR_CLOSE_IF(!(dest->str = malloc((dest->size = sizeOfFile(filename) + 1))));
 	dest->len = fread(dest->str, 1, dest->size, fd);
 	if (dest->len) {
-		dest->str[dest->len + 1] = '\0';
+		dest->str[dest->len] = '\0';
 		fclose(fd);
 		return dest->len;
 	}
