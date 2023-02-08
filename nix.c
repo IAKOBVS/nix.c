@@ -63,8 +63,7 @@ int cat(char *filename, Jstr *dest)
 		goto ERROR;
 	if (!(dest->str = malloc((dest->size = sizeOfFile(filename) + 1))))
 		goto ERROR_CLOSE;
-	dest->len = fread(dest->str, 1, dest->size, fd);
-	if (dest->len) {
+	if ((dest->len = fread(dest->str, 1, dest->size, fd))) {
 		dest->str[dest->len] = '\0';
 		fclose(fd);
 		return dest->len;
@@ -79,49 +78,31 @@ ERROR:
 }
 
 /* flags: l' =  line; 'w' =  word */
-int wc(char flag, char *filename)
+int wc(char flag, char *src)
 {
-	Jstr fileStr;
-	if (!(fileStr.str = malloc((fileStr.size = (sizeOfFile(filename))))))
-		goto ERROR;
-	if (!(fileStr.len = cat(filename, &fileStr)))
-		goto ERROR_FREE;
-	fileStr.size = fileStr.size;
-	int i;
-	int count;
+	int count = 0;
 	switch (flag) {
 	case 'l':
-		i = 0;
-		count = 0;
-		do {
-			if (fileStr.str[i] == '\n')
+		while (*src)
+			if (*src++ == '\n')
 				++count;
-			++i;
-		} while (i<fileStr.size);
 		break;
 	case 'w':
-		i = 0;
-		count = 0;
-		do {
-			switch (fileStr.str[i]) {
+		while (*src)
+			switch (*src++) {
 			case ' ':
 			case '\n':
-				++i;
+				++src;
 				continue;
 			default:
 				++count;
 			}
-			++i;
-		} while (i<fileStr.size);
 		break;
 	default:
 		goto ERROR;
 	}
-	jstrDelete(fileStr);
 	return count;
 
-ERROR_FREE:
-	jstrDelete(fileStr);
 ERROR:
 	perror("");
 	return 0;
