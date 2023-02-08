@@ -81,13 +81,12 @@ ERROR:
 /* flags: l' =  line; 'w' =  word */
 int wc(char flag, char *filename)
 {
-	int fileSize;
 	Jstr fileStr;
-	if (!(fileStr.str = malloc((fileSize = sizeOfFile(filename)))))
+	if (!(fileStr.str = malloc((fileStr.size = (sizeOfFile(filename))))))
 		goto ERROR;
-	fileStr.size = fileSize;
-	if (!(fileSize = cat(filename, &fileStr)))
+	if (!(fileStr.len = cat(filename, &fileStr)))
 		goto ERROR_FREE;
+	fileStr.size = fileStr.size;
 	int i;
 	int count;
 	switch (flag) {
@@ -98,7 +97,7 @@ int wc(char flag, char *filename)
 			if (fileStr.str[i] == '\n')
 				++count;
 			++i;
-		} while (i<fileSize);
+		} while (i<fileStr.size);
 		break;
 	case 'w':
 		i = 0;
@@ -113,7 +112,7 @@ int wc(char flag, char *filename)
 				++count;
 			}
 			++i;
-		} while (i<fileSize);
+		} while (i<fileStr.size);
 		break;
 	default:
 		goto ERROR;
