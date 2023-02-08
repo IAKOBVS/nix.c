@@ -11,16 +11,9 @@
 #define IF_DO(STATE, DO) \
 	if (STATE) \
 		DO
-#define ERROR_IF(STATE) \
-	IF_DO(STATE, goto ERROR)
-#define ERROR_CLOSE_IF(STATE) \
-	IF_DO(STATE, goto ERROR_CLOSE)
-#define ERROR_FREE_IF(STATE) \
-	IF_DO(STATE, goto ERROR_FREE)
-#define ERROR_CLOSE_FREE_IF(STATE) \
-	IF_DO(STATE, goto ERROR_CLOSE_FREE)
-#define EXIT_LOOPS_IF(STATE) \
-	IF_DO(STATE, goto EXIT_LOOPS)
+#define GOTO(LABEL, STATE) \
+	STATE \
+		goto LABEL
 
 int sizeOfFile(char *filename)
 {
@@ -45,11 +38,14 @@ int tee(char *flag, char *inStr, char *filename)
 int head(char *filename, Jstr *dest)
 {
 	FILE *fd = fopen(filename, "r");
-	ERROR_IF(!fd);
-	ERROR_CLOSE_IF(!(dest->str = malloc((dest->size = 512))));
+	if (!fd)
+		goto ERROR;;
+	if (!(dest->str = malloc((dest->size = 512))))
+		goto ERROR_CLOSE;
 	fgets(dest->str, dest->size, fd);
-	ERROR_CLOSE_FREE_IF(ferror(fd)
-	|| (dest->size > ((dest->len = strlen(dest->str)) * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))))));
+	if (ferror(fd)
+	|| (dest->size > ((dest->len = strlen(dest->str)) * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))))))
+		goto ERROR_CLOSE_FREE;
 	dest->str[dest->len] = '\0';
 	fclose(fd);
 	return dest->size;
@@ -66,14 +62,17 @@ ERROR:
 int cat(char *filename, Jstr *dest)
 {
 	FILE *fd = fopen(filename, "r");
-	ERROR_IF(!fd);
-	ERROR_CLOSE_IF(!(dest->str = malloc((dest->size = sizeOfFile(filename) + 1))));
+	if (!fd)
+		goto ERROR;
+	if (!(dest->str = malloc((dest->size = sizeOfFile(filename) + 1))))
+		goto ERROR_CLOSE;
 	dest->len = fread(dest->str, 1, dest->size, fd);
 	if (dest->len) {
 		dest->str[dest->len] = '\0';
 		fclose(fd);
 		return dest->len;
 	}
+
 	jstrDeletePtr(dest);
 ERROR_CLOSE:
 	fclose(fd);
@@ -87,11 +86,11 @@ int wc(char flag, char *filename)
 {
 	int fileSize;
 	Jstr fileStr;
-	fileStr.str = malloc((fileSize = sizeOfFile(filename)));
-	ERROR_IF(!fileStr.str);
+	if (!(fileStr.str = malloc((fileSize = sizeOfFile(filename)))))
+		goto ERROR;
 	fileStr.size = fileSize;
-	fileSize = cat(filename, &fileStr);
-	ERROR_FREE_IF(!fileSize);
+	if (!(fileSize = cat(filename, &fileStr)))
+		goto ERROR_FREE;
 	int i;
 	int count;
 	switch (flag) {
@@ -134,20 +133,23 @@ ERROR:
 
 int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 {
-	ERROR_IF((!srcLen && !(srcLen = strlen(src)))
-	|| (!dest->size && !(dest->str = malloc((dest->size = srcLen)))));
+	if ((!srcLen && !(srcLen = strlen(src)))
+	|| (!dest->size && !(dest->str = malloc((dest->size = srcLen)))))
+		goto ERROR;
 	int j = 0;
 	switch (nStr) {
 	case 0:
 		goto ERROR_FREE;
 	case 1:
 		for (int i = 0;; ) {
-			for ( ; src[i] != delim && src[i] != '\n'; ++i) {
-				EXIT_LOOPS_IF(i >= srcLen);
+			for ( ; src[i] != delim; ++i) {
+				GOTO(EXIT_SWITCH, if (i >= srcLen));
+				GOTO(NEWLINE, if (src[i] != '\n'));
 				dest->str[j++] = src[i];
 			}
 			for ( ; src[i] != '\n'; ++i)
-				EXIT_LOOPS_IF(i >= srcLen);
+				GOTO(EXIT_SWITCH, if (i >= srcLen));
+NEWLINE:
 			dest->str[j++] = '\n';
 		}
 		break;
@@ -155,24 +157,24 @@ int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 		for (int i = 0, n = 1;; ) {
 			do {
 				for ( ; src[i] != delim && src[i] != '\n'; ++i)
-					EXIT_LOOPS_IF(i >= srcLen);
+					GOTO(EXIT_SWITCH, if (i >= srcLen));
 				while (src[i] == delim)
 					++i;
 				++n;
 			} while (n<nStr);
 			for ( ; src[i] != delim && src[i] != '\n'; ++i) {
-				EXIT_LOOPS_IF(i >= srcLen);
+				GOTO(EXIT_SWITCH, if (i >= srcLen));
 				dest->str[j++] = src[i];
 			}
 			for ( ; src[i] != '\n'; ++i)
-				EXIT_LOOPS_IF(i >= srcLen);
+				GOTO(EXIT_SWITCH, if (i >= srcLen));
 			dest->str[j++] = '\n';
 		}
 	}
 SUCCESS:
 	if (srcLen > (j * 2)) {
 		srcLen = j * 2;
-		ERROR_FREE_IF(!(dest->str = realloc(dest->str, srcLen)));
+		GOTO(ERROR_FREE, if (!(dest->str = realloc(dest->str, srcLen))));
 		dest->str[++j] = '\0';
 		return (dest->len = j);
 	}
@@ -182,7 +184,7 @@ ERROR_FREE:
 ERROR:
 	perror("");
 	return 0;
-EXIT_LOOPS:
+EXIT_SWITCH:
 	if (j)
 		goto SUCCESS;
 	goto ERROR_FREE;
@@ -191,7 +193,8 @@ EXIT_LOOPS:
 int awkFile(char delim, int nStr, char *filename, Jstr *dest)
 {
 	int fileSize = cat(filename, dest);
-	ERROR_IF(!fileSize);
+	if (!fileSize)
+		goto ERROR;
 	int ret = awk(delim, nStr, dest->str, fileSize, dest);
 	if (ret)
 		return ret;
