@@ -113,61 +113,60 @@ int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 	if ((!srcLen && !(srcLen = strlen(src)))
 	|| (!dest->size && !(dest->str = malloc((dest->size = srcLen)))))
 		goto ERROR;
-	int j = 0;
+	int i = 0;
 	switch (nStr) {
 	case 0:
 		goto ERROR_FREE;
 	case 1:
-		for (int i = 0;; ) {
-			for ( ; src[i] != delim; ++i) {
-				if (i >= srcLen)
+		for (;;) {
+			for ( ; *src != delim; ++src) {
+				if (!*src)
 					goto EXIT_SWITCH;
-				if (src[i] == '\n')
+				if (*src == '\n')
 					goto EXIT_LOOPS_1;
-				dest->str[j++] = src[i];
+				dest->str[i++] = *src;
 			}
-			for ( ; src[i] != '\n'; ++i)
-				if (i >= srcLen)
+			for ( ; *src != '\n'; ++src)
+				if (!*src)
 					goto EXIT_SWITCH;
 EXIT_LOOPS_1:
-			dest->str[j++] = '\n';
+			dest->str[i++] = '\n';
 		}
 		break;
 	default:
-		for (int i = 0, n = 1;; ) {
+		for (int n = 1;; ) {
 			do {
-				for ( ; src[i] != delim; ++i) {
-					if (i >= srcLen)
+				for ( ; *src != delim; ++src) {
+					if (!*src)
 						goto EXIT_SWITCH;
-					if (src[i] == '\n')
+					if (*src == '\n')
 						goto EXIT_LOOPS_DEFAULT;
 				}
-				while (src[i] == delim)
-					++i;
+				while (*src == delim)
+					++src;
 				++n;
-			} while (n<nStr);
-			for ( ; src[i] != delim && src[i] != '\n'; ++i) {
-				if (i >= srcLen)
+			} while (n < nStr);
+			for ( ; *src != delim && *src != '\n'; ++src, ++i) {
+				if (!*src)
 					goto EXIT_SWITCH;
-				if (src[i] == '\n')
+				if (*src == '\n')
 					goto EXIT_LOOPS_DEFAULT;
-				dest->str[j++] = src[i];
+				dest->str[i] = *src;
 			}
-			for ( ; src[i] != '\n'; ++i)
-				if (i >= srcLen)
+			for ( ; *src != '\n'; ++src)
+				if (!*src)
 					goto EXIT_SWITCH;
 EXIT_LOOPS_DEFAULT:
-			dest->str[j++] = '\n';
+			dest->str[i++] = '\n';
 		}
 	}
 SUCCESS:
-	if (srcLen > (j * 2)) {
-		srcLen = j * 2;
-		if (!(dest->str = realloc(dest->str, srcLen)))
+	if (srcLen > (i * 2)) {
+		if (!(dest->str = realloc(dest->str, (dest->size = i * 2))))
 			goto ERROR_FREE;
-		dest->str[++j] = '\0';
-		return (dest->len = j);
 	}
+	dest->str[i] = '\0';
+	return (dest->len = i);
 
 ERROR_FREE:
 	jstrDeletePtr(dest);
@@ -175,7 +174,7 @@ ERROR:
 	perror("");
 	return 0;
 EXIT_SWITCH:
-	if (j)
+	if (i)
 		goto SUCCESS;
 	goto ERROR_FREE;
 }
