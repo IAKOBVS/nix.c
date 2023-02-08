@@ -11,9 +11,6 @@
 #define IF_DO(STATE, DO) \
 	if (STATE) \
 		DO
-#define GOTO(LABEL, STATE) \
-	STATE \
-		goto LABEL
 
 int sizeOfFile(char *filename)
 {
@@ -143,38 +140,51 @@ int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 	case 1:
 		for (int i = 0;; ) {
 			for ( ; src[i] != delim; ++i) {
-				GOTO(EXIT_SWITCH, if (i >= srcLen));
-				GOTO(NEWLINE, if (src[i] != '\n'));
+				if (i >= srcLen)
+					goto EXIT_SWITCH;
+				if (src[i] == '\n')
+					goto EXIT_LOOPS_1;
 				dest->str[j++] = src[i];
 			}
 			for ( ; src[i] != '\n'; ++i)
-				GOTO(EXIT_SWITCH, if (i >= srcLen));
-NEWLINE:
+				if (i >= srcLen)
+					goto EXIT_SWITCH;
+EXIT_LOOPS_1:
 			dest->str[j++] = '\n';
 		}
 		break;
 	default:
 		for (int i = 0, n = 1;; ) {
 			do {
-				for ( ; src[i] != delim && src[i] != '\n'; ++i)
-					GOTO(EXIT_SWITCH, if (i >= srcLen));
+				for ( ; src[i] != delim; ++i) {
+					if (i >= srcLen)
+						goto EXIT_SWITCH;
+					if (src[i] == '\n')
+						goto EXIT_LOOPS_DEFAULT;
+				}
 				while (src[i] == delim)
 					++i;
 				++n;
 			} while (n<nStr);
 			for ( ; src[i] != delim && src[i] != '\n'; ++i) {
-				GOTO(EXIT_SWITCH, if (i >= srcLen));
+				if (i >= srcLen)
+					goto EXIT_SWITCH;
+				if (src[i] == '\n')
+					goto EXIT_LOOPS_DEFAULT;
 				dest->str[j++] = src[i];
 			}
 			for ( ; src[i] != '\n'; ++i)
-				GOTO(EXIT_SWITCH, if (i >= srcLen));
+				if (i >= srcLen)
+					goto EXIT_SWITCH;
+EXIT_LOOPS_DEFAULT:
 			dest->str[j++] = '\n';
 		}
 	}
 SUCCESS:
 	if (srcLen > (j * 2)) {
 		srcLen = j * 2;
-		GOTO(ERROR_FREE, if (!(dest->str = realloc(dest->str, srcLen))));
+		if (!(dest->str = realloc(dest->str, srcLen)))
+			goto ERROR_FREE;
 		dest->str[++j] = '\0';
 		return (dest->len = j);
 	}
