@@ -113,60 +113,65 @@ int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 	if ((!srcLen && !(srcLen = strlen(src)))
 	|| (!dest->size && !(dest->str = malloc((dest->size = srcLen)))))
 		goto ERROR;
-	int i = 0;
+	int j = 0;
 	switch (nStr) {
 	case 0:
 		goto ERROR_FREE;
 	case 1:
 		for (;;) {
-			for ( ; *src != delim; ++src) {
+			for ( ; *src != delim; ++j) {
 				if (!*src)
 					goto EXIT_SWITCH;
 				if (*src == '\n')
 					goto EXIT_LOOPS_1;
-				dest->str[i++] = *src;
+				dest->str[j] = *src++;
 			}
-			for ( ; *src != '\n'; ++src)
+			while (*src != '\n') {
 				if (!*src)
 					goto EXIT_SWITCH;
+				++src;
+			}
 EXIT_LOOPS_1:
-			dest->str[i++] = '\n';
+			dest->str[j++] = '\n';
 		}
 		break;
 	default:
 		for (int n = 1;; ) {
 			do {
-				for ( ; *src != delim; ++src) {
+				while (*src != delim) {
 					if (!*src)
 						goto EXIT_SWITCH;
 					if (*src == '\n')
 						goto EXIT_LOOPS_DEFAULT;
+					++src;
 				}
 				while (*src == delim)
 					++src;
 				++n;
 			} while (n < nStr);
-			for ( ; *src != delim && *src != '\n'; ++src, ++i) {
+			for ( ; *src != delim && *src != '\n'; ++j) {
 				if (!*src)
 					goto EXIT_SWITCH;
 				if (*src == '\n')
 					goto EXIT_LOOPS_DEFAULT;
-				dest->str[i] = *src;
+				dest->str[j] = *src++;
 			}
-			for ( ; *src != '\n'; ++src)
+			while (*src != '\n') {
 				if (!*src)
 					goto EXIT_SWITCH;
+				++src;
+			}
 EXIT_LOOPS_DEFAULT:
-			dest->str[i++] = '\n';
+			dest->str[j++] = '\n';
 		}
 	}
 SUCCESS:
-	if (srcLen > (i * 2)) {
-		if (!(dest->str = realloc(dest->str, (dest->size = i * 2))))
+	if (srcLen > (j * 2)) {
+		if (!(dest->str = realloc(dest->str, (dest->size = j * 2))))
 			goto ERROR_FREE;
 	}
-	dest->str[i] = '\0';
-	return (dest->len = i);
+	dest->str[j] = '\0';
+	return (dest->len = j);
 
 ERROR_FREE:
 	jstrDeletePtr(dest);
@@ -174,7 +179,7 @@ ERROR:
 	perror("");
 	return 0;
 EXIT_SWITCH:
-	if (i)
+	if (j)
 		goto SUCCESS;
 	goto ERROR_FREE;
 }
