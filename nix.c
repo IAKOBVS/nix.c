@@ -148,7 +148,7 @@ EXIT_LOOPS_1:
 					++src;
 				++n;
 			} while (n < nStr);
-			for ( ; *src != delim && *src != '\n'; ++j, ++src) {
+			for ( ; *src != delim; ++j, ++src) {
 				if (!*src)
 					goto EXIT_SWITCH;
 				if (*src == '\n')
