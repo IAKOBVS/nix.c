@@ -119,50 +119,49 @@ int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 		goto ERROR_FREE;
 	case 1:
 		for (;;) {
-			for ( ; *src != delim; ++j) {
+			for ( ; *src != delim; ++j, ++src) {
 				if (!*src)
 					goto EXIT_SWITCH;
 				if (*src == '\n')
 					goto EXIT_LOOPS_1;
-				dest->str[j] = *src++;
+				dest->str[j] = *src;
 			}
-			while (*src != '\n') {
+			for ( ; *src != '\n'; ++src) {
 				if (!*src)
 					goto EXIT_SWITCH;
-				++src;
 			}
 EXIT_LOOPS_1:
 			dest->str[j++] = '\n';
+			++src;
 		}
 		break;
 	default:
 		for (int n = 1;; ) {
 			do {
-				while (*src != delim) {
+				for ( ; *src != delim; ++src) {
 					if (!*src)
 						goto EXIT_SWITCH;
 					if (*src == '\n')
 						goto EXIT_LOOPS_DEFAULT;
-					++src;
 				}
 				while (*src == delim)
 					++src;
 				++n;
 			} while (n < nStr);
-			for ( ; *src != delim && *src != '\n'; ++j) {
+			for ( ; *src != delim && *src != '\n'; ++j, ++src) {
 				if (!*src)
 					goto EXIT_SWITCH;
 				if (*src == '\n')
 					goto EXIT_LOOPS_DEFAULT;
-				dest->str[j] = *src++;
+				dest->str[j] = *src;
 			}
-			while (*src != '\n') {
+			for ( ; *src != '\n'; ++src) {
 				if (!*src)
 					goto EXIT_SWITCH;
-				++src;
 			}
 EXIT_LOOPS_DEFAULT:
 			dest->str[j++] = '\n';
+			++src;
 		}
 	}
 SUCCESS:
