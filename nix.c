@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <string.h>
-#include <assert.h>
+/* #include <assert.h> */
 
 #include "nix.h"
 #include "/home/james/c/jString/jstr.h"
