@@ -8,10 +8,6 @@
 #include "/home/james/c/jString/jstr.h"
 #include "/home/james/c/jArray/jarr.h"
 
-#define IF_DO(STATE, DO) \
-	if (STATE) \
-		DO
-
 int sizeOfFile(char *filename)
 {
 	struct stat st;
@@ -48,6 +44,7 @@ int head(char *filename, Jstr *dest)
 	dest->str[dest->len] = '\0';
 	fclose(fd);
 	return dest->size;
+
 ERROR:
 	switch (err) {
 	case ERROR_CLOSE_FREE:
@@ -79,6 +76,7 @@ int cat(char *filename, Jstr *dest)
 	fclose(fd);
 	dest->str[dest->len] = '\0';
 	return dest->size;
+
 ERROR:
 	switch (err) {
 	case ERROR_CLOSE_FREE:
@@ -188,6 +186,7 @@ SUCCESS:
 			goto ERROR_FREE;
 	dest->str[j] = '\0';
 	return (dest->len = j);
+
 IF_SUCCESS:
 	if (j)
 		goto SUCCESS;
@@ -205,6 +204,7 @@ int awkFile(char delim, int nStr, char *filename, Jstr *dest)
 		int ret = awk(delim, nStr, dest->str, fileSize, dest);
 		if (ret)
 			return ret;
+
 		jstrDeletePtr(dest);
 	}
 	perror("");
