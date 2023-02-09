@@ -37,12 +37,12 @@ int head(char *filename, Jstr *dest)
 	int error;
 	FILE *fd = fopen(filename, "r");
 	if ((!fd && (error = ERROR_, 1))
-	|| (!(dest->str = malloc(512)) && (error = ERROR_CLOSE, 1))
+	|| (!(dest->str = malloc((dest->size = 512))) && (error = ERROR_CLOSE, dest->size = 0, 1))
 	|| (fgets(dest->str, dest->size, fd), ferror(fd) && (error = ERROR_CLOSE_FREE, 1))
 	|| (dest->size > ((dest->len = strlen(dest->str)) * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))) && (error = ERROR_CLOSE_FREE, 1))))
 		goto ERROR;
-	dest->str[dest->len] = '\0';
 	fclose(fd);
+	dest->str[dest->len] = '\0';
 	return dest->size;
 
 ERROR:
@@ -70,7 +70,7 @@ int cat(char *filename, Jstr *dest)
 	int error;
 	FILE *fd = fopen(filename, "r");
 	if ((!fd && (error = ERROR_, 1))
-	|| (!(dest->str = malloc((dest->size = sizeOfFile(filename) + 1))) && (error = ERROR_CLOSE, 1))
+	|| (!(dest->str = malloc((dest->size = sizeOfFile(filename) + 1))) && (error = ERROR_CLOSE, dest->size = 0, 1))
 	|| (!(dest->len = fread(dest->str, 1, dest->size, fd)) && (error = ERROR_CLOSE_FREE, 1)))
 		goto ERROR;
 	fclose(fd);
@@ -127,7 +127,7 @@ ERROR:
 int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 {
 	if ((!srcLen && !(srcLen = strlen(src)))
-	|| (!dest->size && !(dest->str = malloc((dest->size = srcLen)))))
+	|| (!dest->size && !(dest->str = malloc((dest->size = srcLen))) && (dest->size = 0, 1)))
 		goto ERROR;
 	int j = 0;
 	switch (nStr) {
