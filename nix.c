@@ -34,19 +34,19 @@ int tee(char *flag, char *inStr, char *filename)
 /* get first line of file */
 int head(char *filename, Jstr *dest)
 {
-	int err;
+	int error;
 	FILE *fd = fopen(filename, "r");
-	if ((!fd && (err = ERROR_, 1))
-	|| (!(dest->str = malloc((dest->size = 512))) && (err = ERROR_CLOSE, 1))
-	|| (fgets(dest->str, dest->size, fd), ferror(fd) && (err = ERROR_CLOSE_FREE, 1))
-	|| (dest->size > ((dest->len = strlen(dest->str)) * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))) && (err = ERROR_CLOSE_FREE, 1))))
+	if ((!fd && (error = ERROR_, 1))
+	|| (!(dest->str = malloc(512)) && (error = ERROR_CLOSE, 1))
+	|| (fgets(dest->str, dest->size, fd), ferror(fd) && (error = ERROR_CLOSE_FREE, 1))
+	|| (dest->size > ((dest->len = strlen(dest->str)) * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))) && (error = ERROR_CLOSE_FREE, 1))))
 		goto ERROR;
 	dest->str[dest->len] = '\0';
 	fclose(fd);
 	return dest->size;
 
 ERROR:
-	switch (err) {
+	switch (error) {
 	case ERROR_CLOSE_FREE:
 		jstrDeletePtr(dest);
 	case ERROR_CLOSE:
@@ -67,18 +67,18 @@ ERROR:
 
 int cat(char *filename, Jstr *dest)
 {
-	int err;
+	int error;
 	FILE *fd = fopen(filename, "r");
-	if ((!fd && (err = ERROR_, 1))
-	|| (!(dest->str = malloc((dest->size = sizeOfFile(filename) + 1))) && (err = ERROR_CLOSE, 1))
-	|| (!(dest->len = fread(dest->str, 1, dest->size, fd)) && (err = ERROR_CLOSE_FREE, 1)))
+	if ((!fd && (error = ERROR_, 1))
+	|| (!(dest->str = malloc((dest->size = sizeOfFile(filename) + 1))) && (error = ERROR_CLOSE, 1))
+	|| (!(dest->len = fread(dest->str, 1, dest->size, fd)) && (error = ERROR_CLOSE_FREE, 1)))
 		goto ERROR;
 	fclose(fd);
 	dest->str[dest->len] = '\0';
 	return dest->size;
 
 ERROR:
-	switch (err) {
+	switch (error) {
 	case ERROR_CLOSE_FREE:
 		jstrDeletePtr(dest);
 	case ERROR_CLOSE:
