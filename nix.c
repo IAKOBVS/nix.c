@@ -31,51 +31,69 @@ int tee(char *flag, char *inStr, char *filename)
 	return 0;
 }
 
+#define ERROR_ -1
+#define ERROR_CLOSE -2
+#define ERROR_CLOSE_FREE -3
+
 /* get first line of file */
 int head(char *filename, Jstr *dest)
 {
+	int err;
 	FILE *fd = fopen(filename, "r");
-	if (!fd)
-		goto ERROR;;
-	if (!(dest->str = malloc((dest->size = 512))))
-		goto ERROR_CLOSE;
-	fgets(dest->str, dest->size, fd);
-	if (ferror(fd)
-	|| (dest->size > ((dest->len = strlen(dest->str)) * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))))))
-		goto ERROR_CLOSE_FREE;
+	if ((!fd && (err = ERROR_, 1))
+	|| (!(dest->str = malloc((dest->size = 512))) && (err = ERROR_CLOSE, 1))
+	|| (fgets(dest->str, dest->size, fd), ferror(fd) && (err = ERROR_CLOSE_FREE, 1))
+	|| (dest->size > ((dest->len = strlen(dest->str)) * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))) && (err = ERROR_CLOSE_FREE, 1))))
+		goto ERROR;
 	dest->str[dest->len] = '\0';
 	fclose(fd);
 	return dest->size;
-
-ERROR_CLOSE_FREE:
-	jstrDeletePtr(dest);
-ERROR_CLOSE:
-	fclose(fd);
 ERROR:
-	perror("");
+	switch (err) {
+	case ERROR_CLOSE_FREE:
+		jstrDeletePtr(dest);
+	case ERROR_CLOSE:
+		fclose(fd);
+	case ERROR_:
+		perror("");
+	}
 	return 0;
 }
+
+#undef ERROR_
+#undef ERROR_CLOSE
+#undef ERROR_CLOSE_FREE
+
+#define ERROR_ -1
+#define ERROR_CLOSE -2
+#define ERROR_CLOSE_FREE -3
 
 int cat(char *filename, Jstr *dest)
 {
+	int err;
 	FILE *fd = fopen(filename, "r");
-	if (!fd)
+	if ((!fd && (err = ERROR_, 1))
+	|| (!(dest->str = malloc((dest->size = sizeOfFile(filename) + 1))) && (err = ERROR_CLOSE, 1))
+	|| (!(dest->len = fread(dest->str, 1, dest->size, fd)) && (err = ERROR_CLOSE_FREE, 1)))
 		goto ERROR;
-	if (!(dest->str = malloc((dest->size = sizeOfFile(filename) + 1))))
-		goto ERROR_CLOSE;
-	if ((dest->len = fread(dest->str, 1, dest->size, fd))) {
-		dest->str[dest->len] = '\0';
-		fclose(fd);
-		return dest->len;
-	}
-
-	jstrDeletePtr(dest);
-ERROR_CLOSE:
 	fclose(fd);
+	dest->str[dest->len] = '\0';
+	return dest->size;
 ERROR:
-	perror("");
+	switch (err) {
+	case ERROR_CLOSE_FREE:
+		jstrDeletePtr(dest);
+	case ERROR_CLOSE:
+		fclose(fd);
+	case ERROR_:
+		perror("");
+	}
 	return 0;
 }
+
+#undef ERROR_
+#undef ERROR_CLOSE
+#undef ERROR_CLOSE_FREE
 
 /* flags: l' =  line; 'w' =  word */
 int wc(char flag, char *src)
@@ -142,7 +160,7 @@ SKIP_LOOPS_1:
 					if (!*src)
 						goto IF_SUCCESS;
 					if (*src == '\n')
-						goto SKIP_LOOPS_DEFAULT;
+						goto SKIP_LOOPS;
 				}
 				while (*src == delim)
 					++src;
@@ -152,48 +170,43 @@ SKIP_LOOPS_1:
 				if (!*src)
 					goto IF_SUCCESS;
 				if (*src == '\n')
-					goto SKIP_LOOPS_DEFAULT;
+					goto SKIP_LOOPS;
 				dest->str[j] = *src;
 			}
 			for ( ; *src != '\n'; ++src) {
 				if (!*src)
 					goto IF_SUCCESS;
 			}
-SKIP_LOOPS_DEFAULT:
+SKIP_LOOPS:
 			dest->str[j++] = '\n';
 			++src;
 		}
 	}
 SUCCESS:
-	if (srcLen > (j * 2)) {
+	if (srcLen > (j * 2))
 		if (!(dest->str = realloc(dest->str, (dest->size = j * 2))))
 			goto ERROR_FREE;
-	}
 	dest->str[j] = '\0';
 	return (dest->len = j);
-
+IF_SUCCESS:
+	if (j)
+		goto SUCCESS;
 ERROR_FREE:
 	jstrDeletePtr(dest);
 ERROR:
 	perror("");
 	return 0;
-IF_SUCCESS:
-	if (j)
-		goto SUCCESS;
-	goto ERROR_FREE;
 }
 
 int awkFile(char delim, int nStr, char *filename, Jstr *dest)
 {
 	int fileSize = cat(filename, dest);
-	if (!fileSize)
-		goto ERROR;
-	int ret = awk(delim, nStr, dest->str, fileSize, dest);
-	if (ret)
-		return ret;
-
-	jstrDeletePtr(dest);
-ERROR:
+	if (fileSize) {
+		int ret = awk(delim, nStr, dest->str, fileSize, dest);
+		if (ret)
+			return ret;
+		jstrDeletePtr(dest);
+	}
 	perror("");
 	return 0;
 }
