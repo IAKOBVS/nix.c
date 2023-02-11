@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <dirent.h>
 /* #include <assert.h> */
 
 #include "nix.h"
@@ -30,6 +31,19 @@ int tee(char *flag, char *inStr, char *filename)
 #define ERROR_ -1
 #define ERROR_CLOSE -2
 #define ERROR_CLOSE_FREE -3
+
+/* int findDir(char *dir, char **dest) */
+/* { */
+/* 	struct dirent *ep; */
+/* 	DIR *dp; */
+/* 	if (!(dp = opendir (dir))) */
+/* 		goto ERROR; */
+/* 	while ((ep = readdir(dp))) { */
+/* 	} */
+/* ERROR: */
+/* 	perror(""); */
+/* 	return 0; */
+/* } */
 
 /* get first line of file */
 int head(char *filename, Jstr *dest)
@@ -65,22 +79,23 @@ ERROR:
 #define ERROR_CLOSE -2
 #define ERROR_CLOSE_FREE -3
 
-int cat(char *filename, Jstr *dest)
+int cat(char *filename, char **dest)
 {
 	int error;
+	int fileSize;
 	FILE *fd = fopen(filename, "r");
-	if ((!fd && (error = ERROR_, 1))
-	|| (!(dest->str = malloc((dest->size = sizeOfFile(filename) + 1))) && (error = ERROR_CLOSE, dest->size = 0, 1))
-	|| (!(dest->len = fread(dest->str, 1, dest->size, fd)) && (error = ERROR_CLOSE_FREE, 1)))
-		goto ERROR;
-	fclose(fd);
-	dest->str[dest->len] = '\0';
-	return dest->size;
-
-ERROR:
+	do {
+		if ((!fd && (error = ERROR_, 1))
+		|| (!(*dest = malloc((fileSize = sizeOfFile(filename) + 1))) && (error = ERROR_CLOSE, 1))
+		|| (!(fileSize = fread(*dest, 1, fileSize, fd)) && (error = ERROR_CLOSE_FREE, 1)))
+			break;
+		fclose(fd);
+		(*dest)[fileSize - 1] = '\0';
+		return fileSize;
+	} while (0);
 	switch (error) {
 	case ERROR_CLOSE_FREE:
-		jstrDeletePtr(dest);
+		free(*dest);
 	case ERROR_CLOSE:
 		fclose(fd);
 	case ERROR_:
@@ -199,12 +214,13 @@ ERROR:
 
 int awkFile(char delim, int nStr, char *filename, Jstr *dest)
 {
-	int fileSize = cat(filename, dest);
+	char *fileStr;
+	int fileSize = cat(filename, &fileStr);
 	if (fileSize) {
 		int ret = awk(delim, nStr, dest->str, fileSize, dest);
+		free(fileStr);
 		if (ret)
 			return ret;
-
 		jstrDeletePtr(dest);
 	}
 	perror("");

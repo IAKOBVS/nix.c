@@ -8,7 +8,7 @@ int sizeOfFile(char *filename);
 /* flags: 'w' = overwrite; 'a' = append */
 int tee(char *flag, char *inStr, char *filename);
 int head(char *filename, Jstr *dest);
-int cat(char *filename, Jstr *dest);
+int cat(char *filename, char **dest);
 /* flags: 'l' =  line; 'w' =  word */
 int wc(char flag, char *src);
 int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest);
