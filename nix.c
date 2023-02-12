@@ -248,7 +248,7 @@ int awkFile(char delim, int nStr, char *filename, char **dest)
 		free(fileStr);
 		if (ret)
 			return ret;
-		free(dest);
+		free(*dest);
 	}
 	perror("");
 	return 0;
