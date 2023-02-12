@@ -27,14 +27,29 @@ int tee(char *flag, char *inStr, char *filename)
 	return 0;
 }
 
-void dirPrint(char *dir)
+int findDir(char *dir, char **dest)
 {
 	struct dirent *ep;
 	DIR *dp = opendir(dir);
-	if (!dp) return;
+	if (!dp) return 0;
+	char buf[3200];
+	int i = 0;
 	while ((ep = readdir(dp)))
-		puts(ep->d_name);
+		for (int j = 0;; ) {
+			switch (ep->d_name[j]) {
+			default:
+				buf[i++] = (ep->d_name)[j++];
+				continue;
+			case '\0':
+				buf[i++] = '\n';
+			}
+			break;
+		}
+	*dest = malloc(i + 1);
+	memcpy(*dest, buf, i);
+	(*dest)[i] = '\0';
 	closedir(dp);
+	return i;
 }
 
 int head(char *filename, char **dest)
