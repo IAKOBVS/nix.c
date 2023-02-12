@@ -38,7 +38,7 @@ int findDir(char *dir, char **dest)
 		memcpy(*dest, ep->d_name, sizeof ep->d_name);
 		*dest[i += strlen(ep->d_name)] = ' ';
 	}
-	return 1;
+	return 3200;
 
 ERROR:
 	perror("");
@@ -241,16 +241,16 @@ ERROR:
 	return 0;
 }
 
-int awkFile(char delim, int nStr, char *filename, Jstr *dest)
+int awkFile(char delim, int nStr, char *filename, char **dest)
 {
 	char *fileStr;
 	int fileSize = cat(filename, &fileStr);
 	if (fileSize) {
-		int ret = awk(delim, nStr, dest->str, fileSize, dest);
+		int ret = awk(delim, nStr, fileStr, fileSize, dest);
 		free(fileStr);
 		if (ret)
 			return ret;
-		jstrDeletePtr(dest);
+		free(dest);
 	}
 	perror("");
 	return 0;
