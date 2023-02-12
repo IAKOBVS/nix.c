@@ -11,6 +11,8 @@ int tee(char *flag, char *inStr, char *filename);
 int head(char *filename, char **dest);
 /* read file into string */
 int cat(char *filename, char **dest);
+/* find files in directory */
+int findDir(char *dir, char **dest);
 /* chars in string */
 int wcc(char *src);
 /* words in string */
