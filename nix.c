@@ -15,7 +15,6 @@ int sizeOfFile(char *filename)
 	return (!stat(filename, &st) ? st.st_size : 0);
 }
 
-/* flags: 'w' = overwrite; 'a' = append */
 int tee(char *flag, char *inStr, char *filename)
 {
 	FILE *fp = fopen(filename, flag);
@@ -45,7 +44,6 @@ ERROR:
 	return 0;
 }
 
-/* get first line of file */
 int head(char *filename, char **dest)
 {
 	char buf[512];

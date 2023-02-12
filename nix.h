@@ -7,11 +7,15 @@
 int sizeOfFile(char *filename);
 /* flags: 'w' = overwrite; 'a' = append */
 int tee(char *flag, char *inStr, char *filename);
+/* first line of file */
 int head(char *filename, char **dest);
+/* read file into string */
 int cat(char *filename, char **dest);
-/* flags: 'l' =  line; 'w' =  word */
+/* chars in string */
 int wcc(char *src);
+/* words in string */
 int wcw(char *src);
+/* lines in string */
 int wcl(char *src);
 int awk(char delim, int nStr, char *src, int srcLen, char **dest);
 int awkFile(char delim, int nStr, char *filename, char **dest);
