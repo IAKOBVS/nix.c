@@ -28,32 +28,39 @@ int tee(char *flag, char *inStr, char *filename)
 	return 0;
 }
 
-#define ERROR_ -1
-#define ERROR_CLOSE -2
-#define ERROR_CLOSE_FREE -3
+int findDir(char *dir, char **dest)
+{
+	struct dirent *ep;
+	DIR *dp;
+	if (!(dp = opendir (dir))
+	|| (!(*dest = malloc(3200))))
+		goto ERROR;
+	for (int i = 0; (ep = readdir(dp)); ) {
+		memcpy(*dest, ep->d_name, sizeof ep->d_name);
+		*dest[i += strlen(ep->d_name)] = ' ';
+	}
+	return 1;
+ERROR:
+	perror("");
+	return 0;
+}
 
-/* int findDir(char *dir, char **dest) */
-/* { */
-/* 	struct dirent *ep; */
-/* 	DIR *dp; */
-/* 	if (!(dp = opendir (dir))) */
-/* 		goto ERROR; */
-/* 	while ((ep = readdir(dp))) { */
-/* 	} */
-/* ERROR: */
-/* 	perror(""); */
-/* 	return 0; */
-/* } */
+#define DEFAULT -1
+#define CLOSE -2
+#define CLOSE_FREE -3
+
+#define ERROR(CODE) \
+	(error = CODE), 1
 
 /* get first line of file */
 int head(char *filename, Jstr *dest)
 {
 	int error;
 	FILE *fd = fopen(filename, "r");
-	if ((!fd && (error = ERROR_, 1))
-	|| (!(dest->str = malloc((dest->size = 512))) && (error = ERROR_CLOSE, dest->size = 0, 1))
-	|| (fgets(dest->str, dest->size, fd), ferror(fd) && (error = ERROR_CLOSE_FREE, 1))
-	|| (dest->size > ((dest->len = strlen(dest->str)) * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))) && (error = ERROR_CLOSE_FREE, 1))))
+	if ((!fd && (ERROR(DEFAULT)))
+	|| (!(dest->str = malloc((dest->size = 512))) && (dest->size = 0, ERROR(CLOSE)))
+	|| (fgets(dest->str, dest->size, fd), ferror(fd) && (ERROR(CLOSE_FREE)))
+	|| (dest->size > ((dest->len = strlen(dest->str)) * 2) && (!(dest->str = realloc(dest->str, (dest->size = dest->len * 2))) && (ERROR(CLOSE_FREE)))))
 		goto ERROR;
 	fclose(fd);
 	dest->str[dest->len] = '\0';
@@ -61,23 +68,23 @@ int head(char *filename, Jstr *dest)
 
 ERROR:
 	switch (error) {
-	case ERROR_CLOSE_FREE:
+	case CLOSE_FREE:
 		jstrDeletePtr(dest);
-	case ERROR_CLOSE:
+	case CLOSE:
 		fclose(fd);
-	case ERROR_:
+	case DEFAULT:
 		perror("");
 	}
 	return 0;
 }
 
-#undef ERROR_
-#undef ERROR_CLOSE
-#undef ERROR_CLOSE_FREE
+#undef DEFAULT
+#undef CLOSE
+#undef CLOSE_FREE
 
-#define ERROR_ -1
-#define ERROR_CLOSE -2
-#define ERROR_CLOSE_FREE -3
+#define DEFAULT -1
+#define CLOSE -2
+#define CLOSE_FREE -3
 
 int cat(char *filename, char **dest)
 {
@@ -85,20 +92,20 @@ int cat(char *filename, char **dest)
 	int fileSize;
 	FILE *fd = fopen(filename, "r");
 	do {
-		if ((!fd && (error = ERROR_, 1))
-		|| (!(*dest = malloc((fileSize = sizeOfFile(filename) + 1))) && (error = ERROR_CLOSE, 1))
-		|| (!(fileSize = fread(*dest, 1, fileSize, fd)) && (error = ERROR_CLOSE_FREE, 1)))
+		if ((!fd && (ERROR(DEFAULT)))
+		|| (!(*dest = malloc((fileSize = sizeOfFile(filename) + 1))) && (ERROR(CLOSE)))
+		|| (!(fileSize = fread(*dest, 1, fileSize, fd)) && (ERROR(CLOSE_FREE))))
 			break;
 		fclose(fd);
 		(*dest)[fileSize - 1] = '\0';
 		return fileSize;
 	} while (0);
 	switch (error) {
-	case ERROR_CLOSE_FREE:
+	case CLOSE_FREE:
 		free(*dest);
-	case ERROR_CLOSE:
+	case CLOSE:
 		fclose(fd);
-	case ERROR_:
+	case DEFAULT:
 		perror("");
 	}
 	return 0;
