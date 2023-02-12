@@ -151,18 +151,31 @@ int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
 		goto ERROR_FREE;
 	case 1:
 		for (;;) {
-			for ( ; *src != delim && *src != '\n'; ++j, ++src) {
-				if (!*src)
-					goto IF_SUCCESS;
-				if (*src == '\n')
-					goto SKIP_LOOPS_1;
-				dest->str[j] = *src;
+			for (;;) {
+				switch (*src) {
+				case '\0':
+					if (j) goto SUCCESS;
+				case '\n':
+					break;
+				default:
+					if (*src != delim) {
+						dest->str[j++] = *src++;
+						continue;
+					}
+					for (;;) {
+						switch (*src) {
+						case '\0':
+							if (j) goto SUCCESS;
+						default:
+							++src;
+							continue;
+						case '\n':;
+						}
+						break;
+					}
+				}
+				break;
 			}
-			for ( ; *src != '\n'; ++src) {
-				if (!*src)
-					goto IF_SUCCESS;
-			}
-SKIP_LOOPS_1:
 			dest->str[j++] = '\n';
 			++src;
 		}
