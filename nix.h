@@ -13,6 +13,6 @@ int cat(char *filename, char **dest);
 int wcc(char *src);
 int wcw(char *src);
 int wcl(char *src);
-int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest);
+int awk(char delim, int nStr, char *src, int srcLen, char **dest);
 int awkFile(char delim, int nStr, char *filename, Jstr *dest);
 #endif

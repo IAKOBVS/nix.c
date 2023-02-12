@@ -137,90 +137,105 @@ int wcw(char *src)
 		}
 }
 
-int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
+int awk(char delim, int nStr, char *src, int srcLen, char **dest)
 {
-	if (!srcLen && !(srcLen = strlen(src))) goto ERROR;
-	if (!dest->size)
-		if (!(dest->str = malloc((dest->size = srcLen)))) {
-			dest->size = 0;
-			goto ERROR;
-		}
+	char buf[srcLen];
 	int j = 0;
 	switch (nStr) {
 	case 0:
-		goto ERROR_FREE;
+		goto ERROR;
 	case 1:
 		for (;;) {
 			for (;;) {
 				switch (*src) {
 				case '\0':
-					if (j) goto SUCCESS;
+					goto SUCCESS;
 				case '\n':
-					break;
+					goto SKIP_LOOPS_1;
 				default:
 					if (*src != delim) {
-						dest->str[j++] = *src++;
+						buf[j++] = *src++;
 						continue;
-					}
-					for (;;) {
-						switch (*src) {
-						case '\0':
-							if (j) goto SUCCESS;
-						default:
-							++src;
-							continue;
-						case '\n':;
-						}
-						break;
 					}
 				}
 				break;
 			}
-			dest->str[j++] = '\n';
-			++src;
+			for (;;) {
+				switch (*src) {
+				case '\0':
+					goto SUCCESS;
+				case '\n':
+					goto SKIP_LOOPS_1;
+				default:
+					++src;
+					continue;
+				}
+			}
+SKIP_LOOPS_1:
+		buf[j++] = '\n';
+		++src;
 		}
 		break;
 	default:
-		for (int n = 1;; ) {
+		for (int n = 1;;) {
 			do {
-				for ( ; *src != delim; ++src) {
-					if (!*src)
-						goto IF_SUCCESS;
-					if (*src == '\n')
+				for (;;) {
+					switch (*src) {
+					case '\0':
+						goto SUCCESS;
+					case '\n':
 						goto SKIP_LOOPS;
+					default:
+						if (*src != delim) {
+							++src;
+							continue;
+						}
+					}
+					break;
 				}
-				while (*src == delim)
+				do {
 					++src;
+				} while (*src == delim);
 				++n;
 			} while (n < nStr);
-			for ( ; *src != delim; ++j, ++src) {
-				if (!*src)
-					goto IF_SUCCESS;
-				if (*src == '\n')
+			buf[j++] = *src++;
+			for (;;) {
+				switch (*src) {
+				case '\0':
+					goto SUCCESS;
+				case '\n':
 					goto SKIP_LOOPS;
-				dest->str[j] = *src;
+				default:
+					if (*src != delim) {
+						buf[j++] = *src++;
+						continue;
+					}
+				}
+				break;
 			}
-			for ( ; *src != '\n'; ++src) {
-				if (!*src)
-					goto IF_SUCCESS;
+			for (;;) {
+				switch (*src) {
+				case '\0':
+					goto SUCCESS;
+				case '\n':
+					goto SKIP_LOOPS;
+				default:
+					++src;
+					continue;
+				}
+				break;
 			}
 SKIP_LOOPS:
-			dest->str[j++] = '\n';
-			++src;
+		buf[j++] = '\n';
+		++src;
 		}
 	}
 SUCCESS:
-	if (srcLen > (j * 2))
-		if (!(dest->str = realloc(dest->str, (dest->size = j * 2))))
-			goto ERROR_FREE;
-	dest->str[j] = '\0';
-	return (dest->len = j);
+	*dest = malloc(j + 1);
+	memcpy(*dest, buf, j);
+	(*dest)[j] = '\0';
+	return j;
 
-IF_SUCCESS:
-	if (j)
-		goto SUCCESS;
-ERROR_FREE:
-	jstrDeletePtr(dest);
 ERROR:
 	perror("");
 	return 0;
