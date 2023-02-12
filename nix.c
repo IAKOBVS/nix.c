@@ -87,33 +87,26 @@ ERROR:
 	return 0;
 }
 
-/* flags: l' =  line; 'w' =  word */
-int wc(char flag, char *src)
+int wcl(char *src)
 {
 	int count = 0;
-	switch (flag) {
-	case 'l':
-		while (*src)
-			if (*src++ == '\n') ++count;
-		break;
-	case 'w':
-		while (*src)
-			switch (*src++) {
-			case ' ':
-			case '\n':
-				continue;
-			default:
-				++count;
-			}
-		break;
-	default:
-		goto ERROR;
-	}
+	while (*src)
+		if (*src++ == '\n') ++count;
 	return count;
+}
 
-ERROR:
-	perror("");
-	return 0;
+int wcw(char *src)
+{
+	int count = 0;
+	while (*src)
+		switch (*src++) {
+		case ' ':
+		case '\n':
+			continue;
+		default:
+			++count;
+		}
+	return count;
 }
 
 int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
