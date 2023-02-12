@@ -3,7 +3,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <dirent.h>
-/* #include <assert.h> */
+#include <assert.h>
 
 #include "nix.h"
 #include "/home/james/c/jString/jstr.h"
@@ -27,21 +27,14 @@ int tee(char *flag, char *inStr, char *filename)
 	return 0;
 }
 
-int findDir(char *dir, char **dest)
+void dirPrint(char *dir)
 {
 	struct dirent *ep;
 	DIR *dp = opendir(dir);
-	if (!dp) goto ERROR;
-	if (!(*dest = malloc(3200))) goto ERROR;
-	for (int i = 0; (ep = readdir(dp)); ) {
-		memcpy(*dest, ep->d_name, sizeof ep->d_name);
-		*dest[i += strlen(ep->d_name)] = ' ';
-	}
-	return 3200;
-
-ERROR:
-	perror("");
-	return 0;
+	if (!dp) return;
+	while ((ep = readdir(dp)))
+		puts(ep->d_name);
+	closedir(dp);
 }
 
 int head(char *filename, char **dest)
