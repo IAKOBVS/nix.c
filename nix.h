@@ -7,7 +7,7 @@
 int sizeOfFile(char *filename);
 /* flags: 'w' = overwrite; 'a' = append */
 int tee(char *flag, char *inStr, char *filename);
-int head(char *filename, Jstr *dest);
+int head(char *filename, char **dest);
 int cat(char *filename, char **dest);
 /* flags: 'l' =  line; 'w' =  word */
 int wc(char flag, char *src);
