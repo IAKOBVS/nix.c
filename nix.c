@@ -9,13 +9,13 @@
 #include "/home/james/c/jString/jstr.h"
 #include "/home/james/c/jArray/jarr.h"
 
-int sizeOfFile(char *filename)
+int sizeOfFile(const char *filename)
 {
 	struct stat st;
 	return (!stat(filename, &st) ? st.st_size : 0);
 }
 
-int tee(char *flag, char *inStr, char *filename)
+int tee(char *flag, char *inStr, const char *filename)
 {
 	FILE *fp = fopen(filename, flag);
 	if (fp) {
@@ -52,7 +52,7 @@ int findDir(char *dir, char **dest)
 	return i;
 }
 
-int head(char *filename, char **dest)
+int head(const char *filename, char **dest)
 {
 	char buf[512];
 	int destLen;
@@ -73,7 +73,7 @@ ERROR:
 	return 0;
 }
 
-int cat(char *filename, char **dest)
+int cat(const char *filename, char **dest)
 {
 	FILE *fp = fopen(filename, "r");
 	if (!fp) goto ERROR;
@@ -245,7 +245,7 @@ ERROR:
 	return 0;
 }
 
-int awkFile(char delim, int nStr, char *filename, char **dest)
+int awkFile(char delim, int nStr, const char *filename, char **dest)
 {
 	char *fileStr;
 	int fileSize = cat(filename, &fileStr);
