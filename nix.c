@@ -95,18 +95,44 @@ int wcl(char *src)
 	return count;
 }
 
-int wcw(char *src)
+int wcc(char *src)
 {
 	int count = 0;
 	while (*src)
 		switch (*src++) {
 		case ' ':
 		case '\n':
+		case '\t':
+		case '\r':
 			continue;
 		default:
 			++count;
 		}
 	return count;
+}
+
+int wcw(char *src)
+{
+	int count = 0;
+	for (int inWord = 0;; ++src)
+		switch (*src) {
+		case '\0':
+			if (inWord)
+				return ++count;
+			return count;
+		case ' ':
+		case '\n':
+		case '\t':
+		case '\r':
+			if (inWord) {
+				++count;
+				inWord = 0;
+			}
+			continue;
+		default:
+			if (!inWord)
+				inWord = 1;
+		}
 }
 
 int awk(char delim, int nStr, char *src, int srcLen, Jstr *dest)
