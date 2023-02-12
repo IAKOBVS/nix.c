@@ -15,7 +15,7 @@ int sizeOfFile(const char *filename)
 	return (!stat(filename, &st) ? st.st_size : 0);
 }
 
-int tee(char *flag, char *inStr, const char *filename)
+int tee(const char *flag, char *inStr, const char *filename)
 {
 	FILE *fp = fopen(filename, flag);
 	if (fp) {

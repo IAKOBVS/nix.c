@@ -9,20 +9,23 @@ extern "C" {
 namespace nix {
 #endif
 
+/* get size of file */
 int sizeOfFile(const char *filename);
-/* flags: 'w' = overwrite; 'a' = append */
-int tee(char *flag, char *inStr, const char *filename);
-/* first line of file */
+/* flags: */
+/* 'w' = overwrite */
+/* 'a' = append */
+int tee(const char *flag, char *inStr, const char *filename);
+/* get first line of file */
 int head(const char *filename, char **dest);
 /* read file into string */
 int cat(const char *filename, char **dest);
 /* find files in directory */
 int findDir(char *dir, char **dest);
-/* chars in string */
+/* get number of chars in string */
 int wcc(char *src);
-/* words in string */
+/* get number of words in string */
 int wcw(char *src);
-/* lines in string */
+/* get number of lines in string */
 int wcl(char *src);
 int awk(char delim, int nStr, char *src, int srcLen, char **dest);
 int awkFile(char delim, int nStr, const char *filename, char **dest);
