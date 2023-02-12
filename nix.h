@@ -4,6 +4,11 @@
 #include <stdlib.h>
 #include "/home/james/c/jString/jstr.h"
 
+#ifdef __cplusplus
+extern "C" {
+namespace nix {
+#endif
+
 int sizeOfFile(char *filename);
 /* flags: 'w' = overwrite; 'a' = append */
 int tee(char *flag, char *inStr, char *filename);
@@ -21,4 +26,10 @@ int wcw(char *src);
 int wcl(char *src);
 int awk(char delim, int nStr, char *src, int srcLen, char **dest);
 int awkFile(char delim, int nStr, char *filename, char **dest);
+
+#ifdef __cplusplus
+}
+}
+#endif
+
 #endif
