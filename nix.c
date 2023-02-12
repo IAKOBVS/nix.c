@@ -125,9 +125,7 @@ int wcw(char *src)
 	for (int inWord = 0, count = 0;; ++src)
 		switch (*src) {
 		case '\0':
-			if (inWord)
-				return ++count;
-			return count;
+			return inWord ? ++count : count;
 		case ' ':
 		case '\n':
 		case '\t':
