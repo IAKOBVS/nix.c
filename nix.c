@@ -89,17 +89,21 @@ ERROR:
 
 int wcl(char *src)
 {
-	int count = 0;
-	while (*src)
-		if (*src++ == '\n') ++count;
-	return count;
+	for (int count = 0;; ++src)
+		switch (*src) {
+		case '\0':
+			return count;
+		case '\n':
+			++count;
+		}
 }
 
 int wcc(char *src)
 {
-	int count = 0;
-	while (*src)
-		switch (*src++) {
+	for (int count = 0 ;; ++src)
+		switch (*src) {
+		case '\0':
+			return count;
 		case ' ':
 		case '\n':
 		case '\t':
@@ -108,13 +112,11 @@ int wcc(char *src)
 		default:
 			++count;
 		}
-	return count;
 }
 
 int wcw(char *src)
 {
-	int count = 0;
-	for (int inWord = 0;; ++src)
+	for (int inWord = 0, count = 0;; ++src)
 		switch (*src) {
 		case '\0':
 			if (inWord)
