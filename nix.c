@@ -77,7 +77,7 @@ int nixCat(const char *filename, char **dest)
 {
 	FILE *fp = fopen(filename, "r");
 	if (!fp) goto ERROR;
-	int fileSize = sizeOfFile(filename);
+	int fileSize = nixSizeOfFile(filename);
 	if (!(*dest = malloc(fileSize + 1))) goto ERROR_CLOSE;
 	if (fileSize != fread(*dest, 1, fileSize, fp)) goto ERROR_CLOSE_FREE;
 	fclose(fp);
@@ -248,9 +248,9 @@ ERROR:
 int nixAwkFile(char delim, int nStr, const char *filename, char **dest)
 {
 	char *fileStr;
-	int fileSize = cat(filename, &fileStr);
+	int fileSize = nixCat(filename, &fileStr);
 	if (fileSize) {
-		int ret = awk(delim, nStr, fileStr, fileSize, dest);
+		int ret = nixAwk(delim, nStr, fileStr, fileSize, dest);
 		free(fileStr);
 		if (ret)
 			return ret;
@@ -283,6 +283,8 @@ int nixTokenize(const char *str, char ***arr)
 				(*arr)[j][i] = '\0';
 				return ++j;
 			case '\n':
+			case '\t':
+			case '\r':
 			case ' ':
 				if (!in)
 					continue;
@@ -302,9 +304,57 @@ ERROR_FREE:
 	return 0;
 }
 
-void nixTokenizeFree(char **arr, int arrLen)
-{
-	for (size_t i = 0; i < arrLen; ++i)
-		free(arr[i]);
-	free(arr);
-}
+/* void nixTokenizeFree(char **arr, int arrLen) */
+/* { */
+/* 	for (size_t i = 0; i < arrLen; ++i) */
+/* 		free(arr[i]); */
+/* 	free(arr); */
+/* } */
+
+/* int nixTokenizeLine(const char *str, char ****arr) */
+/* { */
+/* 	size_t k = 0; */
+/* 	if (!(*arr = malloc(8 * sizeof(char *)))) return 0; */
+/* 	if (!(*arr[k] = malloc(8 * sizeof(char *)))) return 0; */
+/* 	size_t j = 0; */
+/* 	for (size_t i;; ++j) { */
+/* 		i = 0; */
+/* 		int in = 0; */
+/* 		for (char buf[128];; ++str) { */
+/* 			switch (*str) { */
+/* 			default: */
+/* 				if (!in) */
+/* 					in = 1; */
+/* 				buf[i++] = *str; */
+/* 				continue; */
+/* 			case '\0': */
+/* 				if (!in) */
+/* 					return ++j; */
+/* 				if (!((*arr)[j] = malloc(i + 1))) */
+/* 					goto ERROR_FREE; */
+/* 				memcpy((*arr)[j], buf, i); */
+/* 				arr[k][j][i] = '\0'; */
+/* 				return ++j; */
+/* 			case '\n': */
+/* 				++k; */
+/* 			case '\t': */
+/* 			case '\r': */
+/* 			case ' ': */
+/* 				if (!in) */
+/* 					continue; */
+/* 				if (!((*arr)[j] = malloc(i + 1))) */
+/* 					goto ERROR_FREE; */
+/* 				memcpy((*arr)[j], buf, i); */
+/* 				(*arr)[j][i] = '\0'; */
+/* 			} */
+/* 			break; */
+/* 		} */
+/* 	} */
+/* ERROR_FREE: */
+/* 	if (j) */
+/* 		for (int i = 0; i < j; ++i) */
+/* 			free((*arr)++); */
+/* 	free(*arr); */
+/* 	perror(""); */
+/* 	return 0; */
+/* } */
