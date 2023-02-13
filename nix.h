@@ -29,6 +29,16 @@ int nixWcCharComma(char *src);
 int nixWcCharDot(char *src);
 int nixWcCharQuote(char *src);
 int nixWcCharDoubleQuote(char *src);
+int nixWcCharTab(char *src);
+int nixWcCharNl(char *src);
+
+int nixWcCharAlpha(char *src);
+int nixWcCharAlphaPipe(char *src);
+int nixWcCharAlphaComma(char *src);
+int nixWcCharAlphaDot(char *src);
+int nixWcCharAlphaQuote(char *src);
+int nixWcCharAlphaDoubleQuote(char *src);
+int nixWcCharAlphaTab(char *src);
 
 /* get number of words in string */
 int nixWcWord(char *src);
@@ -36,14 +46,23 @@ int nixWcWordComma(char *src);
 int nixWcWordPipe(char *src);
 int nixWcWordQuote(char *src);
 int nixWcWordDoubleQuote(char *src);
+int nixWcWordTab(char *src);
+int nixWcWordNl(char *src);
+
+int nixWcWordAlpha(char *src);
+int nixWcWordAlphaComma(char *src);
+int nixWcWordAlphaPipe(char *src);
+int nixWcWordAlphaQuote(char *src);
+int nixWcWordAlphaDoubleQuote(char *src);
+int nixWcWordAlphaTab(char *src);
 
 /* get number of words in string until newline */
-int nixWcWordNl(char *src);
-int nixWcWordNlSpace(char *src);
-int nixWcWordNlComma(char *src);
-int nixWcWordNlPipe(char *src);
-int nixWcWordNlQuote(char *src);
-int nixWcWordNlDoubleQuote(char *src);
+int nixWcWordTilNlSpace(char *src);
+int nixWcWordTilNlComma(char *src);
+int nixWcWordTilNlPipe(char *src);
+int nixWcWordTilNlQuote(char *src);
+int nixWcWordTilNlDoubleQuote(char *src);
+int nixWcWordTilNlTab(char *src);
 
 int nixAwk(int nStr, char *src, int srcLen, char **dest);
 int nixAwkComma(int nStr, char *src, int srcLen, char **dest);
@@ -51,9 +70,10 @@ int nixAwkDouble(int nStr, char *src, int srcLen, char **dest);
 int nixAwkQuote(int nStr, char *src, int srcLen, char **dest);
 int nixAwkDoubleQuote(int nStr, char *src, int srcLen, char **dest);
 int nixAwkPipe(int nStr, char *src, int srcLen, char **dest);
+int nixAwkTab(int nStr, char *src, int srcLen, char **dest);
 
 /* split spaces, tabs, etc. to array of strings */
-int nixSplit(const char *str, char ***arr);
+int nixSplitWords(const char *str, char ***arr);
 /* split lines to array of strings */
 int nixSplitNl(const char *str, char ***arr);
 void nixSplitFree(char **arr, int arrLen);

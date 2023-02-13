@@ -111,10 +111,6 @@ int FUNC_NAME(char *src) \
 		switch (*src) { \
 		case '\0': \
 			return count; \
-		case ' ': \
-		case '\n': \
-		case '\t': \
-		case '\r': \
 		DELIM \
 			continue; \
 		default: \
@@ -122,12 +118,23 @@ int FUNC_NAME(char *src) \
 		} \
 }
 
-NIX_WCCHAR(nixWcChar, )
+NIX_WCCHAR(nixWcChar, case ' ':)
 NIX_WCCHAR(nixWcCharComma, case ',':)
 NIX_WCCHAR(nixWcCharDot, case '.':)
 NIX_WCCHAR(nixWcCharPipe, case '|':)
 NIX_WCCHAR(nixWcCharQuote, case '\'':)
 NIX_WCCHAR(nixWcCharDoubleQuote, case '"':)
+NIX_WCCHAR(nixWcCharTab, case '\t':)
+NIX_WCCHAR(nixWcCharNl, case '\n':)
+
+NIX_WCCHAR(nixWcCharAlpha, case '\n': case '\t': case '\r': case ' ':)
+NIX_WCCHAR(nixWcCharAlphaComma, case '\n': case '\t': case '\r': case ',':)
+NIX_WCCHAR(nixWcCharAlphaDot, case '\n': case '\t': case '\r': case '.':)
+NIX_WCCHAR(nixWcCharAlphaPipe, case '\n': case '\t': case '\r': case '|':)
+NIX_WCCHAR(nixWcCharAlphaQuote, case '\n': case '\t': case '\r': case '\'':)
+NIX_WCCHAR(nixWcCharAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':)
+
+/* case '\\n': case '\\t': case '\\r': */
 
 #define NIX_WCWORD(FUNC_NAME, DELIM) \
 int FUNC_NAME(char *src) \
@@ -136,10 +143,6 @@ int FUNC_NAME(char *src) \
 		switch (*src) { \
 		case '\0': \
 			return inWord ? ++count : count; \
-		case ' ': \
-		case '\n': \
-		case '\t': \
-		case '\r': \
 		DELIM \
 			if (inWord) { \
 				++count; \
@@ -152,14 +155,23 @@ int FUNC_NAME(char *src) \
 		} \
 }
 
-NIX_WCWORD(nixWcWord, )
+NIX_WCWORD(nixWcWord, case ' ':)
 NIX_WCWORD(nixWcWordComma, case ',':)
 NIX_WCWORD(nixWcWordPipe, case '|':)
 NIX_WCWORD(nixWcWordDot, case '.':)
 NIX_WCWORD(nixWcWordQuote, case '\'':)
 NIX_WCWORD(nixWcWordDoubleQuote, case '"':)
+NIX_WCWORD(nixWcWordTab, case '\t':)
+NIX_WCWORD(nixWcWordNl, case '\n':)
 
-#define NIX_WCWORDNL(FUNC_NAME, DELIM) \
+NIX_WCWORD(nixWcWordAlpha, case '\n': case '\t': case '\r': case ' ':)
+NIX_WCWORD(nixWcWordAlphaComma, case '\n': case '\t': case '\r': case ',':)
+NIX_WCWORD(nixWcWordAlphaPipe, case '\n': case '\t': case '\r': case '|':)
+NIX_WCWORD(nixWcWordAlphaDot, case '\n': case '\t': case '\r': case '.':)
+NIX_WCWORD(nixWcWordAlphaQuote, case '\n': case '\t': case '\r': case '\'':)
+NIX_WCWORD(nixWcWordAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':)
+
+#define NIX_WCWORD_TIL_NL(FUNC_NAME, DELIM) \
 int FUNC_NAME(char *src) \
 { \
 	for (int inWord = 0, count = 0;; ++src) \
@@ -167,10 +179,7 @@ int FUNC_NAME(char *src) \
 		case '\n': \
 		case '\0': \
 			return inWord ? ++count : count; \
-		case  ' ': \
-		case '\t': \
-		case '\r': \
-		DELIM \
+		case DELIM: \
 			if (inWord) { \
 				++count; \
 				inWord = 0; \
@@ -181,14 +190,15 @@ int FUNC_NAME(char *src) \
 		} \
 }
 
-NIX_WCWORDNL(nixWcWordNl, )
-NIX_WCWORDNL(nixWcWordNlPipe, case '|':)
-NIX_WCWORDNL(nixWcWordNlComma, case ',':)
-NIX_WCWORDNL(nixWcWordNlDot, case '.':)
-NIX_WCWORDNL(nixWcWordNlQuote, case '\'':)
-NIX_WCWORDNL(nixWcWordNlDoubleQuote, case '"':)
+NIX_WCWORD_TIL_NL(nixWcWordTilNl, ' ')
+NIX_WCWORD_TIL_NL(nixWcWordTilNlPipe, '|')
+NIX_WCWORD_TIL_NL(nixWcWordTilNlComma, ',')
+NIX_WCWORD_TIL_NL(nixWcWordTilNlDot, '.')
+NIX_WCWORD_TIL_NL(nixWcWordTilNlQuote, '\'')
+NIX_WCWORD_TIL_NL(nixWcWordTilNlDoubleQuote, '"')
+NIX_WCWORD_TIL_NL(nixWcWordTilNlTab, '\t')
 
-#define NIX_AWK(FUNC_NAME, DELIM_CASE, DELIM) \
+#define NIX_AWK(FUNC_NAME, DELIM) \
 int FUNC_NAME(int nStr, char *src, int srcLen, char **dest) \
 { \
 	char buf[srcLen]; \
@@ -204,7 +214,7 @@ int FUNC_NAME(int nStr, char *src, int srcLen, char **dest) \
 					goto SUCCESS; \
 				case '\n': \
 					goto SKIP_LOOPS_1; \
-				DELIM_CASE \
+				case DELIM: \
 					buf[j++] = *src++; \
 					continue; \
 				default: \
@@ -238,7 +248,7 @@ SKIP_LOOPS_1: \
 						goto SUCCESS; \
 					case '\n': \
 						goto SKIP_LOOPS; \
-					DELIM_CASE \
+					case DELIM: \
 						break; \
 					default: \
 						++src; \
@@ -258,7 +268,7 @@ SKIP_LOOPS_1: \
 					goto SUCCESS; \
 				case '\n': \
 					goto SKIP_LOOPS; \
-				DELIM_CASE \
+				case DELIM: \
 					break; \
 				default: \
 					buf[j++] = *src++; \
@@ -294,12 +304,13 @@ ERROR: \
 	return 0; \
 } \
 
-NIX_AWK(nixAwk, case ' ':, ' ')
-NIX_AWK(nixAwkComma, case ',':, ',')
-NIX_AWK(nixAwkDot, case '.':, '.')
-NIX_AWK(nixAwkQuote, case '"':, '"')
-NIX_AWK(nixAwkDoubleQuote, case '"':, '"')
-NIX_AWK(nixAwkPipe, case '|':, '|')
+NIX_AWK(nixAwk, ' ')
+NIX_AWK(nixAwkComma, ',')
+NIX_AWK(nixAwkDot, '.')
+NIX_AWK(nixAwkQuote, '"')
+NIX_AWK(nixAwkDoubleQuote,  '"')
+NIX_AWK(nixAwkPipe,  '|')
+NIX_AWK(nixAwkTab, '\t')
 
 #define NIX_SPLIT(FUNC_NAME, DELIM) \
 int FUNC_NAME(const char *str, char ***arr) \
@@ -342,7 +353,7 @@ ERROR_FREE: \
 	return 0; \
 }
 
-NIX_SPLIT(nixSplit, case ' ': case '\n': case '\t': case '\r':) 
+NIX_SPLIT(nixSplitWords, case '\n': case '\t': case '\r': case ' ':) 
 NIX_SPLIT(nixSplitNl, case '\n':)
 
 void nixSplitFree(char **arr, int arrLen)
