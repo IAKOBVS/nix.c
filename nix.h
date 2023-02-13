@@ -26,14 +26,15 @@ int nixCat(const char *filename, char **dest);
 int nixFindDir(char *dir, char **dest);
 
 /* get number of chars in string */
-int nixWcc(char *src);
+int nixWcChar(char *src);
+int nixWcCharPipe(char *src);
+int nixWcCharComma(char *src);
+int nixWcCharDot(char *src);
+int nixWcCharQuote(char *src);
+int nixWcCharDoubleQuote(char *src);
 
 /* get number of words in string */
 int nixWcWord(char *src);
-
-/* get number of words in string */
-int nixWcWord(char *src);
-int nixWcWordSpace(char *src);
 int nixWcWordComma(char *src);
 int nixWcWordPipe(char *src);
 int nixWcWordQuote(char *src);
