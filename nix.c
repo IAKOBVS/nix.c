@@ -9,13 +9,13 @@
 #include "/home/james/c/jString/jstr.h"
 #include "/home/james/c/jArray/jarr.h"
 
-int sizeOfFile(const char *filename)
+int nixSizeOfFile(const char *filename)
 {
 	struct stat st;
 	return (!stat(filename, &st) ? st.st_size : 0);
 }
 
-int tee(const char *flag, char *inStr, const char *filename)
+int nixTee(const char *flag, char *inStr, const char *filename)
 {
 	FILE *fp = fopen(filename, flag);
 	if (fp) {
@@ -27,7 +27,7 @@ int tee(const char *flag, char *inStr, const char *filename)
 	return 0;
 }
 
-int findDir(char *dir, char **dest)
+int nixfindDir(char *dir, char **dest)
 {
 	struct dirent *ep;
 	DIR *dp = opendir(dir);
@@ -52,7 +52,7 @@ int findDir(char *dir, char **dest)
 	return i;
 }
 
-int head(const char *filename, char **dest)
+int nixHead(const char *filename, char **dest)
 {
 	char buf[512];
 	int destLen;
@@ -73,7 +73,7 @@ ERROR:
 	return 0;
 }
 
-int cat(const char *filename, char **dest)
+int nixCat(const char *filename, char **dest)
 {
 	FILE *fp = fopen(filename, "r");
 	if (!fp) goto ERROR;
@@ -93,7 +93,7 @@ ERROR:
 	return 0;
 }
 
-int wcl(char *src)
+int nixWcl(char *src)
 {
 	for (int count = 0;; ++src)
 		switch (*src) {
@@ -104,7 +104,7 @@ int wcl(char *src)
 		}
 }
 
-int wcc(char *src)
+int nixWcc(char *src)
 {
 	for (int count = 0 ;; ++src)
 		switch (*src) {
@@ -120,7 +120,7 @@ int wcc(char *src)
 		}
 }
 
-int wcw(char *src)
+int nixWcw(char *src)
 {
 	for (int inWord = 0, count = 0;; ++src)
 		switch (*src) {
@@ -141,7 +141,7 @@ int wcw(char *src)
 		}
 }
 
-int awk(char delim, int nStr, char *src, int srcLen, char **dest)
+int nixAwk(char delim, int nStr, char *src, int srcLen, char **dest)
 {
 	char buf[srcLen];
 	int j = 0;
@@ -245,7 +245,7 @@ ERROR:
 	return 0;
 }
 
-int awkFile(char delim, int nStr, const char *filename, char **dest)
+int nixAwkFile(char delim, int nStr, const char *filename, char **dest)
 {
 	char *fileStr;
 	int fileSize = cat(filename, &fileStr);
@@ -258,4 +258,53 @@ int awkFile(char delim, int nStr, const char *filename, char **dest)
 	}
 	perror("");
 	return 0;
+}
+
+int nixTokenize(const char *str, char ***arr)
+{
+	if (!(*arr = malloc(8 * sizeof(char *)))) return 0;
+	size_t j = 0;
+	for (size_t i;; ++j) {
+		i = 0;
+		int in = 0;
+		for (char buf[128];; ++str) {
+			switch (*str) {
+			default:
+				if (!in)
+					in = 1;
+				buf[i++] = *str;
+				continue;
+			case '\0':
+				if (!in)
+					return ++j;
+				if (!((*arr)[j] = malloc(i + 1)))
+					goto ERROR_FREE;
+				memcpy((*arr)[j], buf, i);
+				(*arr)[j][i] = '\0';
+				return ++j;
+			case '\n':
+			case ' ':
+				if (!in)
+					continue;
+				if (!((*arr)[j] = malloc(i + 1))) goto ERROR_FREE;
+				memcpy((*arr)[j], buf, i);
+				(*arr)[j][i] = '\0';
+			}
+			break;
+		}
+	}
+ERROR_FREE:
+	if (j)
+		for (int i = 0; i < j; ++i)
+			free((*arr)++);
+	free(*arr);
+	perror("");
+	return 0;
+}
+
+void nixTokenizeFree(char **arr, int arrLen)
+{
+	for (size_t i = 0; i < arrLen; ++i)
+		free(arr[i]);
+	free(arr);
 }
