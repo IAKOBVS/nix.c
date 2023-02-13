@@ -6,7 +6,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-namespace nix {
 #endif
 
 /* get size of file */
@@ -31,7 +30,6 @@ int awk(char delim, int nStr, char *src, int srcLen, char **dest);
 int awkFile(char delim, int nStr, const char *filename, char **dest);
 
 #ifdef __cplusplus
-}
 }
 #endif
 
