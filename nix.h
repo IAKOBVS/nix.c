@@ -23,14 +23,36 @@ int nixFindDir(char *dir, char **dest);
 /* get number of chars in string */
 int nixWcc(char *src);
 /* get number of words in string */
-int nixWcw(char *src);
-/* get number of lines in string */
-int nixWcl(char *src);
-int nixAwk(char delim, int nStr, char *src, int srcLen, char **dest);
-int nixAwkFile(char delim, int nStr, const char *filename, char **dest);
-int nixTokenize(const char *str, char ***arr);
-void nixTokenizeFree(char **arr, int arrLen);
-int nixTokenizeLine(const char *str, char ****arr);
+int nixWcWord(char *src);
+
+/* get number of words in string */
+int nixWcWord(char *src);
+int nixWcWordSpace(char *src);
+int nixWcWordComma(char *src);
+int nixWcWordPipe(char *src);
+int nixWcWordQuote(char *src);
+int nixWcWordDoubleQuote(char *src);
+
+/* get number of words in string until newline */
+int nixWcWordNl(char *src);
+int nixWcWordNlSpace(char *src);
+int nixWcWordNlComma(char *src);
+int nixWcWordNlPipe(char *src);
+int nixWcWordNlQuote(char *src);
+int nixWcWordNlDoubleQuote(char *src);
+
+int nixAwk(int nStr, char *src, int srcLen, char **dest);
+int nixAwkComma(int nStr, char *src, int srcLen, char **dest);
+int nixAwkDouble(int nStr, char *src, int srcLen, char **dest);
+int nixAwkQuote(int nStr, char *src, int srcLen, char **dest);
+int nixAwkDoubleQuote(int nStr, char *src, int srcLen, char **dest);
+int nixAwkPipe(int nStr, char *src, int srcLen, char **dest);
+
+/* split spaces, tabs, etc. to array of strings */
+int nixSplit(const char *str, char ***arr);
+/* split lines to array of strings */
+int nixSplitNl(const char *str, char ***arr);
+void nixSplitFree(char **arr, int arrLen);
 
 #ifdef __cplusplus
 }

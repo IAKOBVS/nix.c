@@ -93,7 +93,7 @@ ERROR:
 	return 0;
 }
 
-int nixWcl(char *src)
+int nixWcNl(char *src)
 {
 	for (int count = 0;; ++src)
 		switch (*src) {
@@ -104,257 +104,250 @@ int nixWcl(char *src)
 		}
 }
 
-int nixWcc(char *src)
-{
-	for (int count = 0 ;; ++src)
-		switch (*src) {
-		case '\0':
-			return count;
-		case ' ':
-		case '\n':
-		case '\t':
-		case '\r':
-			continue;
-		default:
-			++count;
-		}
+#define NIX_WCCHAR(FUNC_NAME, DELIM) \
+int FUNC_NAME(char *src) \
+{ \
+	for (int count = 0 ;; ++src) \
+		switch (*src) { \
+		case '\0': \
+			return count; \
+		case ' ': \
+		case '\n': \
+		case '\t': \
+		case '\r': \
+		DELIM \
+			continue; \
+		default: \
+			++count; \
+		} \
 }
 
-int nixWcw(char *src)
-{
-	for (int inWord = 0, count = 0;; ++src)
-		switch (*src) {
-		case '\0':
-			return inWord ? ++count : count;
-		case ' ':
-		case '\n':
-		case '\t':
-		case '\r':
-			if (inWord) {
-				++count;
-				inWord = 0;
-			}
-			continue;
-		default:
-			if (!inWord)
-				inWord = 1;
-		}
+NIX_WCCHAR(nixWcChar, )
+NIX_WCCHAR(nixWcCharComma, case ',':)
+NIX_WCCHAR(nixWcCharDot, case '.':)
+NIX_WCCHAR(nixWcCharPipe, case '|':)
+NIX_WCCHAR(nixWcCharQuote, case '\'':)
+NIX_WCCHAR(nixWcCharDoubleQuote, case '"':)
+
+#define NIX_WCWORD(FUNC_NAME, DELIM) \
+int FUNC_NAME(char *src) \
+{ \
+	for (int inWord = 0, count = 0;; ++src) \
+		switch (*src) { \
+		case '\0': \
+			return inWord ? ++count : count; \
+		case ' ': \
+		case '\n': \
+		case '\t': \
+		case '\r': \
+		DELIM \
+			if (inWord) { \
+				++count; \
+				inWord = 0; \
+			} \
+			continue; \
+		default: \
+			if (!inWord) \
+				inWord = 1; \
+		} \
 }
 
-int nixAwk(char delim, int nStr, char *src, int srcLen, char **dest)
-{
-	char buf[srcLen];
-	int j = 0;
-	switch (nStr) {
-	case 0:
-		goto ERROR;
-	case 1:
-		for (;;) {
-			for (;;) {
-				switch (*src) {
-				case '\0':
-					goto SUCCESS;
-				case '\n':
-					goto SKIP_LOOPS_1;
-				default:
-					if (*src != delim) {
-						buf[j++] = *src++;
-						continue;
-					}
-				}
-				break;
-			}
-			for (;;) {
-				switch (*src) {
-				case '\0':
-					goto SUCCESS;
-				case '\n':
-					goto SKIP_LOOPS_1;
-				default:
-					++src;
-					continue;
-				}
-			}
-SKIP_LOOPS_1:
-		buf[j++] = '\n';
-		++src;
-		}
-		break;
-	default:
-		for (int n = 1;;) {
-			do {
-				for (;;) {
-					switch (*src) {
-					case '\0':
-						goto SUCCESS;
-					case '\n':
-						goto SKIP_LOOPS;
-					default:
-						if (*src != delim) {
-							++src;
-							continue;
-						}
-					}
-					break;
-				}
-				do {
-					++src;
-				} while (*src == delim);
-				++n;
-			} while (n < nStr);
-			buf[j++] = *src++;
-			for (;;) {
-				switch (*src) {
-				case '\0':
-					goto SUCCESS;
-				case '\n':
-					goto SKIP_LOOPS;
-				default:
-					if (*src != delim) {
-						buf[j++] = *src++;
-						continue;
-					}
-				}
-				break;
-			}
-			for (;;) {
-				switch (*src) {
-				case '\0':
-					goto SUCCESS;
-				case '\n':
-					goto SKIP_LOOPS;
-				default:
-					++src;
-					continue;
-				}
-				break;
-			}
-SKIP_LOOPS:
-		buf[j++] = '\n';
-		++src;
-		}
-	}
-SUCCESS:
-	*dest = malloc(j + 1);
-	memcpy(*dest, buf, j);
-	(*dest)[j] = '\0';
-	return j;
+NIX_WCWORD(nixWcWord, )
+NIX_WCWORD(nixWcWordComma, case ',':)
+NIX_WCWORD(nixWcWordPipe, case '|':)
+NIX_WCWORD(nixWcWordDot, case '.':)
+NIX_WCWORD(nixWcWordQuote, case '\'':)
+NIX_WCWORD(nixWcWordDoubleQuote, case '"':)
 
-ERROR:
-	perror("");
-	return 0;
+#define NIX_WCWORDNL(FUNC_NAME, DELIM) \
+int FUNC_NAME(char *src) \
+{ \
+	for (int inWord = 0, count = 0;; ++src) \
+		switch (*src) { \
+		case '\n': \
+		case '\0': \
+			return inWord ? ++count : count; \
+		case  ' ': \
+		case '\t': \
+		case '\r': \
+		DELIM \
+			if (inWord) { \
+				++count; \
+				inWord = 0; \
+			} \
+		default: \
+			if (!inWord) \
+				inWord = 1; \
+		} \
 }
 
-int nixAwkFile(char delim, int nStr, const char *filename, char **dest)
-{
-	char *fileStr;
-	int fileSize = nixCat(filename, &fileStr);
-	if (fileSize) {
-		int ret = nixAwk(delim, nStr, fileStr, fileSize, dest);
-		free(fileStr);
-		if (ret)
-			return ret;
-		free(*dest);
-	}
-	perror("");
-	return 0;
+NIX_WCWORDNL(nixWcWordNl, )
+NIX_WCWORDNL(nixWcWordNlPipe, case '|':)
+NIX_WCWORDNL(nixWcWordNlComma, case ',':)
+NIX_WCWORDNL(nixWcWordNlDot, case '.':)
+NIX_WCWORDNL(nixWcWordNlQuote, case '\'':)
+NIX_WCWORDNL(nixWcWordNlDoubleQuote, case '"':)
+
+#define NIX_AWK(FUNC_NAME, DELIM_CASE, DELIM) \
+int FUNC_NAME(int nStr, char *src, int srcLen, char **dest) \
+{ \
+	char buf[srcLen]; \
+	int j = 0; \
+	switch (nStr) { \
+	case 0: \
+		goto ERROR; \
+	case 1: \
+		for (;;) { \
+			for (;;) { \
+				switch (*src) { \
+				case '\0': \
+					goto SUCCESS; \
+				case '\n': \
+					goto SKIP_LOOPS_1; \
+				DELIM_CASE \
+					buf[j++] = *src++; \
+					continue; \
+				default: \
+					++src; \
+					continue; \
+				} \
+				break; \
+			} \
+			for (;;) { \
+				switch (*src) { \
+				case '\0': \
+					goto SUCCESS; \
+				case '\n': \
+					goto SKIP_LOOPS_1; \
+				default: \
+					++src; \
+					continue; \
+				} \
+			} \
+SKIP_LOOPS_1: \
+		buf[j++] = '\n'; \
+		++src; \
+		} \
+		break; \
+	default: \
+		for (int n = 1;;) { \
+			do { \
+				for (;;) { \
+					switch (*src) { \
+					case '\0': \
+						goto SUCCESS; \
+					case '\n': \
+						goto SKIP_LOOPS; \
+					DELIM_CASE \
+						break; \
+					default: \
+						++src; \
+						continue; \
+					} \
+					break; \
+				} \
+				do { \
+					++src; \
+				} while (*src == DELIM); \
+				++n; \
+			} while (n < nStr); \
+			buf[j++] = *src++; \
+			for (;;) { \
+				switch (*src) { \
+				case '\0': \
+					goto SUCCESS; \
+				case '\n': \
+					goto SKIP_LOOPS; \
+				DELIM_CASE \
+					break; \
+				default: \
+					buf[j++] = *src++; \
+					continue; \
+				} \
+				break; \
+			} \
+			for (;;) { \
+				switch (*src) { \
+				case '\0': \
+					goto SUCCESS; \
+				case '\n': \
+					goto SKIP_LOOPS; \
+				default: \
+					++src; \
+					continue; \
+				} \
+				break; \
+			} \
+SKIP_LOOPS: \
+		buf[j++] = '\n'; \
+		++src; \
+		} \
+	} \
+SUCCESS: \
+	*dest = malloc(j + 1); \
+	memcpy(*dest, buf, j); \
+	(*dest)[j] = '\0'; \
+	return j; \
+ \
+ERROR: \
+	perror(""); \
+	return 0; \
+} \
+
+NIX_AWK(nixAwk, case ' ':, ' ')
+NIX_AWK(nixAwkComma, case ',':, ',')
+NIX_AWK(nixAwkDot, case '.':, '.')
+NIX_AWK(nixAwkQuote, case '"':, '"')
+NIX_AWK(nixAwkDoubleQuote, case '"':, '"')
+NIX_AWK(nixAwkPipe, case '|':, '|')
+
+#define NIX_SPLIT(FUNC_NAME, DELIM) \
+int FUNC_NAME(const char *str, char ***arr) \
+{ \
+	if (!(*arr = malloc(8 * sizeof(char *)))) return 0; \
+	size_t j = 0; \
+	for (size_t i;; ++j) { \
+		i = 0; \
+		int in = 0; \
+		for (char buf[128];; ++str) { \
+			switch (*str) { \
+			default: \
+				if (!in) \
+					in = 1; \
+				buf[i++] = *str; \
+				continue; \
+			case '\0': \
+				if (!in) \
+					return ++j; \
+				if (!((*arr)[j] = malloc(i + 1))) goto ERROR_FREE; \
+				memcpy((*arr)[j], buf, i); \
+				(*arr)[j][i] = '\0'; \
+				return ++j; \
+			DELIM \
+				if (!in) \
+					continue; \
+				if (!((*arr)[j] = malloc(i + 1))) goto ERROR_FREE; \
+				memcpy((*arr)[j], buf, i); \
+				(*arr)[j][i] = '\0'; \
+			} \
+			break; \
+		} \
+	} \
+ERROR_FREE: \
+	if (j) \
+		for (int i = 0; i < j; ++i) \
+			free((*arr)++); \
+	free(*arr); \
+	perror(""); \
+	return 0; \
 }
 
-int nixTokenize(const char *str, char ***arr)
+NIX_SPLIT(nixSplit, case ' ': case '\n': case '\t': case '\r':) 
+NIX_SPLIT(nixSplitNl, case '\n':)
+
+void nixSplitFree(char **arr, int arrLen)
 {
-	if (!(*arr = malloc(8 * sizeof(char *)))) return 0;
-	size_t j = 0;
-	for (size_t i;; ++j) {
-		i = 0;
-		int in = 0;
-		for (char buf[128];; ++str) {
-			switch (*str) {
-			default:
-				if (!in)
-					in = 1;
-				buf[i++] = *str;
-				continue;
-			case '\0':
-				if (!in)
-					return ++j;
-				if (!((*arr)[j] = malloc(i + 1)))
-					goto ERROR_FREE;
-				memcpy((*arr)[j], buf, i);
-				(*arr)[j][i] = '\0';
-				return ++j;
-			case '\n':
-			case '\t':
-			case '\r':
-			case ' ':
-				if (!in)
-					continue;
-				if (!((*arr)[j] = malloc(i + 1))) goto ERROR_FREE;
-				memcpy((*arr)[j], buf, i);
-				(*arr)[j][i] = '\0';
-			}
-			break;
-		}
-	}
-ERROR_FREE:
-	if (j)
-		for (int i = 0; i < j; ++i)
-			free((*arr)++);
-	free(*arr);
-	perror("");
-	return 0;
+	for (size_t i = 0; i < arrLen; ++i)
+		free(arr[i]);
+	free(arr);
 }
-
-/* void nixTokenizeFree(char **arr, int arrLen) */
-/* { */
-/* 	for (size_t i = 0; i < arrLen; ++i) */
-/* 		free(arr[i]); */
-/* 	free(arr); */
-/* } */
-
-/* int nixTokenizeLine(const char *str, char ****arr) */
-/* { */
-/* 	size_t k = 0; */
-/* 	if (!(*arr = malloc(8 * sizeof(char *)))) return 0; */
-/* 	if (!(*arr[k] = malloc(8 * sizeof(char *)))) return 0; */
-/* 	size_t j = 0; */
-/* 	for (size_t i;; ++j) { */
-/* 		i = 0; */
-/* 		int in = 0; */
-/* 		for (char buf[128];; ++str) { */
-/* 			switch (*str) { */
-/* 			default: */
-/* 				if (!in) */
-/* 					in = 1; */
-/* 				buf[i++] = *str; */
-/* 				continue; */
-/* 			case '\0': */
-/* 				if (!in) */
-/* 					return ++j; */
-/* 				if (!((*arr)[j] = malloc(i + 1))) */
-/* 					goto ERROR_FREE; */
-/* 				memcpy((*arr)[j], buf, i); */
-/* 				arr[k][j][i] = '\0'; */
-/* 				return ++j; */
-/* 			case '\n': */
-/* 				++k; */
-/* 			case '\t': */
-/* 			case '\r': */
-/* 			case ' ': */
-/* 				if (!in) */
-/* 					continue; */
-/* 				if (!((*arr)[j] = malloc(i + 1))) */
-/* 					goto ERROR_FREE; */
-/* 				memcpy((*arr)[j], buf, i); */
-/* 				(*arr)[j][i] = '\0'; */
-/* 			} */
-/* 			break; */
-/* 		} */
-/* 	} */
-/* ERROR_FREE: */
-/* 	if (j) */
-/* 		for (int i = 0; i < j; ++i) */
-/* 			free((*arr)++); */
-/* 	free(*arr); */
-/* 	perror(""); */
-/* 	return 0; */
-/* } */
