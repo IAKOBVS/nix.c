@@ -25,6 +25,11 @@ int nixCatBig(const char *filename, char **dest);
 /* find files in directory */
 int nixFindDir(char *dir, char dest[]);
 
+int nixWcNl(char *src);
+int nixWcSpace(char *src);
+int nixWcTab(char *src);
+int nixWcNonWords(char *src);
+
 /* get number of chars in string */
 int nixWcChar(char *src);
 int nixWcCharPipe(char *src);
@@ -85,7 +90,7 @@ int nixSplitWords(const char *str, char ***arr);
 int nixSplitNl(const char *str, char ***arr);
 void nixSplitFree(char **arr, int arrLen);
 
-int nixGetLastWord(char dest[], char *src);
+int nixGetLastWord(char dest[], char *src, int srcLen);
 
 #ifdef __cplusplus
 }
