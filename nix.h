@@ -14,13 +14,13 @@ int nixSizeOfFile(const char *filename);
 int nixTee(const char *flag, char *inStr, const char *filename);
 
 /* get first line of file */
-int nixHead(const char *filename, char **dest);
+int nixHead(const char *filename, char dest[]);
 
 /* read file into string */
 int nixCat(const char *filename, char **dest);
 
 /* find files in directory */
-int nixFindDir(char *dir, char **dest);
+int nixFindDir(char *dir, char dest[]);
 
 /* get number of chars in string */
 int nixWcChar(char *src);
@@ -82,7 +82,7 @@ int nixSplitWords(const char *str, char ***arr);
 int nixSplitNl(const char *str, char ***arr);
 void nixSplitFree(char **arr, int arrLen);
 
-int nixGetLastWord(char **dest, char *src);
+int nixGetLastWord(char dest[], char *src);
 
 #ifdef __cplusplus
 }

@@ -27,47 +27,39 @@ int nixTee(const char *flag, char *src, const char *filename)
 	return 0;
 }
 
-int nixfindDir(char *dir, char **dest)
+int nixfindDir(char *dir, char dest[])
 {
 	struct dirent *ep;
 	DIR *dp = opendir(dir);
 	if (!dp) return 0;
-	char buf[3200];
 	int i = 0;
 	while ((ep = readdir(dp)))
 		for (int j = 0;; ) {
 			switch (ep->d_name[j]) {
 			default:
-				buf[i++] = (ep->d_name)[j++];
+				dest[i++] = (ep->d_name)[j++];
 				continue;
 			case '\0':
-				buf[i++] = '\n';
+				dest[i++] = '\n';
 			}
 			break;
 		}
-	*dest = malloc(i + 1);
-	memcpy(*dest, buf, i);
-	(*dest)[i] = '\0';
+	dest[i] = '\0';
 	closedir(dp);
 	return i;
 }
 
-int nixHead(const char *filename, char **dest)
+int nixHead(const char *filename, char dest[])
 {
-	char buf[512];
 	int destLen;
 	FILE *fp = fopen(filename, "r");
 	if (!fp) goto ERROR;
-	fgets(buf, 512, fp);
-	if (ferror(fp)) goto ERROR_CLOSE;
+	fgets(dest, 512, fp);
 	fclose(fp);
-	if (!(*dest = malloc((destLen = strlen(buf)) + 1))) goto ERROR;
-	memcpy(*dest, buf, destLen);
-	(*dest)[destLen] = '\0';
+	if (ferror(fp)) goto ERROR;
+	dest[destLen] = '\0';
 	return destLen;
 
-ERROR_CLOSE:
-	fclose(fp);
 ERROR:
 	perror("");
 	return 0;
@@ -362,29 +354,25 @@ void nixSplitFree(char **arr, int arrLen)
 	free(arr);
 }
 
-int nixGetLastWord(char **dest, char *src)
+int nixGetLastWord(char dest[], char *src)
 {
-	char buf[64];
-	for (int i = 0, w = nixWcWordAlpha(src) - 1;; ) {
+	for (int i = 0, loop = nixWcWordAlpha(src) - 1;; )
 		switch (*src) {
 		case '\0':
 			return 0;
 		case ' ':
-			--w;
+			--loop;
 			++src;
 			continue;
 		default:
-			if (!w) {
-				while (*src)
-					buf[i++] = *src++;
-			} else {
+			if (loop) {
 				++src;
 				continue;
 			}
+			do {
+				dest[i++] = *src++;
+			} while (*src);
+			dest[i] = '\0';
+			return i;
 		}
-		if (!(*dest = malloc(i + 1))) return 0;
-		memcpy(*dest, buf, i);
-		(*dest)[i] = '\0';
-		return w;
-	}
 }
