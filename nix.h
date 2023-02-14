@@ -43,6 +43,7 @@ int nixWcCharAlphaTab(char *src);
 /* get number of words in string */
 int nixWcWord(char *src);
 int nixWcWordComma(char *src);
+int nixWcWordDot(char *src);
 int nixWcWordPipe(char *src);
 int nixWcWordQuote(char *src);
 int nixWcWordDoubleQuote(char *src);
@@ -51,14 +52,16 @@ int nixWcWordNl(char *src);
 
 int nixWcWordAlpha(char *src);
 int nixWcWordAlphaComma(char *src);
+int nixWcWordAlphaDot(char *src);
 int nixWcWordAlphaPipe(char *src);
 int nixWcWordAlphaQuote(char *src);
 int nixWcWordAlphaDoubleQuote(char *src);
 int nixWcWordAlphaTab(char *src);
 
 /* get number of words in string until newline */
-int nixWcWordTilNlSpace(char *src);
+int nixWcWordTilNl(char *src);
 int nixWcWordTilNlComma(char *src);
+int nixWcWordTilNlDot(char *src);
 int nixWcWordTilNlPipe(char *src);
 int nixWcWordTilNlQuote(char *src);
 int nixWcWordTilNlDoubleQuote(char *src);
@@ -66,6 +69,7 @@ int nixWcWordTilNlTab(char *src);
 
 int nixAwk(int nStr, char *src, int srcLen, char **dest);
 int nixAwkComma(int nStr, char *src, int srcLen, char **dest);
+int nixAwkDot(int nStr, char *src, int srcLen, char **dest);
 int nixAwkDouble(int nStr, char *src, int srcLen, char **dest);
 int nixAwkQuote(int nStr, char *src, int srcLen, char **dest);
 int nixAwkDoubleQuote(int nStr, char *src, int srcLen, char **dest);
@@ -77,6 +81,8 @@ int nixSplitWords(const char *str, char ***arr);
 /* split lines to array of strings */
 int nixSplitNl(const char *str, char ***arr);
 void nixSplitFree(char **arr, int arrLen);
+
+int nixGetLastWord(char **dest, char *src);
 
 #ifdef __cplusplus
 }

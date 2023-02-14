@@ -15,11 +15,11 @@ int nixSizeOfFile(const char *filename)
 	return (!stat(filename, &st) ? st.st_size : 0);
 }
 
-int nixTee(const char *flag, char *inStr, const char *filename)
+int nixTee(const char *flag, char *src, const char *filename)
 {
 	FILE *fp = fopen(filename, flag);
 	if (fp) {
-		fputs(inStr, fp);
+		fputs(src, fp);
 		fclose(fp);
 		return 1;
 	}
@@ -355,10 +355,36 @@ ERROR_FREE: \
 
 NIX_SPLIT(nixSplitWords, case '\n': case '\t': case '\r': case ' ':) 
 NIX_SPLIT(nixSplitNl, case '\n':)
-
 void nixSplitFree(char **arr, int arrLen)
 {
 	for (size_t i = 0; i < arrLen; ++i)
 		free(arr[i]);
 	free(arr);
+}
+
+int nixGetLastWord(char **dest, char *src)
+{
+	char buf[64];
+	for (int i = 0, w = nixWcWordAlpha(src) - 1;; ) {
+		switch (*src) {
+		case '\0':
+			return 0;
+		case ' ':
+			--w;
+			++src;
+			continue;
+		default:
+			if (!w) {
+				while (*src)
+					buf[i++] = *src++;
+			} else {
+				++src;
+				continue;
+			}
+		}
+		if (!(*dest = malloc(i + 1))) return 0;
+		memcpy(*dest, buf, i);
+		(*dest)[i] = '\0';
+		return w;
+	}
 }
