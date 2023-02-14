@@ -83,16 +83,22 @@ ERROR: \
 NIX_CAT(nixCat, , , dest, char dest[], size_t fileSize)
 NIX_CAT(nixCatBig, size_t fileSize = nixSizeOfFile(filename); if (!(*dest = malloc(fileSize + 1))) goto ERROR_CLOSE;, free(*dest);, *dest, char **dest)
 
-int nixWcNl(char *src)
-{
-	for (int count = 0;; ++src)
-		switch (*src) {
-		case '\0':
-			return count;
-		case '\n':
-			++count;
-		}
-}
+#define NIX_WC(FUNC_NAME, DELIM) \
+int FUNC_NAME(char *src) \
+{ \
+	for (int count = 0;; ++src) \
+		switch (*src) { \
+		case '\0': \
+			return count; \
+		DELIM \
+			++count; \
+		} \
+} \
+
+NIX_WC(nixWcNl, case '\n':)
+NIX_WC(nixWcSpace, case ' ':)
+NIX_WC(nixWcTab, case '\t':)
+NIX_WC(nixWcNonWords, case '\n': case '\t': case '\r': case ' ':)
 
 #define NIX_WCCHAR(FUNC_NAME, DELIM) \
 int FUNC_NAME(char *src) \
