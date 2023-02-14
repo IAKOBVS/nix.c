@@ -23,6 +23,7 @@ int nixTee(const char *flag, char *src, const char *filename)
 		fclose(fp);
 		return 1;
 	}
+
 	perror("");
 	return 0;
 }
@@ -33,17 +34,11 @@ int nixfindDir(char *dir, char dest[])
 	DIR *dp = opendir(dir);
 	if (!dp) return 0;
 	int i = 0;
-	while ((ep = readdir(dp)))
-		for (int j = 0;; ) {
-			switch (ep->d_name[j]) {
-			default:
-				dest[i++] = (ep->d_name)[j++];
-				continue;
-			case '\0':
-				dest[i++] = '\n';
-			}
-			break;
-		}
+	while ((ep = readdir(dp))) {
+		for (int j = 0; (ep->d_name[j]); )
+			dest[i++] = (ep->d_name)[j++];
+		dest[i++] = '\n';
+	}
 	dest[i] = '\0';
 	closedir(dp);
 	return i;
@@ -51,39 +46,42 @@ int nixfindDir(char *dir, char dest[])
 
 int nixHead(const char *filename, char dest[])
 {
-	int destLen;
 	FILE *fp = fopen(filename, "r");
 	if (!fp) goto ERROR;
-	fgets(dest, 512, fp);
+	int i = 0;
+	for (char c; (c = fgetc(fp)); )
+		dest[i++] = c;
 	fclose(fp);
-	if (ferror(fp)) goto ERROR;
-	dest[destLen] = '\0';
-	return destLen;
+	dest[i] = '\0';
+	return i;
 
 ERROR:
 	perror("");
 	return 0;
 }
 
-int nixCat(const char *filename, char **dest)
-{
-	FILE *fp = fopen(filename, "r");
-	if (!fp) goto ERROR;
-	int fileSize = nixSizeOfFile(filename);
-	if (!(*dest = malloc(fileSize + 1))) goto ERROR_CLOSE;
-	if (fileSize != fread(*dest, 1, fileSize, fp)) goto ERROR_CLOSE_FREE;
-	fclose(fp);
-	(*dest)[fileSize] = '\0';
-	return fileSize;
-
-ERROR_CLOSE_FREE:
-	free(*dest);
-ERROR_CLOSE:
-	fclose(fp);
-ERROR:
-	perror("");
-	return 0;
+#define NIX_CAT(FUNC_NAME, DO_STUFF, CLEANUP_STUFF, DEST, ...) \
+int FUNC_NAME(const char *filename, __VA_ARGS__) \
+{ \
+	FILE *fp = fopen(filename, "r"); \
+	if (!fp) goto ERROR; \
+	DO_STUFF \
+	if (fileSize != fread(DEST, 1, fileSize, fp)) goto ERROR_CLOSE_FREE; \
+	fclose(fp); \
+	(DEST)[fileSize] = '\0'; \
+	return fileSize; \
+ \
+ERROR_CLOSE_FREE: \
+	CLEANUP_STUFF \
+ERROR_CLOSE: \
+	fclose(fp); \
+ERROR: \
+	perror(""); \
+	return 0; \
 }
+
+NIX_CAT(nixCat, , , dest, char dest[], size_t fileSize)
+NIX_CAT(nixCatBig, size_t fileSize = nixSizeOfFile(filename); if (!(*dest = malloc(fileSize + 1))) goto ERROR_CLOSE;, free(*dest);, *dest, char **dest)
 
 int nixWcNl(char *src)
 {
@@ -356,19 +354,14 @@ void nixSplitFree(char **arr, int arrLen)
 
 int nixGetLastWord(char dest[], char *src)
 {
-	for (int i = 0, loop = nixWcWordAlpha(src) - 1;; )
+	for (int i = 0, loop = nixWcWordAlpha(src) - 1;; ++src)
 		switch (*src) {
-		case '\0':
-			return 0;
 		case ' ':
 			--loop;
-			++src;
 			continue;
 		default:
-			if (loop) {
-				++src;
+			if (loop)
 				continue;
-			}
 			do {
 				dest[i++] = *src++;
 			} while (*src);

@@ -1,6 +1,8 @@
 #ifndef NIX_H_DEF
 #define NIX_H_DEF
 
+#include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -17,7 +19,8 @@ int nixTee(const char *flag, char *inStr, const char *filename);
 int nixHead(const char *filename, char dest[]);
 
 /* read file into string */
-int nixCat(const char *filename, char **dest);
+int nixCat(const char *filename, char *dest, size_t fileSize);
+int nixCatBig(const char *filename, char **dest);
 
 /* find files in directory */
 int nixFindDir(char *dir, char dest[]);
