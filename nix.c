@@ -192,7 +192,6 @@ NIX_WCWORD_TIL_NL(nixWcWordTilNlQuote, case '\'':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlDoubleQuote, case '"':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlTab, case '\t':)
 
-
 /* NIX_WCWORD_TILL_NL(nixWcWordTillNlAlpha, case '\t': case '\r': case ' ': continue; default:) */
 /* NIX_WCWORD_TILL_NL(nixWcWordTillNlAlphaComma, case '\t': case '\r': case ',': continue; default:) */
 /* NIX_WCWORD_TILL_NL(nixWcWordTillNlAlphaPipe, case '\t': case '\r': case '|': continue; default:) */
@@ -316,6 +315,33 @@ NIX_AWK(nixAwkDoubleQuote,  '"')
 NIX_AWK(nixAwkPipe,  '|')
 NIX_AWK(nixAwkTab, '\t')
 
+int nixGetLastWord(char dest[], char *src, int srcLen)
+{
+	src += srcLen - 1;
+	for (;;) {
+		switch (*src) {
+		default:
+			--src;
+			continue;
+		case '\n':
+		case '\t':
+		case '\r':
+		case ' ':
+			++src;
+		}
+		break;
+	}
+	for (int i = 0;; )
+		switch (*src) {
+			case '\0':
+				dest[i] = '\0';
+				return i;
+			default:
+				dest[i] = *src;
+				++i, ++src;
+		}
+}
+
 #define NIX_SPLIT(FUNC_NAME, DELIM) \
 int FUNC_NAME(const char *str, char ***arr) \
 { \
@@ -365,31 +391,4 @@ void nixSplitFree(char **arr, int arrLen)
 	for ( ; --arrLen; ++(*arr))
 		free(*arr);
 	free(arr);
-}
-
-int nixGetLastWord(char dest[], char *src, int srcLen)
-{
-	src += srcLen - 1;
-	for (;;) {
-		switch (*src) {
-		default:
-			--src;
-			continue;
-		case '\n':
-		case '\t':
-		case '\r':
-		case ' ':
-			++src;
-		}
-		break;
-	}
-	for (int i = 0;; )
-		switch (*src) {
-			case '\0':
-				dest[i] = '\0';
-				return i;
-			default:
-				dest[i] = *src;
-				++i, ++src;
-		}
 }
