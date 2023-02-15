@@ -10,6 +10,8 @@ extern "C" {
 /* get size of file */
 int nixSizeOfFile(const char *filename);
 
+int nixCut(int nStr, char *src, char dest[]);
+
 /* flags: */
 /* 'w' = overwrite */
 /* 'a' = append */
