@@ -49,12 +49,9 @@ int nixHead(const char *filename, char dest[])
 {
 	FILE *fp = fopen(filename, "r");
 	if (!fp) goto ERROR;
-	int i = 0;
-	for (char c; (c = fgetc(fp)); ++i)
-		dest[i] = c;
+	fgets(dest, 256, fp);
 	fclose(fp);
-	dest[i] = '\0';
-	return i;
+	return 1;
 
 ERROR:
 	perror("");
@@ -365,30 +362,32 @@ NIX_SPLIT(nixSplitWords, case '\n': case '\t': case '\r': case ' ':)
 NIX_SPLIT(nixSplitNl, case '\n':)
 void nixSplitFree(char **arr, int arrLen)
 {
-	for (size_t i = 0; i < arrLen; ++i)
-		free(arr[i]);
+	for ( ; --arrLen; ++(*arr))
+		free(*arr);
 	free(arr);
 }
 
 int nixGetLastWord(char dest[], char *src, int srcLen)
 {
 	src += srcLen - 1;
-	for (;;)
+	for (;;) {
 		switch (*src) {
+		default:
+			--src;
+			continue;
 		case '\n':
 		case '\t':
 		case '\r':
 		case ' ':
 			++src;
-			break;
-		default:
-			--src;
 		}
+		break;
+	}
 	for (int i = 0;; )
 		switch (*src) {
 			case '\0':
 				dest[i] = '\0';
-				return 1;
+				return i;
 			default:
 				dest[i] = *src;
 				++i, ++src;
