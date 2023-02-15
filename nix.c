@@ -98,15 +98,11 @@ int nixGetLastWord(char dest[], char *src, int srcLen)
 		}
 		break;
 	}
-	for (int i = 0;; )
-		switch (*src) {
-		case '\0':
-			dest[i] = '\0';
-			return i;
-		default:
-			dest[i] = *src;
-			++i, ++src;
-		}
+	int i = 0;
+	for ( ; *src; ++i, ++src)
+		dest[i] = *src;
+	dest[i] = '\0';
+	return i;
 }
 
 int nixCut(int nStr, char *src, char dest[])
