@@ -317,9 +317,9 @@ ERROR_FREE: \
 NIX_SPLIT(nixSplitWords, case '\n': case '\t': case '\r': case ' ':) 
 NIX_SPLIT(nixSplitNl, case '\n':)
 
-void nixSplitFree(char **arr, int arrLen)
+void nixSplitFree(char **arr, int aLen)
 {
-	for ( ; --arrLen; ++(*arr))
+	for ( ; --aLen; ++(*arr))
 		free(*arr);
 	free(arr);
 }
