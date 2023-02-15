@@ -40,8 +40,8 @@ int nixFindDir(char *dir, char dest[])
 		dest[i] = '\n';
 		++i;
 	}
-	dest[--i] = '\0';
 	closedir(dp);
+	dest[--i] = '\0';
 	return i;
 }
 
@@ -58,19 +58,16 @@ ERROR:
 	return 0;
 }
 
-#define NIX_CAT(FUNC_NAME, DO_STUFF, CLEANUP_STUFF, DEST, ...) \
-int FUNC_NAME(const char *filename, __VA_ARGS__) \
+#define NIX_CAT(FUNC_NAME, FREAD) \
+int FUNC_NAME(const char *filename, size_t fileSize, char dest[]) \
 { \
 	FILE *fp = fopen(filename, "r"); \
 	if (!fp) goto ERROR; \
-	DO_STUFF \
-	if (fileSize != fread(DEST, 1, fileSize, fp)) goto ERROR_CLOSE_FREE; \
+	if (!FREAD(dest, 1, fileSize, fp)) goto ERROR_CLOSE; \
 	fclose(fp); \
-	(DEST)[fileSize] = '\0'; \
+	dest[fileSize] = '\0'; \
 	return fileSize; \
  \
-ERROR_CLOSE_FREE: \
-	CLEANUP_STUFF \
 ERROR_CLOSE: \
 	fclose(fp); \
 ERROR: \
@@ -78,8 +75,8 @@ ERROR: \
 	return 0; \
 }
 
-NIX_CAT(nixCat, , , dest, char dest[], size_t fileSize)
-NIX_CAT(nixCatBig, size_t fileSize = nixSizeOfFile(filename); if (!(*dest = malloc(fileSize + 1))) goto ERROR_CLOSE;, free(*dest);, *dest, char **dest)
+NIX_CAT(nixCat, fread)
+NIX_CAT(nixCatFast, fread_unlocked)
 
 #define NIX_WC(FUNC_NAME, DELIM) \
 int FUNC_NAME(char *src) \
