@@ -17,6 +17,8 @@ int nixCut(int nStr, char *src, char dest[]);
 /* 'a' = append */
 int nixTee(const char *flag, char *inStr, const char *filename);
 
+int nixRev(char dest[], char *src, int srcLen);
+
 /* get first line of file */
 int nixHead(const char *filename, char dest[]);
 

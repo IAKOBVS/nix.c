@@ -82,6 +82,16 @@ ERROR: \
 NIX_CAT(nixCat, fread)
 NIX_CAT(nixCatFast, fread_unlocked)
 
+int nixRev(char dest[], char *src, int srcLen)
+{
+	src += srcLen - 1;
+	int i = 0;
+	for ( ; srcLen; ++i, --src, --srcLen)
+		dest[i] = *src;
+	dest[i] = '\0';
+	return i;
+}
+
 int nixGetLastWord(char dest[], char *src, int srcLen)
 {
 	src += srcLen - 1;
