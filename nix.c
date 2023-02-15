@@ -81,11 +81,12 @@ NIX_CAT(nixCatFast, fread_unlocked)
 #define NIX_WC(FUNC_NAME, DELIM) \
 int FUNC_NAME(char *src) \
 { \
-	for (int count = 0;; ++src) \
+	for (int count = 0;; ) \
 		switch (*src) { \
 		case '\0': \
 			return count; \
 		DELIM \
+			++src; \
 			++count; \
 		} \
 } \
@@ -98,7 +99,7 @@ NIX_WC(nixWcNonWords, case '\n': case '\t': case '\r': case ' ':)
 #define NIX_WCCHAR(FUNC_NAME, DELIM) \
 int FUNC_NAME(char *src) \
 { \
-	for (int count = 0 ;; ++src) \
+	for (int count = 0;; ++src) \
 		switch (*src) { \
 		case '\0': \
 			return count; \
@@ -271,7 +272,8 @@ SKIP_LOOPS_1: \
 				case DELIM: \
 					break; \
 				default: \
-					buf[j++] = *src++; \
+					buf[j] = *src; \
+					++j, ++src; \
 					continue; \
 				} \
 				break; \
