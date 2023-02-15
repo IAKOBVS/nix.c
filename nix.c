@@ -6,8 +6,6 @@
 #include <assert.h>
 
 #include "nix.h"
-#include "/home/james/c/jString/jstr.h"
-#include "/home/james/c/jArray/jarr.h"
 
 int nixSizeOfFile(const char *filename)
 {
