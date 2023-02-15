@@ -82,19 +82,19 @@ ERROR: \
 NIX_CAT(nixCat, fread)
 NIX_CAT(nixCatFast, fread_unlocked)
 
-int nixRev(char dest[], char *src, int srcLen)
+int nixRev(char dest[], char *src, int sLen)
 {
-	src += srcLen - 1;
+	src += sLen - 1;
 	int i = 0;
-	for ( ; srcLen; --src, --srcLen, ++i)
+	for ( ; sLen; --src, --sLen, ++i)
 		dest[i] = *src;
 	dest[i] = '\0';
 	return i;
 }
 
-int nixGetLastWord(char dest[], char *src, int srcLen)
+int nixGetLastWord(char dest[], char *src, int sLen)
 {
-	src += srcLen - 1;
+	src += sLen - 1;
 	for (;;) {
 		switch (*src) {
 		default:
@@ -159,9 +159,9 @@ int nixCut(int nStr, char *src, char dest[])
 }
 
 #define NIX_AWK(FUNC_NAME, DELIM) \
-int FUNC_NAME(int nStr, char *src, int srcLen, char **dest) \
+int FUNC_NAME(int nStr, char *src, int sLen, char **dest) \
 { \
-	char buf[srcLen]; \
+	char buf[sLen]; \
 	int j = 0; \
 	switch (nStr) { \
 	case 0: \
