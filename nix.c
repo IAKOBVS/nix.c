@@ -80,18 +80,18 @@ ERROR: \
 NIX_CAT(nixCat, fread)
 NIX_CAT(nixCatFast, fread_unlocked)
 
-int nixRev(char dest[], char *src, int sLen)
+int nixRev(char dest[], char *src, int srcLen)
 {
 	int i = 0;
-	for (src += sLen - 1; sLen; --src, --sLen, ++i)
+	for (src += srcLen - 1; srcLen; --src, --srcLen, ++i)
 		dest[i] = *src;
 	dest[i] = '\0';
 	return i;
 }
 
-int nixGetLastWord(char dest[], char *src, int sLen)
+int nixGetLastWord(char dest[], char *src, int srcLen)
 {
-	src += sLen - 1;
+	src += srcLen - 1;
 	for (;;) {
 		switch (*src) {
 		default:
@@ -156,9 +156,9 @@ int nixCut(int nStr, char *src, char dest[])
 }
 
 #define NIX_AWK(FUNC_NAME, DELIM) \
-int FUNC_NAME(int nStr, char *src, int sLen, char **dest) \
+int FUNC_NAME(int nStr, char *src, int srcLen, char **dest) \
 { \
-	char buf[sLen]; \
+	char buf[srcLen]; \
 	int j = 0; \
 	switch (nStr) { \
 	case 0: \
@@ -317,9 +317,9 @@ ERROR_FREE: \
 NIX_SPLIT(nixSplitWords, case '\n': case '\t': case '\r': case ' ':) 
 NIX_SPLIT(nixSplitNl, case '\n':)
 
-void nixSplitFree(char **arr, int aLen)
+void nixSplitFree(char **arr, int arrLen)
 {
-	for ( ; --aLen; ++(*arr))
+	for ( ; --arrLen; ++(*arr))
 		free(*arr);
 	free(arr);
 }
