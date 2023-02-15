@@ -35,9 +35,10 @@ int nixFindDir(char *dir, char dest[])
 	if (!dp) return 0;
 	int i = 0;
 	while ((ep = readdir(dp))) {
-		for (int j = 0; (ep->d_name[j]); )
-			dest[i++] = (ep->d_name)[j++];
-		dest[i++] = '\n';
+		for (char *filename = ep->d_name; *filename; ++i, ++filename)
+			dest[i] = *filename;
+		dest[i] = '\n';
+		++i;
 	}
 	dest[--i] = '\0';
 	closedir(dp);
@@ -49,8 +50,8 @@ int nixHead(const char *filename, char dest[])
 	FILE *fp = fopen(filename, "r");
 	if (!fp) goto ERROR;
 	int i = 0;
-	for (char c; (c = fgetc(fp)); )
-		dest[i++] = c;
+	for (char c; (c = fgetc(fp)); ++i)
+		dest[i] = c;
 	fclose(fp);
 	dest[i] = '\0';
 	return i;
@@ -219,7 +220,8 @@ int FUNC_NAME(int nStr, char *src, int srcLen, char **dest) \
 				case '\n': \
 					goto SKIP_LOOPS_1; \
 				case DELIM: \
-					buf[j++] = *src++; \
+					buf[j] = *src; \
+					++j, ++src; \
 					continue; \
 				default: \
 					++src; \
@@ -239,8 +241,8 @@ int FUNC_NAME(int nStr, char *src, int srcLen, char **dest) \
 				} \
 			} \
 SKIP_LOOPS_1: \
-		buf[j++] = '\n'; \
-		++src; \
+		buf[j] = '\n'; \
+		++j, ++src; \
 		} \
 		break; \
 	default: \
@@ -265,7 +267,8 @@ SKIP_LOOPS_1: \
 				} while (*src == DELIM); \
 				++n; \
 			} while (n < nStr); \
-			buf[j++] = *src++; \
+			buf[j] = *src; \
+			++j, ++src; \
 			for (;;) { \
 				switch (*src) { \
 				case '\0': \
@@ -293,8 +296,8 @@ SKIP_LOOPS_1: \
 				break; \
 			} \
 SKIP_LOOPS: \
-		buf[j++] = '\n'; \
-		++src; \
+		buf[j] = '\n'; \
+		++j, ++src; \
 		} \
 	} \
 SUCCESS: \
@@ -329,7 +332,8 @@ int FUNC_NAME(const char *str, char ***arr) \
 			default: \
 				if (!in) \
 					in = 1; \
-				buf[i++] = *str; \
+				buf[i] = *str; \
+				++i; \
 				continue; \
 			case '\0': \
 				if (!in) \
@@ -350,8 +354,8 @@ int FUNC_NAME(const char *str, char ***arr) \
 	} \
 ERROR_FREE: \
 	if (j) \
-		for (int i = 0; i < j; ++i) \
-			free((*arr)++); \
+		for (int i = 0; i < j; ++i, ++(*arr)) \
+			free(*arr); \
 	free(*arr); \
 	perror(""); \
 	return 0; \
@@ -386,6 +390,7 @@ int nixGetLastWord(char dest[], char *src, int srcLen)
 				dest[i] = '\0';
 				return 1;
 			default:
-				dest[i++] = *src++;
+				dest[i] = *src;
+				++i, ++src;
 		}
 }
