@@ -82,9 +82,8 @@ NIX_CAT(nixCatFast, fread_unlocked)
 
 int nixRev(char dest[], char *src, int sLen)
 {
-	src += sLen - 1;
 	int i = 0;
-	for ( ; sLen; --src, --sLen, ++i)
+	for (src += sLen - 1; sLen; --src, --sLen, ++i)
 		dest[i] = *src;
 	dest[i] = '\0';
 	return i;
