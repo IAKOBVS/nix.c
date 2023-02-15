@@ -127,16 +127,15 @@ int nixCut(int nStr, char *src, char dest[])
 	} else {
 		while (nStr) {
 			switch (*src) {
+			default:
+				continue;
 			case '\0':
 			case ' ':
 			case '\n':
 			case '\t':
 			case '\r':
 				--nStr;
-			default:
-				continue;
 			}
-			break;
 		}
 		for (int i = 0;; )
 			switch (*src) {
