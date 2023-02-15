@@ -86,7 +86,7 @@ int nixRev(char dest[], char *src, int srcLen)
 {
 	src += srcLen - 1;
 	int i = 0;
-	for ( ; srcLen; ++i, --src, --srcLen)
+	for ( ; srcLen; --src, --srcLen, ++i)
 		dest[i] = *src;
 	dest[i] = '\0';
 	return i;
