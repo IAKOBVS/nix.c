@@ -23,7 +23,7 @@ int nixCat(const char *filename, size_t fileSize, char *dest);
 int nixCatFast(const char *filename, size_t fileSize, char *dest);
 
 /* find files in directory */
-int nixFindDir(char *dir, char dest[]);
+int nixFind(char *dir, char dest[]);
 
 int nixWcNl(char *src);
 int nixWcSpace(char *src);

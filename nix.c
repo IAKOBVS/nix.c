@@ -28,11 +28,11 @@ int nixTee(const char *flag, char *src, const char *filename)
 	return 0;
 }
 
-int nixFindDir(char *dir, char dest[])
+int nixFind(char *dir, char dest[])
 {
 	struct dirent *ep;
 	DIR *dp = opendir(dir);
-	if (!dp) return 0;
+	if (!dp) goto ERROR;
 	int i = 0;
 	while ((ep = readdir(dp))) {
 		for (char *filename = ep->d_name; *filename; ++i, ++filename)
@@ -43,6 +43,10 @@ int nixFindDir(char *dir, char dest[])
 	closedir(dp);
 	dest[--i] = '\0';
 	return i;
+
+ERROR:
+	perror("");
+	return 0;
 }
 
 int nixHead(const char *filename, char dest[])
@@ -332,12 +336,12 @@ int nixGetLastWord(char dest[], char *src, int srcLen)
 	}
 	for (int i = 0;; )
 		switch (*src) {
-			case '\0':
-				dest[i] = '\0';
-				return i;
-			default:
-				dest[i] = *src;
-				++i, ++src;
+		case '\0':
+			dest[i] = '\0';
+			return i;
+		default:
+			dest[i] = *src;
+			++i, ++src;
 		}
 }
 
