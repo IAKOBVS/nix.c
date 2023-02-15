@@ -28,7 +28,7 @@ int nixTee(const char *flag, char *src, const char *filename)
 	return 0;
 }
 
-int nixfindDir(char *dir, char dest[])
+int nixFindDir(char *dir, char dest[])
 {
 	struct dirent *ep;
 	DIR *dp = opendir(dir);
@@ -39,7 +39,7 @@ int nixfindDir(char *dir, char dest[])
 			dest[i++] = (ep->d_name)[j++];
 		dest[i++] = '\n';
 	}
-	dest[i] = '\0';
+	dest[--i] = '\0';
 	closedir(dp);
 	return i;
 }
