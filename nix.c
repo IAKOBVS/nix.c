@@ -57,8 +57,8 @@ int nixFindAuto(char *dir, char **dest)
 	DIR *dp = opendir(dir);
 	if (dp); else goto ERROR;
 	size_t mallocSize;
-	if ((*dest = malloc(MIN_MALLOC))); else goto ERROR;
-	mallocSize = MIN_MALLOC;
+	if ((*dest = malloc(MIN_MALLOC))) mallocSize = MIN_MALLOC;
+	else goto ERROR;
 	size_t i = 0;
 	while ((ep = readdir(dp))) {
 		char *filename = ep->d_name;
