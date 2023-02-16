@@ -25,7 +25,6 @@ int nixTee(const char *flag, char *src, const char *filename)
 		fclose(fp);
 		return 1;
 	}
-
 	perror("");
 	return 0;
 }
