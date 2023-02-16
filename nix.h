@@ -23,8 +23,8 @@ int nixRev(char dest[], char *src, int srcLen);
 int nixHead(const char *filename, char dest[]);
 
 /* read file into string */
-int nixCat(const char *filename, size_t fileSize, char *dest);
-int nixCatFast(const char *filename, size_t fileSize, char *dest);
+int nixCat(const char *filename, int fileSize, char *dest);
+int nixCatFast(const char *filename, int fileSize, char *dest);
 
 /* find files in directory */
 int nixFind(char *dir, char dest[]);
