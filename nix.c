@@ -7,6 +7,10 @@
 
 #include "nix.h"
 
+#define MIN_MALLOC 16000
+#define MAX(a,b) ((a)>(b)?(a):(b))
+#define MIN(a,b) ((a)<(b)?(a):(b))
+
 int nixSizeOfFile(const char *filename)
 {
 	struct stat st;
@@ -31,7 +35,7 @@ int nixFind(char *dir, char dest[])
 	struct dirent *ep;
 	DIR *dp = opendir(dir);
 	if (!dp) goto ERROR;
-	int i = 0;
+	size_t i = 0;
 	while ((ep = readdir(dp))) {
 		for (char *filename = ep->d_name; *filename; ++i, ++filename)
 			dest[i] = *filename;
@@ -40,6 +44,38 @@ int nixFind(char *dir, char dest[])
 	}
 	closedir(dp);
 	dest[--i] = '\0';
+	return i;
+
+ERROR:
+	perror("");
+	return 0;
+}
+
+int nixFindAuto(char *dir, char **dest)
+{
+	struct dirent *ep;
+	DIR *dp = opendir(dir);
+	if (!dp) goto ERROR;
+	size_t mallocSize;
+	if (!(*dest = malloc(MIN_MALLOC))) goto ERROR;
+	mallocSize = MIN_MALLOC;
+	size_t i = 0;
+	while ((ep = readdir(dp))) {
+		char *filename = ep->d_name;
+		size_t tmpLen = strlen(filename) + mallocSize;
+		size_t tmpSize = MAX(2 * tmpLen, 2 *mallocSize);
+		if (tmpLen > mallocSize * 2) {
+			if (!(*dest = realloc(*dest, tmpSize))) goto ERROR;
+			mallocSize = tmpSize;
+		}
+		for ( ; *filename; ++i, ++filename)
+			(*dest)[i] = *filename;
+		(*dest)[i] = '\n';
+		++i;
+	}
+	closedir(dp);
+	if (!(*dest = realloc(*dest, i + 1))) goto ERROR;
+	(*dest)[--i] = '\0';
 	return i;
 
 ERROR:
@@ -82,7 +118,7 @@ NIX_CAT(nixCatFast, fread_unlocked)
 
 int nixRev(char dest[], char *src, int srcLen)
 {
-	int i = 0;
+	size_t i = 0;
 	for (src += srcLen - 1; srcLen; --src, --srcLen, ++i)
 		dest[i] = *src;
 	dest[i] = '\0';
@@ -105,7 +141,7 @@ int nixGetLastWord(char dest[], char *src, int srcLen)
 		}
 		break;
 	}
-	int i = 0;
+	size_t i = 0;
 	for ( ; *src; ++i, ++src)
 		dest[i] = *src;
 	dest[i] = '\0';
@@ -114,20 +150,7 @@ int nixGetLastWord(char dest[], char *src, int srcLen)
 
 int nixCut(int nStr, char *src, char dest[])
 {
-	if (nStr == 1) {
-		for (int i = 0;; )
-			switch (*src) {
-			case '\0':
-			case ' ':
-			case '\n':
-			case '\t':
-			case '\r':
-				return i;
-			default:
-				dest[i] = *src;
-				++i, ++src;
-			}
-	} else {
+	if (nStr > 1) {
 		while (nStr) {
 			switch (*src) {
 			default:
@@ -140,7 +163,20 @@ int nixCut(int nStr, char *src, char dest[])
 				--nStr;
 			}
 		}
-		for (int i = 0;; )
+		for (size_t i = 0;; )
+			switch (*src) {
+			case '\0':
+			case ' ':
+			case '\n':
+			case '\t':
+			case '\r':
+				return i;
+			default:
+				dest[i] = *src;
+				++i, ++src;
+			}
+	} else {
+		for (size_t i = 0;; )
 			switch (*src) {
 			case '\0':
 			case ' ':
@@ -279,7 +315,7 @@ int FUNC_NAME(const char *str, char ***arr) \
 	size_t j = 0; \
 	for (size_t i;; ++j) { \
 		i = 0; \
-		int in = 0; \
+		size_t in = 0; \
 		for (char buf[128];; ++str) { \
 			switch (*str) { \
 			default: \
@@ -307,7 +343,7 @@ int FUNC_NAME(const char *str, char ***arr) \
 	} \
 ERROR_FREE: \
 	if (j) \
-		for (int i = 0; i < j; ++i, ++(*arr)) \
+		for (size_t i = 0; i < j; ++i, ++(*arr)) \
 			free(*arr); \
 	free(*arr); \
 	perror(""); \
@@ -377,7 +413,7 @@ NIX_WCCHAR(nixWcCharAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':
 #define NIX_WCWORD(FUNC_NAME, DELIM) \
 int FUNC_NAME(char *src) \
 { \
-	for (int inWord = 0, count = 0;; ++src) \
+	for (size_t inWord = 0, count = 0;; ++src) \
 		switch (*src) { \
 		case '\0': \
 			return inWord ? ++count : count; \
@@ -412,7 +448,7 @@ NIX_WCWORD(nixWcWordAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':
 #define NIX_WCWORD_TIL_NL(FUNC_NAME, DELIM) \
 int FUNC_NAME(char *src) \
 { \
-	for (int inWord = 0, count = 0;; ++src) \
+	for (size_t inWord = 0, count = 0;; ++src) \
 		switch (*src) { \
 		case '\n': \
 		case '\0': \

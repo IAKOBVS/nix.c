@@ -28,6 +28,8 @@ int nixCatFast(const char *filename, size_t fileSize, char *dest);
 
 /* find files in directory */
 int nixFind(char *dir, char dest[]);
+/* find that automatically reallocs to required size */
+int nixFindAuto(char *dir, char **dest);
 
 int nixWcNl(char *src);
 int nixWcSpace(char *src);
