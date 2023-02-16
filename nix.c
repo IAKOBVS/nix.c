@@ -98,7 +98,7 @@ int nixHead(const char *filename, char dest[])
 }
 
 #define NIX_CAT(FUNC_NAME, FREAD) \
-int FUNC_NAME(const char *filename, int fileSize, char dest[]) \
+int FUNC_NAME(const char *filename, size_t fileSize, char dest[]) \
 { \
 	FILE *fp = fopen(filename, "r"); \
 	if (fp); \
