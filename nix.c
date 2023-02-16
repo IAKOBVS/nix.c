@@ -317,24 +317,29 @@ int FUNC_NAME(const char *str, char ***arr) \
 		for (char buf[128];; ++str) { \
 			switch (*str) { \
 			default: \
-				if (!in) \
+				if (in) { \
+					buf[i] = *str; \
+					++i; \
+				} else { \
 					in = 1; \
-				buf[i] = *str; \
-				++i; \
+				} \
 				continue; \
 			case '\0': \
-				if (!in) \
+				if (in) { \
+					if (((*arr)[j] = malloc(i + 1))); else goto ERROR_FREE; \
+					memcpy((*arr)[j], buf, i); \
+					(*arr)[j][i] = '\0'; \
 					return ++j; \
-				if (!((*arr)[j] = malloc(i + 1))) goto ERROR_FREE; \
-				memcpy((*arr)[j], buf, i); \
-				(*arr)[j][i] = '\0'; \
+				} \
 				return ++j; \
 			DELIM \
-				if (!in) \
+				if (in) { \
+					if (((*arr)[j] = malloc(i + 1))); else goto ERROR_FREE; \
+					memcpy((*arr)[j], buf, i); \
+					(*arr)[j][i] = '\0'; \
+				} else { \
 					continue; \
-				if (!((*arr)[j] = malloc(i + 1))) goto ERROR_FREE; \
-				memcpy((*arr)[j], buf, i); \
-				(*arr)[j][i] = '\0'; \
+				} \
 			} \
 			break; \
 		} \
@@ -422,8 +427,8 @@ int FUNC_NAME(char *src) \
 			} \
 			continue; \
 		default: \
-			if (!inWord) \
-				inWord = 1; \
+			if (inWord); \
+			else inWord = 1; \
 		} \
 }
 
@@ -457,8 +462,8 @@ int FUNC_NAME(char *src) \
 				inWord = 0; \
 			} \
 		default: \
-			if (!inWord) \
-				inWord = 1; \
+			if (inWord); \
+			else inWord = 1; \
 		} \
 }
 
