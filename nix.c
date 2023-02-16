@@ -33,7 +33,8 @@ int nixFind(char *dir, char dest[])
 {
 	struct dirent *ep;
 	DIR *dp = opendir(dir);
-	if (dp); else goto ERROR;
+	if (dp);
+	else goto ERROR;
 	size_t i = 0;
 	while ((ep = readdir(dp))) {
 		for (char *filename = ep->d_name; *filename; ++i, ++filename)
@@ -54,7 +55,8 @@ int nixFindAuto(char *dir, char **dest)
 {
 	struct dirent *ep;
 	DIR *dp = opendir(dir);
-	if (dp); else goto ERROR;
+	if (dp);
+	else goto ERROR;
 	size_t mallocSize;
 	if ((*dest = malloc(MIN_MALLOC))) mallocSize = MIN_MALLOC;
 	else goto ERROR;
@@ -73,7 +75,8 @@ int nixFindAuto(char *dir, char **dest)
 		++i;
 	}
 	closedir(dp);
-	if ((*dest = realloc(*dest, i + 1))); else goto ERROR;
+	if ((*dest = realloc(*dest, i + 1)));
+	else goto ERROR;
 	(*dest)[--i] = '\0';
 	return i;
 
@@ -98,8 +101,10 @@ int nixHead(const char *filename, char dest[])
 int FUNC_NAME(const char *filename, size_t fileSize, char dest[]) \
 { \
 	FILE *fp = fopen(filename, "r"); \
-	if (fp); else goto ERROR; \
-	if (FREAD(dest, 1, fileSize, fp)); else goto ERROR_CLOSE; \
+	if (fp); \
+	else goto ERROR; \
+	if (FREAD(dest, 1, fileSize, fp)); \
+	else goto ERROR_CLOSE; \
 	fclose(fp); \
 	dest[fileSize] = '\0'; \
 	return 1; \
@@ -326,7 +331,8 @@ int FUNC_NAME(const char *str, char ***arr) \
 				continue; \
 			case '\0': \
 				if (in) { \
-					if (((*arr)[j] = malloc(i + 1))); else goto ERROR_FREE; \
+					if (((*arr)[j] = malloc(i + 1))); \
+					else goto ERROR_FREE; \
 					memcpy((*arr)[j], buf, i); \
 					(*arr)[j][i] = '\0'; \
 					return ++j; \
@@ -334,7 +340,8 @@ int FUNC_NAME(const char *str, char ***arr) \
 				return ++j; \
 			DELIM \
 				if (in) { \
-					if (((*arr)[j] = malloc(i + 1))); else goto ERROR_FREE; \
+					if (((*arr)[j] = malloc(i + 1))); \
+					else goto ERROR_FREE; \
 					memcpy((*arr)[j], buf, i); \
 					(*arr)[j][i] = '\0'; \
 				} else { \
