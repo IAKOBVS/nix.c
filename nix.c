@@ -104,7 +104,7 @@ int FUNC_NAME(const char *filename, size_t fileSize, char dest[]) \
 	if (!FREAD(dest, 1, fileSize, fp)) goto ERROR_CLOSE; \
 	fclose(fp); \
 	dest[fileSize] = '\0'; \
-	return fileSize; \
+	return 1; \
  \
 ERROR_CLOSE: \
 	fclose(fp); \
