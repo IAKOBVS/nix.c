@@ -20,11 +20,13 @@ int nixSizeOfFile(const char *filename)
 int nixTee(const char *flag, char *src, const char *filename)
 {
 	FILE *fp = fopen(filename, flag);
-	if (fp) {
-		fputs(src, fp);
-		fclose(fp);
-		return 1;
-	}
+	if (fp);
+	else goto ERROR;
+	fputs(src, fp);
+	fclose(fp);
+	return 1;
+
+ERROR:
 	perror("");
 	return 0;
 }
@@ -88,11 +90,13 @@ ERROR:
 int nixHead(const char *filename, char dest[])
 {
 	FILE *fp = fopen(filename, "r");
-	if (fp){
-		fgets(dest, 256, fp);
-		fclose(fp);
-		return 1;
-	}
+	if (fp);
+	else goto ERROR;
+	fgets(dest, 256, fp);
+	fclose(fp);
+	return 1;
+
+ERROR:
 	perror("");
 	return 0;
 }
