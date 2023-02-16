@@ -14,7 +14,7 @@
 int nixSizeOfFile(const char *filename)
 {
 	struct stat st;
-	return (!stat(filename, &st) ? st.st_size : 0);
+	return (stat(filename, &st) ? 0 : st.st_size);
 }
 
 int nixTee(const char *flag, char *src, const char *filename)
