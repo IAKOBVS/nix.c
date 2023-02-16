@@ -34,7 +34,7 @@ int nixFind(char *dir, char dest[])
 {
 	struct dirent *ep;
 	DIR *dp = opendir(dir);
-	if (!dp) goto ERROR;
+	if (dp); else goto ERROR;
 	size_t i = 0;
 	while ((ep = readdir(dp))) {
 		for (char *filename = ep->d_name; *filename; ++i, ++filename)
@@ -55,9 +55,9 @@ int nixFindAuto(char *dir, char **dest)
 {
 	struct dirent *ep;
 	DIR *dp = opendir(dir);
-	if (!dp) goto ERROR;
+	if (dp); else goto ERROR;
 	size_t mallocSize;
-	if (!(*dest = malloc(MIN_MALLOC))) goto ERROR;
+	if ((*dest = malloc(MIN_MALLOC))); else goto ERROR;
 	mallocSize = MIN_MALLOC;
 	size_t i = 0;
 	while ((ep = readdir(dp))) {
@@ -65,8 +65,8 @@ int nixFindAuto(char *dir, char **dest)
 		size_t tmpLen = strlen(filename) + mallocSize;
 		size_t tmpSize = MAX(2 * tmpLen, 2 *mallocSize);
 		if (tmpLen > mallocSize * 2) {
-			if (!(*dest = realloc(*dest, tmpSize))) goto ERROR;
-			mallocSize = tmpSize;
+			if ((*dest = realloc(*dest, tmpSize))) mallocSize = tmpSize;
+			else goto ERROR;
 		}
 		for ( ; *filename; ++i, ++filename)
 			(*dest)[i] = *filename;
@@ -74,7 +74,7 @@ int nixFindAuto(char *dir, char **dest)
 		++i;
 	}
 	closedir(dp);
-	if (!(*dest = realloc(*dest, i + 1))) goto ERROR;
+	if ((*dest = realloc(*dest, i + 1))); else goto ERROR;
 	(*dest)[--i] = '\0';
 	return i;
 
@@ -86,12 +86,11 @@ ERROR:
 int nixHead(const char *filename, char dest[])
 {
 	FILE *fp = fopen(filename, "r");
-	if (!fp) goto ERROR;
-	fgets(dest, 256, fp);
-	fclose(fp);
-	return 1;
-
-ERROR:
+	if (fp){
+		fgets(dest, 256, fp);
+		fclose(fp);
+		return 1;
+	}
 	perror("");
 	return 0;
 }
@@ -100,8 +99,8 @@ ERROR:
 int FUNC_NAME(const char *filename, size_t fileSize, char dest[]) \
 { \
 	FILE *fp = fopen(filename, "r"); \
-	if (!fp) goto ERROR; \
-	if (!FREAD(dest, 1, fileSize, fp)) goto ERROR_CLOSE; \
+	if (fp); else goto ERROR; \
+	if (FREAD(dest, 1, fileSize, fp)); else goto ERROR_CLOSE; \
 	fclose(fp); \
 	dest[fileSize] = '\0'; \
 	return 1; \
@@ -311,7 +310,7 @@ NIX_AWK(nixAwkTab, '\t')
 #define NIX_SPLIT(FUNC_NAME, DELIM) \
 int FUNC_NAME(const char *str, char ***arr) \
 { \
-	if (!(*arr = malloc(8 * sizeof(char *)))) return 0; \
+	if ((*arr = malloc(8 * sizeof(char *)))); else return 0; \
 	size_t j = 0; \
 	for (size_t i;; ++j) { \
 		i = 0; \
