@@ -132,7 +132,8 @@ NIX_CAT(nixCatFast, fread_unlocked, char, dest[], , )
 int FUNC_NAME(const char *filename, char **dest) \
 { \
 	struct stat st; \
-	stat(filename, &st); \
+	if (stat(filename, &st)) \
+		goto ERROR; \
 	size_t fileSize = st.st_size; \
 	FILE *fp = fopen(filename, "r"); \
 	if (fp); \
