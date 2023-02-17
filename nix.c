@@ -125,6 +125,34 @@ ERROR: \
 NIX_CAT(nixCat, fread)
 NIX_CAT(nixCatFast, fread_unlocked)
 
+#define NIX_CAT_AUTO(FUNC_NAME, FREAD) \
+int FUNC_NAME(const char *filename, size_t fileSize, char **dest) \
+{ \
+	struct stat st; \
+	stat(filename, &st); \
+	FILE *fp = fopen(filename, "r"); \
+	if (fp); \
+	else goto ERROR; \
+	if ((*dest = malloc(st.st_size))); \
+	else goto ERROR_CLOSE; \
+	if (FREAD(*dest, 1, fileSize, fp)); \
+	else goto ERROR_CLOSE_FREE; \
+	fclose(fp); \
+	(*dest)[fileSize] = '\0'; \
+	return 1; \
+ \
+ERROR_CLOSE_FREE: \
+	free(*dest); \
+ERROR_CLOSE: \
+	fclose(fp); \
+ERROR: \
+	perror(""); \
+	return 0; \
+}
+
+NIX_CAT_AUTO(nixCatAuto, fread)
+NIX_CAT_AUTO(nixCatAutoFast, fread_unlocked)
+
 int nixRev(char dest[], char *src, int srcLen)
 {
 	size_t i = 0;
