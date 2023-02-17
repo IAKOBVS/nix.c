@@ -361,12 +361,10 @@ int FUNC_NAME(const char *str, char ***arr) \
 		for (char buf[128];; ++str) { \
 			switch (*str) { \
 			default: \
-				if (in) { \
-					buf[i] = *str; \
-					++i; \
-				} else { \
-					in = 1; \
-				} \
+				if (in); \
+				else in = 1; \
+				buf[i] = *str; \
+				++i; \
 				continue; \
 			case '\0': \
 				if (in) { \
