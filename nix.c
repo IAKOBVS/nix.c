@@ -11,6 +11,8 @@
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
+size_t fread_unlocked(void *restrict ptr, size_t size, size_t n, FILE *restrict stream);
+
 int nixSizeOfFile(const char *filename)
 {
 	struct stat st;
