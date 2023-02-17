@@ -103,18 +103,21 @@ ERROR:
 	return 0;
 }
 
-#define NIX_CAT(FUNC_NAME, FREAD) \
-int FUNC_NAME(const char *filename, size_t fileSize, char dest[]) \
+#define NIX_CAT(FUNC_NAME, FREAD, TYPE, VAR, MALLOC, CLEANUP) \
+int FUNC_NAME(const char *filename, size_t fileSize, TYPE VAR) \
 { \
 	FILE *fp = fopen(filename, "r"); \
 	if (fp); \
 	else goto ERROR; \
+	MALLOC \
 	if (FREAD(dest, 1, fileSize, fp)); \
-	else goto ERROR_CLOSE; \
+	else goto ERROR_CLOSE_FREE; \
 	fclose(fp); \
 	dest[fileSize] = '\0'; \
 	return 1; \
  \
+ERROR_CLOSE_FREE: \
+	CLEANUP \
 ERROR_CLOSE: \
 	fclose(fp); \
 ERROR: \
@@ -122,18 +125,19 @@ ERROR: \
 	return 0; \
 }
 
-NIX_CAT(nixCat, fread)
-NIX_CAT(nixCatFast, fread_unlocked)
+NIX_CAT(nixCat, fread, char, dest[], , )
+NIX_CAT(nixCatFast, fread_unlocked, char, dest[], , )
 
 #define NIX_CAT_AUTO(FUNC_NAME, FREAD) \
-int FUNC_NAME(const char *filename, size_t fileSize, char **dest) \
+int FUNC_NAME(const char *filename, char **dest) \
 { \
 	struct stat st; \
 	stat(filename, &st); \
+	size_t fileSize = st.st_size; \
 	FILE *fp = fopen(filename, "r"); \
 	if (fp); \
 	else goto ERROR; \
-	if ((*dest = malloc(st.st_size))); \
+	if ((*dest = malloc(fileSize))); \
 	else goto ERROR_CLOSE; \
 	if (FREAD(*dest, 1, fileSize, fp)); \
 	else goto ERROR_CLOSE_FREE; \
