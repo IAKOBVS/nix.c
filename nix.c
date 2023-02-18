@@ -371,8 +371,8 @@ int FUNC_NAME(const char *str, char ***arr) \
 		for (char buf[128];; ++str) { \
 			switch (*str) { \
 			default: \
-				if (in); \
-				else in = 1; \
+				if (unlikely(!in)) \
+					in = 1; \
 				buf[i] = *str; \
 				++i; \
 				continue; \
@@ -481,8 +481,8 @@ int FUNC_NAME(char *src) \
 			} \
 			continue; \
 		default: \
-			if (inWord); \
-			else inWord = 1; \
+			if (unlikely(!inWord)) \
+				inWord = 1; \
 		} \
 }
 
@@ -516,8 +516,8 @@ int FUNC_NAME(char *src) \
 				inWord = 0; \
 			} \
 		default: \
-			if (inWord); \
-			else inWord = 1; \
+			if (unlikely(!inWord)) \
+				inWord = 1; \
 		} \
 }
 
