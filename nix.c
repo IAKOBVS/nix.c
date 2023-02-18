@@ -1,10 +1,19 @@
 #include <stdio.h>
-#include <sys/stat.h>
 #include <string.h>
 #include <dirent.h>
 #include <assert.h>
 
 #include "nix.h"
+
+#if defined(__PRETTY_FUNCTION__)
+	#define CURR_FUNC __PRETTY_FUNCTION__
+#elif defined(__FUNCTION__)
+	#define CURR_FUNC __FUNCTION__
+#elif defined(__func__)
+	#define CURR_FUNC __func__
+#else
+	#define CURR_FUNC ""
+#endif
 
 #if (defined(__GNUC__) && (__GNUC__ >= 3)) || (defined(__clang__) && __has_builtin(__builtin_expect))
   #define likely(x) __builtin_expect(!!(x), 1)
@@ -34,7 +43,7 @@ int nixTee(const char *flag, char *src, const char *filename)
 	return 1;
 
 ERROR:
-	perror("");
+	perror(CURR_FUNC);
 	return 0;
 }
 
@@ -56,7 +65,7 @@ int nixFind(char *dir, char dest[])
 	return i;
 
 ERROR:
-	perror("");
+	perror(CURR_FUNC);
 	return 0;
 }
 
@@ -91,7 +100,7 @@ int nixFindAuto(char *dir, char **dest)
 	return i;
 
 ERROR:
-	perror("");
+	perror(CURR_FUNC);
 	return 0;
 }
 
@@ -105,7 +114,7 @@ int nixHead(const char *filename, char dest[])
 	return 1;
 
 ERROR:
-	perror("");
+	perror(CURR_FUNC);
 	return 0;
 }
 
@@ -124,7 +133,7 @@ int FUNC_NAME(const char *filename, size_t fileSize, char dest[]) \
 ERROR_CLOSE: \
 	fclose(fp); \
 ERROR: \
-	perror(""); \
+	perror(CURR_FUNC); \
 	return 0; \
 }
 
@@ -154,7 +163,7 @@ ERROR_CLOSE_FREE: \
 ERROR_CLOSE: \
 	fclose(fp); \
 ERROR: \
-	perror(""); \
+	perror(CURR_FUNC); \
 	return 0; \
 }
 
@@ -342,7 +351,7 @@ SUCCESS: \
 	return j; \
  \
 ERROR: \
-	perror(""); \
+	perror(CURR_FUNC); \
 	return 0; \
 } \
 
@@ -400,7 +409,7 @@ ERROR_FREE: \
 		for (size_t i = 0; i < j; ++i, ++(*arr)) \
 			free(*arr); \
 	free(*arr); \
-	perror(""); \
+	perror(CURR_FUNC); \
 	return 0; \
 }
 
