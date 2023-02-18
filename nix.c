@@ -7,6 +7,14 @@
 
 #include "nix.h"
 
+#if (defined(__GNUC__) && (__GNUC__ >= 3)) || (defined(__clang__) && __has_builtin(__builtin_expect))
+  #define likely(x) __builtin_expect(!!(x), 1)
+  #define unlikely(x) __builtin_expect(!!(x), 0)
+#else
+  #define likely(x) (x)
+  #define unlikely(x) (x)
+#endif
+
 #define MIN_MALLOC 16000
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
@@ -16,14 +24,14 @@ size_t fread_unlocked(void *restrict ptr, size_t size, size_t n, FILE *restrict 
 int nixSizeOfFile(const char *filename)
 {
 	struct stat st;
-	return (stat(filename, &st) ? 0 : st.st_size);
+	return (unlikely(stat(filename, &st)) ? 0 : st.st_size);
 }
 
 int nixTee(const char *flag, char *src, const char *filename)
 {
 	FILE *fp = fopen(filename, flag);
-	if (fp);
-	else goto ERROR;
+	if (unlikely(!fp))
+		goto ERROR;
 	fputs(src, fp);
 	fclose(fp);
 	return 1;
@@ -37,8 +45,8 @@ int nixFind(char *dir, char dest[])
 {
 	struct dirent *ep;
 	DIR *dp = opendir(dir);
-	if (dp);
-	else goto ERROR;
+	if (unlikely(!dp))
+		goto ERROR;
 	size_t i = 0;
 	while ((ep = readdir(dp))) {
 		for (char *filename = ep->d_name; *filename; ++i, ++filename)
@@ -59,19 +67,20 @@ int nixFindAuto(char *dir, char **dest)
 {
 	struct dirent *ep;
 	DIR *dp = opendir(dir);
-	if (dp);
-	else goto ERROR;
-	size_t mallocSize;
-	if ((*dest = malloc(MIN_MALLOC))) mallocSize = MIN_MALLOC;
-	else goto ERROR;
+	if (unlikely(!dp))
+		goto ERROR;
+	if (unlikely(!(*dest = malloc(MIN_MALLOC))))
+		goto ERROR;
+	size_t mallocSize = MIN_MALLOC;
 	size_t i = 0;
 	while ((ep = readdir(dp))) {
 		char *filename = ep->d_name;
 		size_t tmpLen = strlen(filename) + mallocSize;
 		size_t tmpSize = MAX(2 * tmpLen, 2 *mallocSize);
 		if (tmpLen > mallocSize * 2) {
-			if ((*dest = realloc(*dest, tmpSize))) mallocSize = tmpSize;
-			else goto ERROR;
+			if (unlikely(!(*dest = realloc(*dest, tmpSize))))
+				goto ERROR;
+			mallocSize = tmpSize;
 		}
 		for ( ; *filename; ++i, ++filename)
 			(*dest)[i] = *filename;
@@ -79,8 +88,8 @@ int nixFindAuto(char *dir, char **dest)
 		++i;
 	}
 	closedir(dp);
-	if ((*dest = realloc(*dest, i + 1)));
-	else goto ERROR;
+	if (unlikely(!(*dest = realloc(*dest, i + 1))))
+		goto ERROR;
 	(*dest)[--i] = '\0';
 	return i;
 
@@ -92,8 +101,8 @@ ERROR:
 int nixHead(const char *filename, char dest[])
 {
 	FILE *fp = fopen(filename, "r");
-	if (fp);
-	else goto ERROR;
+	if (unlikely(!fp))
+		goto ERROR;
 	fgets(dest, 256, fp);
 	fclose(fp);
 	return 1;
@@ -103,21 +112,18 @@ ERROR:
 	return 0;
 }
 
-#define NIX_CAT(FUNC_NAME, FREAD, TYPE, VAR, MALLOC, CLEANUP) \
-int FUNC_NAME(const char *filename, size_t fileSize, TYPE VAR) \
+#define NIX_CAT(FUNC_NAME, FREAD) \
+int FUNC_NAME(const char *filename, size_t fileSize, char dest[]) \
 { \
 	FILE *fp = fopen(filename, "r"); \
-	if (fp); \
-	else goto ERROR; \
-	MALLOC \
-	if (FREAD(dest, 1, fileSize, fp)); \
-	else goto ERROR_CLOSE_FREE; \
+	if (unlikely(!fp)) \
+		goto ERROR; \
+	if (unlikely(!FREAD(dest, 1, fileSize, fp))) \
+		goto ERROR_CLOSE; \
 	fclose(fp); \
 	dest[fileSize] = '\0'; \
 	return 1; \
  \
-ERROR_CLOSE_FREE: \
-	CLEANUP \
 ERROR_CLOSE: \
 	fclose(fp); \
 ERROR: \
@@ -125,23 +131,23 @@ ERROR: \
 	return 0; \
 }
 
-NIX_CAT(nixCat, fread, char, dest[], , )
-NIX_CAT(nixCatFast, fread_unlocked, char, dest[], , )
+NIX_CAT(nixCat, fread)
+NIX_CAT(nixCatFast, fread_unlocked)
 
 #define NIX_CAT_AUTO(FUNC_NAME, FREAD) \
 int FUNC_NAME(const char *filename, char **dest) \
 { \
 	struct stat st; \
-	if (stat(filename, &st)) \
+	if (unlikely(stat(filename, &st))) \
 		goto ERROR; \
 	size_t fileSize = st.st_size; \
 	FILE *fp = fopen(filename, "r"); \
-	if (fp); \
-	else goto ERROR; \
-	if ((*dest = malloc(fileSize))); \
-	else goto ERROR_CLOSE; \
-	if (FREAD(*dest, 1, fileSize, fp)); \
-	else goto ERROR_CLOSE_FREE; \
+	if (unlikely(!fp)) \
+		goto ERROR; \
+	if (unlikely(!(*dest = malloc(fileSize)))) \
+		goto ERROR_CLOSE; \
+	if (unlikely(!FREAD(*dest, 1, fileSize, fp))) \
+		goto ERROR_CLOSE_FREE; \
 	fclose(fp); \
 	(*dest)[fileSize] = '\0'; \
 	return 1; \
@@ -332,7 +338,8 @@ SKIP_LOOPS: \
 		} \
 	} \
 SUCCESS: \
-	*dest = malloc(j + 1); \
+	if (unlikely(!(*dest = malloc(j + 1)))) \
+		goto ERROR; \
 	memcpy(*dest, buf, j); \
 	(*dest)[j] = '\0'; \
 	return j; \
@@ -350,10 +357,13 @@ NIX_AWK(nixAwkDoubleQuote,  '"')
 NIX_AWK(nixAwkPipe,  '|')
 NIX_AWK(nixAwkTab, '\t')
 
+#define MIN_SPLIT_SIZE 8
+
 #define NIX_SPLIT(FUNC_NAME, DELIM) \
 int FUNC_NAME(const char *str, char ***arr) \
 { \
-	if ((*arr = malloc(8 * sizeof(char *)))); else return 0; \
+	if (unlikely(!(*arr = malloc(MIN_SPLIT_SIZE * sizeof(char *))))) \
+		return 0; \
 	size_t j = 0; \
 	for (size_t i;; ++j) { \
 		i = 0; \
@@ -368,8 +378,8 @@ int FUNC_NAME(const char *str, char ***arr) \
 				continue; \
 			case '\0': \
 				if (in) { \
-					if (((*arr)[j] = malloc(i + 1))); \
-					else goto ERROR_FREE; \
+					if (unlikely(!((*arr)[j] = malloc(i + 1)))) \
+						goto ERROR_FREE; \
 					memcpy((*arr)[j], buf, i); \
 					(*arr)[j][i] = '\0'; \
 					return ++j; \
@@ -377,8 +387,8 @@ int FUNC_NAME(const char *str, char ***arr) \
 				return ++j; \
 			DELIM \
 				if (in) { \
-					if (((*arr)[j] = malloc(i + 1))); \
-					else goto ERROR_FREE; \
+					if (unlikely(!(((*arr)[j] = malloc(i + 1))))) \
+						goto ERROR_FREE; \
 					memcpy((*arr)[j], buf, i); \
 					(*arr)[j][i] = '\0'; \
 				} else { \
