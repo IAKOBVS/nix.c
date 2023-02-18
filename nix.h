@@ -14,12 +14,6 @@ inline int nixSizeOfFile(const char *filename)
 	return (!stat(filename, &st) ? st.st_size : 0);
 }
 
-int nixCut(int nStr, char *src, char dest[]);
-/* flags: */
-/* 'w' = overwrite */
-/* 'a' = append */
-int nixTee(const char *flag, char *inStr, const char *filename);
-
 inline int nixRev(char dest[], char *src, int srcLen)
 {
 	size_t i = 0;
@@ -28,6 +22,36 @@ inline int nixRev(char dest[], char *src, int srcLen)
 	dest[i] = '\0';
 	return i;
 }
+
+inline int nixGetLastWord(char dest[], char *src, int srcLen)
+{
+	src += srcLen - 1;
+	for (;;) {
+		switch (*src) {
+		default:
+			--src;
+			continue;
+		case '\n':
+		case '\t':
+		case '\r':
+		case ' ':
+			++src;
+		}
+		break;
+	}
+	size_t i = 0;
+	for ( ; *src; ++i, ++src)
+		dest[i] = *src;
+	dest[i] = '\0';
+	return i;
+}
+
+int nixCut(int nStr, char *src, char dest[]);
+/* flags: */
+/* 'w' = overwrite */
+/* 'a' = append */
+int nixTee(const char *flag, char *inStr, const char *filename);
+
 
 /* get first line of file */
 int nixHead(const char *filename, char dest[]);
@@ -107,8 +131,6 @@ int nixSplitWords(const char *str, char ***arr);
 /* split lines to array of strings */
 int nixSplitNl(const char *str, char ***arr);
 void nixSplitFree(char **arr, int arrLen);
-
-int nixGetLastWord(char dest[], char *src, int srcLen);
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
-#include <assert.h>
 
 #include "nix.h"
 
@@ -181,8 +180,8 @@ ERROR: \
 NIX_CAT_AUTO(nixCatAuto, fread)
 NIX_CAT_AUTO(nixCatAutoFast, fread_unlocked)
 
-
-int nixGetLastWord(char dest[], char *src, int srcLen)
+extern inline int nixGetLastWord(char dest[], char *src, int srcLen);
+static inline int nixGetLastWord_(char dest[], char *src, int srcLen)
 {
 	src += srcLen - 1;
 	for (;;) {
