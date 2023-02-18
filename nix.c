@@ -425,12 +425,11 @@ void nixSplitFree(char **arr, int arrLen)
 #define NIX_WC(FUNC_NAME, DELIM) \
 int FUNC_NAME(char *src) \
 { \
-	for (int count = 0;; ) \
+	for (int count = 0;; ++src) \
 		switch (*src) { \
 		case '\0': \
 			return count; \
 		DELIM \
-			++src; \
 			++count; \
 		} \
 } \
