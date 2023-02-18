@@ -8,44 +8,9 @@
 extern "C" {
 #endif
 
-inline int nixSizeOfFile(const char *filename)
-{
-	struct stat st;
-	return (!stat(filename, &st) ? st.st_size : 0);
-}
-
-inline int nixRev(char dest[], char *src, int srcLen)
-{
-	size_t i = 0;
-	for (src += srcLen - 1; srcLen; --src, --srcLen, ++i)
-		dest[i] = *src;
-	dest[i] = '\0';
-	return i;
-}
-
-inline int nixGetLastWord(char dest[], char *src, int srcLen)
-{
-	src += srcLen - 1;
-	for (;;) {
-		switch (*src) {
-		default:
-			--src;
-			continue;
-		case '\n':
-		case '\t':
-		case '\r':
-		case ' ':
-			++src;
-		}
-		break;
-	}
-	size_t i = 0;
-	for ( ; *src; ++i, ++src)
-		dest[i] = *src;
-	dest[i] = '\0';
-	return i;
-}
-
+int nixSizeOfFile(const char *filename);
+int nixRev(char dest[], char *src, int srcLen);
+int nixGetLastWord(char dest[], char *src, int srcLen);
 int nixCut(int nStr, char *src, char dest[]);
 /* flags: */
 /* 'w' = overwrite */
