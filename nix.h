@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-extern inline int nixSizeOfFile(const char *filename)
+inline int nixSizeOfFile(const char *filename)
 {
 	struct stat st;
 	return (!stat(filename, &st) ? st.st_size : 0);
@@ -20,7 +20,14 @@ int nixCut(int nStr, char *src, char dest[]);
 /* 'a' = append */
 int nixTee(const char *flag, char *inStr, const char *filename);
 
-int nixRev(char dest[], char *src, int srcLen);
+inline int nixRev(char dest[], char *src, int srcLen)
+{
+	size_t i = 0;
+	for (src += srcLen - 1; srcLen; --src, --srcLen, ++i)
+		dest[i] = *src;
+	dest[i] = '\0';
+	return i;
+}
 
 /* get first line of file */
 int nixHead(const char *filename, char dest[]);

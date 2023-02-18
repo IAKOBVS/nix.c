@@ -27,7 +27,18 @@
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
-static inline int SizeOfFile(const char *filename)
+extern inline int nixRev(char dest[], char *src, int srcLen);
+static inline int nixRev_(char dest[], char *src, int srcLen)
+{
+	size_t i = 0;
+	for (src += srcLen - 1; srcLen; --src, --srcLen, ++i)
+		dest[i] = *src;
+	dest[i] = '\0';
+	return i;
+}
+
+extern inline int nixSizeOfFile(const char *filename);
+static inline int nixSizeOfFile_(const char *filename)
 {
 	struct stat st;
 	return (stat(filename, &st) ? st.st_size : 0);
@@ -170,14 +181,6 @@ ERROR: \
 NIX_CAT_AUTO(nixCatAuto, fread)
 NIX_CAT_AUTO(nixCatAutoFast, fread_unlocked)
 
-int nixRev(char dest[], char *src, int srcLen)
-{
-	size_t i = 0;
-	for (src += srcLen - 1; srcLen; --src, --srcLen, ++i)
-		dest[i] = *src;
-	dest[i] = '\0';
-	return i;
-}
 
 int nixGetLastWord(char dest[], char *src, int srcLen)
 {
