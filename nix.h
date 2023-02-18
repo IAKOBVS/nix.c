@@ -2,16 +2,19 @@
 #define NIX_H_DEF
 
 #include <stdlib.h>
+#include <sys/stat.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* get size of file */
-int nixSizeOfFile(const char *filename);
+extern inline int nixSizeOfFile(const char *filename)
+{
+	struct stat st;
+	return (!stat(filename, &st) ? st.st_size : 0);
+}
 
 int nixCut(int nStr, char *src, char dest[]);
-
 /* flags: */
 /* 'w' = overwrite */
 /* 'a' = append */

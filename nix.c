@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <dirent.h>
@@ -19,10 +18,10 @@
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
-int nixSizeOfFile(const char *filename)
+static inline int SizeOfFile(const char *filename)
 {
 	struct stat st;
-	return (unlikely(stat(filename, &st)) ? 0 : st.st_size);
+	return (stat(filename, &st) ? st.st_size : 0);
 }
 
 int nixTee(const char *flag, char *src, const char *filename)
