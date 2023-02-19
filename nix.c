@@ -28,11 +28,10 @@
 
 int nixRev(char dest[], char *src, int srcLen)
 {
-	size_t i = 0;
-	for (src += srcLen - 1; srcLen; --src, --srcLen, ++i)
-		dest[i] = *src;
-	dest[i] = '\0';
-	return i;
+	for (src += srcLen - 1; srcLen; --srcLen, ++dest, --src)
+		*dest = *src;
+	*dest = '\0';
+	return 1; 
 }
 
 int nixSizeOfFile(const char *filename)
@@ -63,13 +62,14 @@ int nixFind(char *dir, char dest[])
 		goto ERROR;
 	size_t i = 0;
 	while ((ep = readdir(dp))) {
-		for (char *filename = ep->d_name; *filename; ++i, ++filename)
-			dest[i] = *filename;
-		dest[i] = '\n';
+		for (char *filename = ep->d_name; *filename; ++i, ++dest, ++filename)
+			*dest = *filename;
+		*dest = '\n';
+		++dest;
 		++i;
 	}
 	closedir(dp);
-	dest[--i] = '\0';
+	*(--dest) = '\0';
 	return i;
 
 ERROR:
