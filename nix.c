@@ -62,15 +62,14 @@ int nixFind(char *dir, char dest[])
 		goto ERROR;
 	size_t i = 0;
 	while ((ep = readdir(dp))) {
-		for (char *filename = ep->d_name; *filename; ++i, ++dest, ++filename)
-			*dest = *filename;
-		*dest = '\n';
-		++dest;
+		for (char *filename = ep->d_name; *filename; ++i, ++filename)
+			dest[i] = *filename;
+		dest[i] = '\n';
 		++i;
 	}
 	closedir(dp);
-	*(--dest) = '\0';
-	return i - 1;
+	dest[--i] = '\0';
+	return i;
 
 ERROR:
 	perror(CURR_FUNC);
