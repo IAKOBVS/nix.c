@@ -34,13 +34,13 @@ int nixRev(char dest[], char *src, int srcLen)
 	return 1; 
 }
 
-int nixSizeOfFile(const char *filename)
+int nixSizeOfFile(char *filename)
 {
 	struct stat st;
 	return (stat(filename, &st) ? 0 : st.st_size);
 }
 
-int nixTee(const char *flag, char *src, const char *filename)
+int nixTee(char *flag, char *src, char *filename)
 {
 	FILE *fp = fopen(filename, flag);
 	if (unlikely(!fp))
@@ -111,7 +111,7 @@ ERROR:
 	return 0;
 }
 
-int nixHead(const char *filename, char dest[])
+int nixHead(char *filename, char dest[])
 {
 	FILE *fp = fopen(filename, "r");
 	if (unlikely(!fp))
@@ -126,7 +126,7 @@ ERROR:
 }
 
 #define NIX_CAT(FUNC_NAME, FREAD) \
-int FUNC_NAME(const char *filename, size_t fileSize, char dest[]) \
+int FUNC_NAME(char *filename, size_t fileSize, char dest[]) \
 { \
 	FILE *fp = fopen(filename, "r"); \
 	if (unlikely(!fp)) \
@@ -148,7 +148,7 @@ NIX_CAT(nixCat, fread)
 NIX_CAT(nixCatFast, fread_unlocked)
 
 #define NIX_CAT_AUTO(FUNC_NAME, FREAD) \
-int FUNC_NAME(const char *filename, char **dest) \
+int FUNC_NAME(char *filename, char **dest) \
 { \
 	struct stat st; \
 	if (unlikely(stat(filename, &st))) \
@@ -364,7 +364,7 @@ NIX_AWK(nixAwkTab, '\t')
 #define MIN_SPLIT_SIZE 8
 
 #define NIX_SPLIT(FUNC_NAME, DELIM) \
-int FUNC_NAME(const char *str, char ***arr) \
+int FUNC_NAME(char *str, char ***arr) \
 { \
 	if (unlikely(!(*arr = malloc(MIN_SPLIT_SIZE * sizeof(char *))))) \
 		return 0; \
