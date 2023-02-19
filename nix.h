@@ -8,23 +8,23 @@
 extern "C" {
 #endif
 
-int nixSizeOfFile(const char *filename);
+int nixSizeOfFile(char *filename);
 int nixRev(char dest[], char *src, int srcLen);
 int nixGetLastWord(char dest[], char *src, int srcLen);
 int nixCut(int nStr, char *src, char dest[]);
 /* flags: */
 /* 'w' = overwrite */
 /* 'a' = append */
-int nixTee(const char *flag, char *inStr, const char *filename);
+int nixTee(char *flag, char *inStr, char *filename);
 
 /* get first line of file */
-int nixHead(const char *filename, char dest[]);
+int nixHead(char *filename, char dest[]);
 
 /* read file into string */
-int nixCat(const char *filename, size_t fileSize, char dest[]);
-int nixCatFast(const char *filename, size_t fileSize, char dest[]);
-int nixCatAuto(const char *filename, char **dest);
-int nixCatAutoFast(const char *filename, char **dest);
+int nixCat(char *filename, size_t fileSize, char dest[]);
+int nixCatFast(char *filename, size_t fileSize, char dest[]);
+int nixCatAuto(char *filename, char **dest);
+int nixCatAutoFast(char *filename, char **dest);
 
 /* find files in directory */
 int nixFind(char *dir, char dest[]);
@@ -91,9 +91,9 @@ int nixAwkPipe(int nStr, char *src, int srcLen, char **dest);
 int nixAwkTab(int nStr, char *src, int srcLen, char **dest);
 
 /* split spaces, tabs, etc. to array of strings */
-int nixSplitWords(const char *str, char ***arr);
+int nixSplitWords(char *str, char ***arr);
 /* split lines to array of strings */
-int nixSplitNl(const char *str, char ***arr);
+int nixSplitNl(char *str, char ***arr);
 void nixSplitFree(char **arr, int arrLen);
 
 #ifdef __cplusplus
