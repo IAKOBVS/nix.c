@@ -70,7 +70,7 @@ int nixFind(char *dir, char dest[])
 	}
 	closedir(dp);
 	*(--dest) = '\0';
-	return i;
+	return i - 1;
 
 ERROR:
 	perror(CURR_FUNC);
@@ -387,9 +387,9 @@ int FUNC_NAME(const char *str, char ***arr) \
 						goto ERROR_FREE; \
 					memcpy((*arr)[j], buf, i); \
 					(*arr)[j][i] = '\0'; \
-					return ++j; \
+					return j - 1; \
 				} \
-				return ++j; \
+				return j - 1; \
 			DELIM \
 				if (in) { \
 					if (unlikely(!(((*arr)[j] = malloc(i + 1))))) \
