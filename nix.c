@@ -28,8 +28,8 @@
 
 int nixRev(char dest[], char *src, int srcLen)
 {
-	for (src += srcLen - 1; srcLen; --srcLen, ++dest, --src)
-		*dest = *src;
+	for (char *end = src + srcLen - 1; end > src; ++dest, --end)
+		*dest = *end;
 	*dest = '\0';
 	return 1; 
 }
@@ -60,16 +60,14 @@ int nixFind(char *dir, char dest[])
 	DIR *dp = opendir(dir);
 	if (unlikely(!dp))
 		goto ERROR;
-	size_t i = 0;
 	while ((ep = readdir(dp))) {
-		for (char *filename = ep->d_name; *filename; ++i, ++filename)
-			dest[i] = *filename;
-		dest[i] = '\n';
-		++i;
+		for (char *filename = ep->d_name; *filename; ++dest, ++filename)
+			*dest = *filename;
+		*dest++ = '\n';
 	}
 	closedir(dp);
-	dest[--i] = '\0';
-	return i;
+	*--dest = '\0';
+	return 1;
 
 ERROR:
 	perror(CURR_FUNC);
@@ -90,10 +88,10 @@ int nixFindAuto(char *dir, char **dest)
 		char *filename = ep->d_name;
 		size_t tmpLen = strlen(filename) + mallocSize;
 		size_t tmpSize = MAX(2 * tmpLen, 2 *mallocSize);
-		if (tmpLen > mallocSize * 2) {
-			if (unlikely(!(*dest = realloc(*dest, tmpSize))))
-				goto ERROR;
-			mallocSize = tmpSize;
+	if (tmpLen > mallocSize * 2) {
+		if (unlikely(!(*dest = realloc(*dest, tmpSize))))
+			goto ERROR_FREE;
+		mallocSize = tmpSize;
 		}
 		for ( ; *filename; ++i, ++filename)
 			(*dest)[i] = *filename;
@@ -102,10 +100,12 @@ int nixFindAuto(char *dir, char **dest)
 	}
 	closedir(dp);
 	if (unlikely(!(*dest = realloc(*dest, i + 1))))
-		goto ERROR;
+		goto ERROR_FREE;
 	(*dest)[--i] = '\0';
 	return i;
 
+ERROR_FREE:
+	free(*dest);
 ERROR:
 	perror(CURR_FUNC);
 	return 0;
@@ -193,11 +193,10 @@ int nixGetLastWord(char dest[], char *src, int srcLen)
 		}
 		break;
 	}
-	size_t i = 0;
-	for ( ; *src; ++i, ++src)
-		dest[i] = *src;
-	dest[i] = '\0';
-	return i;
+	for ( ; *src; ++dest, ++src)
+		*dest = *src;
+	*dest = '\0';
+	return 1;
 }
 
 int nixCut(int nStr, char *src, char dest[])
