@@ -87,11 +87,14 @@ int nixFindAuto(char *dir, char **dest)
 	while ((ep = readdir(dp))) {
 		char *filename = ep->d_name;
 		size_t tmpLen = strlen(filename) + mallocSize;
-		size_t tmpSize = MAX(2 * tmpLen, 2 *mallocSize);
-	if (tmpLen > mallocSize * 2) {
-		if (unlikely(!(*dest = realloc(*dest, tmpSize))))
-			goto ERROR_FREE;
-		mallocSize = tmpSize;
+		size_t tmpSize = mallocSize;
+		if (tmpLen > mallocSize) {
+			do {
+				tmpSize *= 2;
+			} while (tmpLen > mallocSize);
+			if (unlikely(!(*dest = realloc(*dest, tmpSize))))
+				goto ERROR_FREE;
+			mallocSize = tmpSize;
 		}
 		for ( ; *filename; ++i, ++filename)
 			(*dest)[i] = *filename;
