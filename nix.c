@@ -37,7 +37,7 @@ int nixRev(char dest[], char *src, int srcLen)
 int nixSizeOfFile(char *filename)
 {
 	struct stat st;
-	return (stat(filename, &st) ? 0 : st.st_size);
+	return (!stat(filename, &st) ? st.st_size : 0);
 }
 
 int nixTee(char *flag, char *src, char *filename)
