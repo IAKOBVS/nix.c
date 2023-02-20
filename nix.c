@@ -217,30 +217,28 @@ int nixCut(int nStr, char *src, char dest[])
 				--nStr;
 			}
 		}
-		for (size_t i = 0;; )
+		for (;;)
 			switch (*src) {
 			case '\0':
 			case ' ':
 			case '\n':
 			case '\t':
 			case '\r':
-				return i;
+				return 1;
 			default:
-				dest[i] = *src;
-				++i, ++src;
+				*dest++ = *src++;
 			}
 	} else {
-		for (size_t i = 0;; )
+		for (;;)
 			switch (*src) {
 			case '\0':
 			case ' ':
 			case '\n':
 			case '\t':
 			case '\r':
-				return i;
+				return 1;
 			default:
-				dest[i] = *src;
-				++i, ++src;
+				*dest++ = *src++;
 			}
 	}
 }
