@@ -4,6 +4,14 @@
 
 #include "nix.h"
 
+#if defined(__GNUC__) || defined(__clang__)
+    #define ALWAYS_INLINE __attribute__((always_inline))
+#elif defined(_MSC_VER)
+    #define ALWAYS_INLINE __forceinline
+#else
+    #define ALWAYS_INLINE
+#endif
+
 #if defined(__PRETTY_FUNCTION__)
 	#define CURR_FUNC __PRETTY_FUNCTION__
 #elif defined(__FUNCTION__)
@@ -26,7 +34,7 @@
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
-int nixRev(char dest[], char *src, int srcLen)
+ALWAYS_INLINE int nixRev(char dest[], char *src, int srcLen)
 {
 	for (char *end = src + srcLen - 1; end > src; ++dest, --end)
 		*dest = *end;
@@ -34,7 +42,7 @@ int nixRev(char dest[], char *src, int srcLen)
 	return 1; 
 }
 
-int nixSizeOfFile(char *filename)
+ALWAYS_INLINE int nixSizeOfFile(char *filename)
 {
 	struct stat st;
 	return (!stat(filename, &st) ? st.st_size : 0);
