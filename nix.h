@@ -1,7 +1,6 @@
 #ifndef NIX_H_DEF
 #define NIX_H_DEF
 
-#include <stdlib.h>
 #include <sys/stat.h>
 
 #ifdef __cplusplus
