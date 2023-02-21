@@ -33,7 +33,7 @@
 #endif
 
 #define MIN_MALLOC 16000
-
+#define CASE_WHITESPACE case '\n': case '\t': case '\r':
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
