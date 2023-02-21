@@ -189,7 +189,7 @@ ERROR: \
 NIX_CAT_AUTO(nixCatAuto, fread)
 NIX_CAT_AUTO(nixCatAutoFast, fread_unlocked)
 
-int nixGetLastWord(char dest[], char *src, int srcLen)
+inline int nixGetLastWord(char dest[], char *src, int srcLen)
 {
 	src += srcLen - 1;
 	for (;;) {
@@ -211,7 +211,7 @@ int nixGetLastWord(char dest[], char *src, int srcLen)
 	return 1;
 }
 
-int nixCut(int nStr, char *src, char dest[])
+inline int nixCut(int nStr, char *src, char dest[])
 {
 	if (nStr > 1) {
 		while (nStr) {
@@ -480,7 +480,7 @@ NIX_WCCHAR(nixWcCharAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':
 /* case '\\n': case '\\t': case '\\r': */
 
 #define NIX_WCWORD(FUNC_NAME, DELIM) \
-int FUNC_NAME(char *src) \
+inline int FUNC_NAME(char *src) \
 { \
 	for (size_t inWord = 0, count = 0;; ++src) \
 		switch (*src) { \
@@ -515,7 +515,7 @@ NIX_WCWORD(nixWcWordAlphaQuote, case '\n': case '\t': case '\r': case '\'':)
 NIX_WCWORD(nixWcWordAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':)
 
 #define NIX_WCWORD_TIL_NL(FUNC_NAME, DELIM) \
-int FUNC_NAME(char *src) \
+inline int FUNC_NAME(char *src) \
 { \
 	for (size_t inWord = 0, count = 0;; ++src) \
 		switch (*src) { \
