@@ -37,26 +37,26 @@
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
-inline int nixRev(char dest[], char *src, int srcLen)
+inline int nixRev(char *restrict dest, const char *restrict src, const size_t srcLen)
 {
-	for (char *end = src + srcLen - 1; end > src; ++dest, --end)
+	for (const char *restrict end = src + srcLen - 1; end > src; ++dest, --end)
 		*dest = *end;
 	*dest = '\0';
 	return 1; 
 }
 
-ALWAYS_INLINE size_t nixSizeOfFile(char *filename)
+ALWAYS_INLINE size_t nixSizeOfFile(const char *restrict filename)
 {
 	struct stat st;
 	return (!stat(filename, &st) ? st.st_size : 0);
 }
 
-int nixTee(char *flag, char *src, char *filename)
+int nixTee(const char *restrict flag, char *restrict dest, const char *restrict filename)
 {
-	FILE *fp = fopen(filename, flag);
+	FILE *restrict fp = fopen(filename, flag);
 	if (unlikely(!fp))
 		goto ERROR;
-	fputs(src, fp);
+	fputs(dest, fp);
 	fclose(fp);
 	return 1;
 
@@ -65,10 +65,10 @@ ERROR:
 	return 0;
 }
 
-int nixFind(char *dir, char dest[])
+int nixFind(const char *restrict dir, char *restrict dest)
 {
-	struct dirent *ep;
-	DIR *dp = opendir(dir);
+	struct dirent *restrict ep;
+	DIR *restrict dp = opendir(dir);
 	if (unlikely(!dp))
 		goto ERROR;
 	while ((ep = readdir(dp))) {
@@ -85,10 +85,10 @@ ERROR:
 	return 0;
 }
 
-int nixFindAuto(char *dir, char **dest)
+int nixFindAuto(const char *restrict dir, char **restrict dest)
 {
 	struct dirent *ep;
-	DIR *dp = opendir(dir);
+	DIR *restrict dp = opendir(dir);
 	if (unlikely(!dp))
 		goto ERROR;
 	if (unlikely(!(*dest = malloc(MIN_MALLOC))))
@@ -97,7 +97,7 @@ int nixFindAuto(char *dir, char **dest)
 	size_t i = 0;
 	while ((ep = readdir(dp))) {
 		char *filename = ep->d_name;
-		size_t tmpLen = strlen(filename) + mallocSize;
+		const size_t tmpLen = strlen(filename) + mallocSize;
 		size_t tmpSize = mallocSize;
 		if (tmpLen > mallocSize) {
 			do {
@@ -124,9 +124,9 @@ ERROR:
 	return 0;
 }
 
-int nixHead(char *filename, char dest[])
+int nixHead(const char *restrict filename, char *restrict dest)
 {
-	FILE *fp = fopen(filename, "r");
+	FILE *restrict fp = fopen(filename, "r");
 	if (unlikely(!fp))
 		goto ERROR;
 	fgets(dest, 256, fp);
@@ -139,9 +139,9 @@ ERROR:
 }
 
 #define NIX_CAT(FUNC_NAME, FREAD) \
-int FUNC_NAME(char *filename, size_t fileSize, char dest[]) \
+int FUNC_NAME(const char *restrict filename, size_t fileSize, char *restrict dest) \
 { \
-	FILE *fp = fopen(filename, "r"); \
+	FILE *restrict fp = fopen(filename, "r"); \
 	if (unlikely(!fp)) \
 		goto ERROR; \
 	if (unlikely(!FREAD(dest, 1, fileSize, fp))) \
@@ -161,12 +161,12 @@ NIX_CAT(nixCat, fread)
 NIX_CAT(nixCatFast, fread_unlocked)
 
 #define NIX_CAT_AUTO(FUNC_NAME, FREAD) \
-int FUNC_NAME(char *filename, char **dest) \
+int FUNC_NAME(const char *restrict filename, char **restrict dest) \
 { \
 	size_t fileSize = nixSizeOfFile(filename); \
 	if (unlikely(!fileSize)) \
 		goto ERROR; \
-	FILE *fp = fopen(filename, "r"); \
+	FILE *restrict fp = fopen(filename, "r"); \
 	if (unlikely(!fp)) \
 		goto ERROR; \
 	if (unlikely(!(*dest = malloc(fileSize)))) \
@@ -189,7 +189,7 @@ ERROR: \
 NIX_CAT_AUTO(nixCatAuto, fread)
 NIX_CAT_AUTO(nixCatAutoFast, fread_unlocked)
 
-inline int nixGetLastWord(char dest[], char *src, int srcLen)
+inline int nixGetLastWord(char *restrict dest, const char *restrict src, const size_t srcLen)
 {
 	src += srcLen - 1;
 	for (;;) {
@@ -211,7 +211,7 @@ inline int nixGetLastWord(char dest[], char *src, int srcLen)
 	return 1;
 }
 
-inline int nixCut(int nStr, char *src, char dest[])
+inline int nixCut(int nStr, const char *restrict src, char *restrict dest)
 {
 	if (nStr > 1) {
 		while (nStr) {
@@ -253,7 +253,7 @@ inline int nixCut(int nStr, char *src, char dest[])
 }
 
 #define NIX_AWK(FUNC_NAME, DELIM) \
-int FUNC_NAME(int nStr, char *src, int srcLen, char **dest) \
+int FUNC_NAME(int nStr, const char *restrict src, const size_t srcLen, char **dest) \
 { \
 	char buf[srcLen]; \
 	int j = 0; \
@@ -373,14 +373,14 @@ NIX_AWK(nixAwkTab, '\t')
 #define MIN_SPLIT_SIZE 8
 
 #define NIX_SPLIT(FUNC_NAME, DELIM) \
-int FUNC_NAME(char *str, char ***arr) \
+int FUNC_NAME(const char *restrict str, char ***restrict arr) \
 { \
 	if (unlikely(!(*arr = malloc(MIN_SPLIT_SIZE * sizeof(char *))))) \
 		return 0; \
 	size_t j = 0; \
 	for (size_t i;; ++j) { \
 		i = 0; \
-		size_t in = 0; \
+		int in = 0; \
 		for (char buf[128];; ++str) { \
 			switch (*str) { \
 			default: \
@@ -423,7 +423,7 @@ ERROR_FREE: \
 NIX_SPLIT(nixSplitWords, case '\n': case '\t': case '\r': case ' ':) 
 NIX_SPLIT(nixSplitNl, case '\n':)
 
-ALWAYS_INLINE void nixSplitFree(char **arr, int arrLen)
+ALWAYS_INLINE void nixSplitFree(char **restrict arr, size_t arrLen)
 {
 	for ( ; --arrLen; ++*arr)
 		free(*arr);
@@ -431,7 +431,7 @@ ALWAYS_INLINE void nixSplitFree(char **arr, int arrLen)
 }
 
 #define NIX_WC(FUNC_NAME, DELIM) \
-inline int FUNC_NAME(char *src) \
+inline int FUNC_NAME(const char *restrict src) \
 { \
 	for (int count = 0;; ++src) \
 		switch (*src) { \
@@ -448,7 +448,7 @@ NIX_WC(nixWcTab, case '\t':)
 NIX_WC(nixWcNonWords, case '\n': case '\t': case '\r': case ' ':)
 
 #define NIX_WCCHAR(FUNC_NAME, DELIM) \
-inline int FUNC_NAME(char *src) \
+inline int FUNC_NAME(const char *restrict src) \
 { \
 	for (int count = 0;; ++src) \
 		switch (*src) { \
@@ -480,9 +480,9 @@ NIX_WCCHAR(nixWcCharAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':
 /* case '\\n': case '\\t': case '\\r': */
 
 #define NIX_WCWORD(FUNC_NAME, DELIM) \
-inline int FUNC_NAME(char *src) \
+inline int FUNC_NAME(const char *restrict src) \
 { \
-	for (size_t inWord = 0, count = 0;; ++src) \
+	for (int inWord = 0, count = 0;; ++src) \
 		switch (*src) { \
 		case '\0': \
 			return inWord ? ++count : count; \
@@ -515,9 +515,9 @@ NIX_WCWORD(nixWcWordAlphaQuote, case '\n': case '\t': case '\r': case '\'':)
 NIX_WCWORD(nixWcWordAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':)
 
 #define NIX_WCWORD_TIL_NL(FUNC_NAME, DELIM) \
-inline int FUNC_NAME(char *src) \
+inline int FUNC_NAME(const char *restrict src) \
 { \
-	for (size_t inWord = 0, count = 0;; ++src) \
+	for (int inWord = 0, count = 0;; ++src) \
 		switch (*src) { \
 		case '\n': \
 		case '\0': \
