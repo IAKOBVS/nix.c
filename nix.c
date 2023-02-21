@@ -107,8 +107,7 @@ int nixFindAuto(char *dir, char **dest)
 		}
 		for ( ; *filename; ++i, ++filename)
 			(*dest)[i] = *filename;
-		(*dest)[i] = '\n';
-		++i;
+		(*dest)[i++] = '\n';
 	}
 	closedir(dp);
 	if (unlikely(!(*dest = realloc(*dest, i + 1))))
