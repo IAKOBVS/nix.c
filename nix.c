@@ -378,8 +378,7 @@ int FUNC_NAME(const char *restrict str, char ***restrict arr) \
 	if (unlikely(!(*arr = malloc(MIN_SPLIT_SIZE * sizeof(char *))))) \
 		return 0; \
 	size_t j = 0; \
-	for (size_t i;; ++j) { \
-		i = 0; \
+	for (size_t i = 0;; ++j) { \
 		int in = 0; \
 		for (char buf[128];; ++str) { \
 			switch (*str) { \
