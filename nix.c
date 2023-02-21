@@ -35,7 +35,7 @@
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
-int nixRev(char dest[], char *src, int srcLen)
+inline int nixRev(char dest[], char *src, int srcLen)
 {
 	for (char *end = src + srcLen - 1; end > src; ++dest, --end)
 		*dest = *end;
@@ -430,7 +430,7 @@ ALWAYS_INLINE void nixSplitFree(char **arr, int arrLen)
 }
 
 #define NIX_WC(FUNC_NAME, DELIM) \
-int FUNC_NAME(char *src) \
+inline int FUNC_NAME(char *src) \
 { \
 	for (int count = 0;; ++src) \
 		switch (*src) { \
@@ -447,7 +447,7 @@ NIX_WC(nixWcTab, case '\t':)
 NIX_WC(nixWcNonWords, case '\n': case '\t': case '\r': case ' ':)
 
 #define NIX_WCCHAR(FUNC_NAME, DELIM) \
-int FUNC_NAME(char *src) \
+inline int FUNC_NAME(char *src) \
 { \
 	for (int count = 0;; ++src) \
 		switch (*src) { \
