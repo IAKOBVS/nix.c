@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-int nixSizeOfFile(char *filename);
+size_t nixSizeOfFile(char *filename);
 int nixRev(char dest[], char *src, int srcLen);
 int nixGetLastWord(char dest[], char *src, int srcLen);
 int nixCut(int nStr, char *src, char dest[]);

@@ -5,11 +5,11 @@
 #include "nix.h"
 
 #if defined(__GNUC__) || defined(__clang__)
-    #define ALWAYS_INLINE __attribute__((always_inline))
+    #define ALWAYS_INLINE __attribute__((always_inline)) inline
 #elif defined(_MSC_VER)
-    #define ALWAYS_INLINE __forceinline
+    #define ALWAYS_INLINE __forceinline inline
 #else
-    #define ALWAYS_INLINE
+    #define ALWAYS_INLINE inline
 #endif
 
 #if defined(__PRETTY_FUNCTION__)
@@ -35,7 +35,7 @@
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
-ALWAYS_INLINE int nixRev(char dest[], char *src, int srcLen)
+int nixRev(char dest[], char *src, int srcLen)
 {
 	for (char *end = src + srcLen - 1; end > src; ++dest, --end)
 		*dest = *end;
@@ -43,7 +43,7 @@ ALWAYS_INLINE int nixRev(char dest[], char *src, int srcLen)
 	return 1; 
 }
 
-ALWAYS_INLINE int nixSizeOfFile(char *filename)
+ALWAYS_INLINE size_t nixSizeOfFile(char *filename)
 {
 	struct stat st;
 	return (!stat(filename, &st) ? st.st_size : 0);
@@ -430,7 +430,7 @@ ALWAYS_INLINE void nixSplitFree(char **arr, int arrLen)
 }
 
 #define NIX_WC(FUNC_NAME, DELIM) \
-ALWAYS_INLINE int FUNC_NAME(char *src) \
+int FUNC_NAME(char *src) \
 { \
 	for (int count = 0;; ++src) \
 		switch (*src) { \
@@ -447,7 +447,7 @@ NIX_WC(nixWcTab, case '\t':)
 NIX_WC(nixWcNonWords, case '\n': case '\t': case '\r': case ' ':)
 
 #define NIX_WCCHAR(FUNC_NAME, DELIM) \
-ALWAYS_INLINE int FUNC_NAME(char *src) \
+int FUNC_NAME(char *src) \
 { \
 	for (int count = 0;; ++src) \
 		switch (*src) { \
