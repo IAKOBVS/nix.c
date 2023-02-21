@@ -31,6 +31,7 @@
 #endif
 
 #define MIN_MALLOC 16000
+
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
@@ -161,10 +162,9 @@ NIX_CAT(nixCatFast, fread_unlocked)
 #define NIX_CAT_AUTO(FUNC_NAME, FREAD) \
 int FUNC_NAME(char *filename, char **dest) \
 { \
-	struct stat st; \
-	if (unlikely(stat(filename, &st))) \
+	size_t fileSize = nixSizeOfFile(filename); \
+	if (unlikely(!fileSize)) \
 		goto ERROR; \
-	size_t fileSize = st.st_size; \
 	FILE *fp = fopen(filename, "r"); \
 	if (unlikely(!fp)) \
 		goto ERROR; \
@@ -422,7 +422,7 @@ ERROR_FREE: \
 NIX_SPLIT(nixSplitWords, case '\n': case '\t': case '\r': case ' ':) 
 NIX_SPLIT(nixSplitNl, case '\n':)
 
-void nixSplitFree(char **arr, int arrLen)
+ALWAYS_INLINE void nixSplitFree(char **arr, int arrLen)
 {
 	for ( ; --arrLen; ++(*arr))
 		free(*arr);
@@ -430,7 +430,7 @@ void nixSplitFree(char **arr, int arrLen)
 }
 
 #define NIX_WC(FUNC_NAME, DELIM) \
-int FUNC_NAME(char *src) \
+ALWAYS_INLINE int FUNC_NAME(char *src) \
 { \
 	for (int count = 0;; ++src) \
 		switch (*src) { \
@@ -447,7 +447,7 @@ NIX_WC(nixWcTab, case '\t':)
 NIX_WC(nixWcNonWords, case '\n': case '\t': case '\r': case ' ':)
 
 #define NIX_WCCHAR(FUNC_NAME, DELIM) \
-int FUNC_NAME(char *src) \
+ALWAYS_INLINE int FUNC_NAME(char *src) \
 { \
 	for (int count = 0;; ++src) \
 		switch (*src) { \
