@@ -1,8 +1,6 @@
 #ifndef NIX_H_DEF
 #define NIX_H_DEF
 
-#include <sys/stat.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
