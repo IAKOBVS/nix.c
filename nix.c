@@ -423,7 +423,7 @@ NIX_SPLIT(nixSplitNl, case '\n':)
 
 ALWAYS_INLINE void nixSplitFree(char **arr, int arrLen)
 {
-	for ( ; --arrLen; ++(*arr))
+	for ( ; --arrLen; ++*arr)
 		free(*arr);
 	free(arr);
 }
