@@ -81,8 +81,7 @@ int nixFind(const char *RESTRICT dir, char *RESTRICT dest)
 	DIR *RESTRICT dp = opendir(dir);
 	if (unlikely(!dp))
 		goto ERROR;
-	char *RESTRICT filename;
-	while ((ep = readdir(dp))) {
+	for (char *RESTRICT filename; (ep = readdir(dp)); ) {
 		for (filename = ep->d_name; *filename; ++dest, ++filename)
 			*dest = *filename;
 		*dest++ = '\n';
@@ -107,9 +106,7 @@ int nixFindAuto(const char *RESTRICT dir, char **RESTRICT dest)
 	size_t mallocSize = MIN_MALLOC;
 	size_t i = 0;
 	char *RESTRICT filename;
-	size_t tmpLen;
-	size_t tmpSize;
-	while ((ep = readdir(dp))) {
+	for (size_t tmpLen, tmpSize; (ep = readdir(dp)); ) {
 		filename = ep->d_name;
 		tmpLen = mallocSize + strlen(filename);
 		tmpSize = mallocSize;
@@ -283,8 +280,7 @@ int FUNC_NAME(int nStr, const char *RESTRICT src, const size_t srcLen, char **de
 				case '\n': \
 					goto SKIP_LOOPS_1; \
 				case DELIM: \
-					buf[j] = *src; \
-					++j, ++src; \
+					buf[j++] = *src++; \
 					continue; \
 				default: \
 					++src; \
@@ -304,8 +300,8 @@ int FUNC_NAME(int nStr, const char *RESTRICT src, const size_t srcLen, char **de
 				} \
 			} \
 SKIP_LOOPS_1: \
-		buf[j] = '\n'; \
-		++j, ++src; \
+		buf[j++] = '\n'; \
+		++src; \
 		} \
 		break; \
 	default: \
@@ -330,8 +326,7 @@ SKIP_LOOPS_1: \
 				} while (*src == DELIM); \
 				++n; \
 			} while (n < nStr); \
-			buf[j] = *src; \
-			++j, ++src; \
+			buf[j++] = *src++; \
 			for (;;) { \
 				switch (*src) { \
 				case '\0': \
@@ -341,8 +336,7 @@ SKIP_LOOPS_1: \
 				case DELIM: \
 					break; \
 				default: \
-					buf[j] = *src; \
-					++j, ++src; \
+					buf[j++] = *src++; \
 					continue; \
 				} \
 				break; \
@@ -360,8 +354,8 @@ SKIP_LOOPS_1: \
 				break; \
 			} \
 SKIP_LOOPS: \
-		buf[j] = '\n'; \
-		++j, ++src; \
+		buf[j++] = '\n'; \
+		++src; \
 		} \
 	} \
 SUCCESS: \
