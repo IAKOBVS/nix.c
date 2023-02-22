@@ -6,6 +6,16 @@
 
 #include "nix.h"
 
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+# define RESTRICT restrict
+#elif defined(__GNUC__) || defined(__clang__)
+# define RESTRICT __restrict__
+#elif defined(_MSC_VER)
+# define RESTRICT __restrict
+#else
+# define RESTRICT
+#endif
+
 #if defined(__GNUC__) || defined(__clang__)
     #define ALWAYS_INLINE __attribute__((always_inline)) inline
 #elif defined(_MSC_VER)
@@ -37,23 +47,23 @@
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
-inline int nixRev(char *restrict dest, const char *restrict src, const size_t srcLen)
+inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
 {
-	for (const char *restrict end = src + srcLen - 1; end > src; ++dest, --end)
+	for (const char *RESTRICT end = src + srcLen - 1; end > src; ++dest, --end)
 		*dest = *end;
 	*dest = '\0';
 	return 1; 
 }
 
-ALWAYS_INLINE size_t nixSizeOfFile(const char *restrict filename)
+ALWAYS_INLINE size_t nixSizeOfFile(const char *RESTRICT filename)
 {
 	struct stat st;
 	return (!stat(filename, &st) ? st.st_size : 0);
 }
 
-int nixTee(const char *restrict flag, char *restrict dest, const char *restrict filename)
+int nixTee(const char *RESTRICT flag, char *RESTRICT dest, const char *RESTRICT filename)
 {
-	FILE *restrict fp = fopen(filename, flag);
+	FILE *RESTRICT fp = fopen(filename, flag);
 	if (unlikely(!fp))
 		goto ERROR;
 	fputs(dest, fp);
@@ -65,10 +75,10 @@ ERROR:
 	return 0;
 }
 
-int nixFind(const char *restrict dir, char *restrict dest)
+int nixFind(const char *RESTRICT dir, char *RESTRICT dest)
 {
-	struct dirent *restrict ep;
-	DIR *restrict dp = opendir(dir);
+	struct dirent *RESTRICT ep;
+	DIR *RESTRICT dp = opendir(dir);
 	if (unlikely(!dp))
 		goto ERROR;
 	while ((ep = readdir(dp))) {
@@ -85,10 +95,10 @@ ERROR:
 	return 0;
 }
 
-int nixFindAuto(const char *restrict dir, char **restrict dest)
+int nixFindAuto(const char *RESTRICT dir, char **RESTRICT dest)
 {
 	struct dirent *ep;
-	DIR *restrict dp = opendir(dir);
+	DIR *RESTRICT dp = opendir(dir);
 	if (unlikely(!dp))
 		goto ERROR;
 	if (unlikely(!(*dest = malloc(MIN_MALLOC))))
@@ -124,9 +134,9 @@ ERROR:
 	return 0;
 }
 
-int nixHead(const char *restrict filename, char *restrict dest)
+int nixHead(const char *RESTRICT filename, char *RESTRICT dest)
 {
-	FILE *restrict fp = fopen(filename, "r");
+	FILE *RESTRICT fp = fopen(filename, "r");
 	if (unlikely(!fp))
 		goto ERROR;
 	fgets(dest, 256, fp);
@@ -139,9 +149,9 @@ ERROR:
 }
 
 #define NIX_CAT(FUNC_NAME, FREAD) \
-int FUNC_NAME(const char *restrict filename, size_t fileSize, char *restrict dest) \
+int FUNC_NAME(const char *RESTRICT filename, const size_t fileSize, char *RESTRICT dest) \
 { \
-	FILE *restrict fp = fopen(filename, "r"); \
+	FILE *RESTRICT fp = fopen(filename, "r"); \
 	if (unlikely(!fp)) \
 		goto ERROR; \
 	if (unlikely(!FREAD(dest, 1, fileSize, fp))) \
@@ -161,12 +171,12 @@ NIX_CAT(nixCat, fread)
 NIX_CAT(nixCatFast, fread_unlocked)
 
 #define NIX_CAT_AUTO(FUNC_NAME, FREAD) \
-int FUNC_NAME(const char *restrict filename, char **restrict dest) \
+int FUNC_NAME(const char *RESTRICT filename, char **RESTRICT dest) \
 { \
 	size_t fileSize = nixSizeOfFile(filename); \
 	if (unlikely(!fileSize)) \
 		goto ERROR; \
-	FILE *restrict fp = fopen(filename, "r"); \
+	FILE *RESTRICT fp = fopen(filename, "r"); \
 	if (unlikely(!fp)) \
 		goto ERROR; \
 	if (unlikely(!(*dest = malloc(fileSize)))) \
@@ -189,7 +199,7 @@ ERROR: \
 NIX_CAT_AUTO(nixCatAuto, fread)
 NIX_CAT_AUTO(nixCatAutoFast, fread_unlocked)
 
-inline int nixGetLastWord(char *restrict dest, const char *restrict src, const size_t srcLen)
+inline int nixGetLastWord(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
 {
 	src += srcLen - 1;
 	for (;;) {
@@ -211,7 +221,7 @@ inline int nixGetLastWord(char *restrict dest, const char *restrict src, const s
 	return 1;
 }
 
-inline int nixCut(int nStr, const char *restrict src, char *restrict dest)
+inline int nixCut(int nStr, const char *RESTRICT src, char *RESTRICT dest)
 {
 	if (nStr > 1) {
 		while (nStr) {
@@ -253,7 +263,7 @@ inline int nixCut(int nStr, const char *restrict src, char *restrict dest)
 }
 
 #define NIX_AWK(FUNC_NAME, DELIM) \
-int FUNC_NAME(int nStr, const char *restrict src, const size_t srcLen, char **dest) \
+int FUNC_NAME(int nStr, const char *RESTRICT src, const size_t srcLen, char **dest) \
 { \
 	char buf[srcLen]; \
 	int j = 0; \
@@ -373,7 +383,7 @@ NIX_AWK(nixAwkTab, '\t')
 #define MIN_SPLIT_SIZE 8
 
 #define NIX_SPLIT(FUNC_NAME, DELIM) \
-int FUNC_NAME(const char *restrict str, char ***restrict arr) \
+int FUNC_NAME(const char *RESTRICT str, char ***RESTRICT arr) \
 { \
 	if (unlikely(!(*arr = malloc(MIN_SPLIT_SIZE * sizeof(char *))))) \
 		return 0; \
@@ -422,7 +432,7 @@ ERROR_FREE: \
 NIX_SPLIT(nixSplitWords, case '\n': case '\t': case '\r': case ' ':) 
 NIX_SPLIT(nixSplitNl, case '\n':)
 
-ALWAYS_INLINE void nixSplitFree(char **restrict arr, size_t arrLen)
+ALWAYS_INLINE void nixSplitFree(char **RESTRICT arr, size_t arrLen)
 {
 	for ( ; --arrLen; ++*arr)
 		free(*arr);
@@ -430,7 +440,7 @@ ALWAYS_INLINE void nixSplitFree(char **restrict arr, size_t arrLen)
 }
 
 #define NIX_WC(FUNC_NAME, DELIM) \
-inline int FUNC_NAME(const char *restrict src) \
+inline int FUNC_NAME(const char *RESTRICT src) \
 { \
 	for (int count = 0;; ++src) \
 		switch (*src) { \
@@ -447,7 +457,7 @@ NIX_WC(nixWcTab, case '\t':)
 NIX_WC(nixWcNonWords, case '\n': case '\t': case '\r': case ' ':)
 
 #define NIX_WCCHAR(FUNC_NAME, DELIM) \
-inline int FUNC_NAME(const char *restrict src) \
+inline int FUNC_NAME(const char *RESTRICT src) \
 { \
 	for (int count = 0;; ++src) \
 		switch (*src) { \
@@ -479,7 +489,7 @@ NIX_WCCHAR(nixWcCharAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':
 /* case '\\n': case '\\t': case '\\r': */
 
 #define NIX_WCWORD(FUNC_NAME, DELIM) \
-inline int FUNC_NAME(const char *restrict src) \
+inline int FUNC_NAME(const char *RESTRICT src) \
 { \
 	for (int inWord = 0, count = 0;; ++src) \
 		switch (*src) { \
@@ -514,7 +524,7 @@ NIX_WCWORD(nixWcWordAlphaQuote, case '\n': case '\t': case '\r': case '\'':)
 NIX_WCWORD(nixWcWordAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':)
 
 #define NIX_WCWORD_TIL_NL(FUNC_NAME, DELIM) \
-inline int FUNC_NAME(const char *restrict src) \
+inline int FUNC_NAME(const char *RESTRICT src) \
 { \
 	for (int inWord = 0, count = 0;; ++src) \
 		switch (*src) { \
