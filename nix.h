@@ -19,6 +19,7 @@ size_t nixSizeOfFile(const char *RESTRICT filename);
 int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen);
 int nixGetLastWord(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen);
 int nixCut(int nStr, const char *RESTRICT src, char *RESTRICT dest);
+
 /* flags: */
 /* 'w' = overwrite */
 /* 'a' = append */
@@ -88,14 +89,14 @@ int nixWcWordTilNlQuote(const char *RESTRICT src);
 int nixWcWordTilNlDoubleQuote(const char *RESTRICT src);
 int nixWcWordTilNlTab(const char *RESTRICT src);
 
-int nixAwk(int nStr, const char *RESTRICT src, const size_t srcLen, char **dest);
-int nixAwkComma(int nStr, const char *RESTRICT src, const size_t srcLen, char **dest);
-int nixAwkDot(int nStr, const char *RESTRICT src, const size_t srcLen, char **dest);
-int nixAwkDouble(int nStr, const char *RESTRICT src, const size_t srcLen, char **dest);
-int nixAwkQuote(int nStr, const char *RESTRICT src, const size_t srcLen, char **dest);
-int nixAwkDoubleQuote(int nStr, const char *RESTRICT src, const size_t srcLen, char **dest);
-int nixAwkPipe(int nStr, const char *RESTRICT src, const size_t srcLen, char **dest);
-int nixAwkTab(int nStr, const char *RESTRICT src, const size_t srcLen, char **dest);
+int nixAwk(int nStr, const char *RESTRICT src, const size_t srcLen, char **RESTRICT dest);
+int nixAwkComma(int nStr, const char *RESTRICT src, const size_t srcLen, char **RESTRICT dest);
+int nixAwkDot(int nStr, const char *RESTRICT src, const size_t srcLen, char **RESTRICT dest);
+int nixAwkDouble(int nStr, const char *RESTRICT src, const size_t srcLen, char **RESTRICT dest);
+int nixAwkQuote(int nStr, const char *RESTRICT src, const size_t srcLen, char **RESTRICT dest);
+int nixAwkDoubleQuote(int nStr, const char *RESTRICT src, const size_t srcLen, char **RESTRICT dest);
+int nixAwkPipe(int nStr, const char *RESTRICT src, const size_t srcLen, char **RESTRICT dest);
+int nixAwkTab(int nStr, const char *RESTRICT src, const size_t srcLen, char **RESTRICT dest);
 
 /* split spaces, tabs, etc. to array of strings */
 int nixSplitWords(const char *RESTRICT str, char ***RESTRICT arr);
@@ -106,5 +107,7 @@ void nixSplitFree(char **RESTRICT arr, size_t arrLen);
 #ifdef __cplusplus
 }
 #endif
+
+#undef RESTRICT
 
 #endif
