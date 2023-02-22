@@ -62,7 +62,7 @@ ALWAYS_INLINE size_t nixSizeOfFile(const char *RESTRICT filename)
 	return (!stat(filename, &st) ? st.st_size : 0);
 }
 
-int nixTee(const char *RESTRICT flag, char *RESTRICT dest, const char *RESTRICT filename)
+int nixTee(char *RESTRICT dest, const char *RESTRICT flag, const char *RESTRICT filename)
 {
 	FILE *RESTRICT fp = fopen(filename, flag);
 	if (unlikely(!fp))
@@ -76,7 +76,7 @@ ERROR:
 	return 0;
 }
 
-int nixFind(const char *RESTRICT dir, char *RESTRICT dest)
+int nixFind(char *RESTRICT dest, const char *RESTRICT dir)
 {
 	struct dirent *RESTRICT ep;
 	DIR *RESTRICT dp = opendir(dir);
@@ -96,7 +96,7 @@ ERROR:
 	return 0;
 }
 
-int nixFindAuto(const char *RESTRICT dir, char **RESTRICT dest)
+int nixFindAuto(char **RESTRICT dest, const char *RESTRICT dir)
 {
 	struct dirent *ep;
 	DIR *RESTRICT dp = opendir(dir);
@@ -136,7 +136,7 @@ ERROR:
 	return 0;
 }
 
-int nixHead(const char *RESTRICT filename, char *RESTRICT dest)
+int nixHead(char *RESTRICT dest, const char *RESTRICT filename)
 {
 	FILE *RESTRICT fp = fopen(filename, "r");
 	if (unlikely(!fp))
@@ -151,7 +151,7 @@ ERROR:
 }
 
 #define NIX_CAT(FUNC_NAME, FREAD) \
-int FUNC_NAME(const char *RESTRICT filename, const size_t fileSize, char *RESTRICT dest) \
+int FUNC_NAME(char *RESTRICT dest, const char *RESTRICT filename, const size_t fileSize) \
 { \
 	FILE *RESTRICT fp = fopen(filename, "r"); \
 	if (unlikely(!fp)) \
@@ -173,7 +173,7 @@ NIX_CAT(nixCat, fread)
 NIX_CAT(nixCatFast, fread_unlocked)
 
 #define NIX_CAT_AUTO(FUNC_NAME, FREAD) \
-int FUNC_NAME(const char *RESTRICT filename, char **RESTRICT dest) \
+int FUNC_NAME(char **RESTRICT dest, const char *RESTRICT filename) \
 { \
 	const size_t fileSize = nixSizeOfFile(filename); \
 	if (unlikely(!fileSize)) \
@@ -223,7 +223,7 @@ inline int nixGetLastWord(char *RESTRICT dest, const char *RESTRICT src, const s
 	return 1;
 }
 
-inline int nixCut(int nStr, const char *RESTRICT src, char *RESTRICT dest)
+inline int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
 {
 	if (nStr > 1) {
 		while (nStr) {

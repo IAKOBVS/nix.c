@@ -20,26 +20,26 @@ extern "C" {
 size_t nixSizeOfFile(const char *RESTRICT filename);
 int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen);
 int nixGetLastWord(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen);
-int nixCut(int nStr, const char *RESTRICT src, char *RESTRICT dest);
+int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr);
 
 /* flags: */
 /* 'w' = overwrite */
 /* 'a' = append */
-int nixTee(const char *RESTRICT flag, char *RESTRICT dest, const char *RESTRICT filename);
+int nixTee(char *RESTRICT dest, const char *RESTRICT flag, const char *RESTRICT filename);
 
 /* get first line of file */
-int nixHead(const char *RESTRICT filename, char dest[]);
+int nixHead(char *RESTRICT dest, const char *RESTRICT filename);
 
 /* read file into string */
-int nixCat(const char *RESTRICT filename, const size_t fileSize, char *RESTRICT dest);
-int nixCatFast(const char *RESTRICT filename, const size_t fileSize, char *RESTRICT dest);
-int nixCatAuto(const char *RESTRICT filename, char **RESTRICT dest);
-int nixCatAutoFast(const char *RESTRICT filename, char **RESTRICT dest);
+int nixCat(char *RESTRICT dest, const char *RESTRICT filename, const size_t fileSize);
+int nixCatFast(char *RESTRICT dest, const char *RESTRICT filename, const size_t fileSize);
+int nixCatAuto(char **RESTRICT dest, const char *RESTRICT filename);
+int nixCatAutoFast(char **RESTRICT dest, const char *RESTRICT filename);
 
 /* find files in directory */
-int nixFind(const char *RESTRICT dir, char *RESTRICT dest);
+int nixFind(char *RESTRICT dest, const char *RESTRICT dir);
 /* find that automatically reallocs to required size */
-int nixFindAuto(const char *RESTRICT dir, char **RESTRICT dest);
+int nixFindAuto(char **RESTRICT dest, const char *RESTRICT dir);
 
 int nixWcNl(const char *RESTRICT src);
 int nixWcSpace(const char *RESTRICT src);
