@@ -81,8 +81,9 @@ int nixFind(const char *RESTRICT dir, char *RESTRICT dest)
 	DIR *RESTRICT dp = opendir(dir);
 	if (unlikely(!dp))
 		goto ERROR;
+	char *RESTRICT filename;
 	while ((ep = readdir(dp))) {
-		for (char *filename = ep->d_name; *filename; ++dest, ++filename)
+		for (filename = ep->d_name; *filename; ++dest, ++filename)
 			*dest = *filename;
 		*dest++ = '\n';
 	}
@@ -105,10 +106,13 @@ int nixFindAuto(const char *RESTRICT dir, char **RESTRICT dest)
 		goto ERROR;
 	size_t mallocSize = MIN_MALLOC;
 	size_t i = 0;
+	char *RESTRICT filename;
+	size_t tmpLen;
+	size_t tmpSize;
 	while ((ep = readdir(dp))) {
-		char *filename = ep->d_name;
-		const size_t tmpLen = strlen(filename) + mallocSize;
-		size_t tmpSize = mallocSize;
+		filename = ep->d_name;
+		tmpLen = mallocSize + strlen(filename);
+		tmpSize = mallocSize;
 		if (tmpLen > mallocSize) {
 			do {
 				tmpSize *= 2;
@@ -173,7 +177,7 @@ NIX_CAT(nixCatFast, fread_unlocked)
 #define NIX_CAT_AUTO(FUNC_NAME, FREAD) \
 int FUNC_NAME(const char *RESTRICT filename, char **RESTRICT dest) \
 { \
-	size_t fileSize = nixSizeOfFile(filename); \
+	const size_t fileSize = nixSizeOfFile(filename); \
 	if (unlikely(!fileSize)) \
 		goto ERROR; \
 	FILE *RESTRICT fp = fopen(filename, "r"); \
