@@ -18,6 +18,12 @@ extern "C" {
 #endif
 
 size_t nixSizeOfFile(const char *RESTRICT filename);
+
+int nixCount(const char *RESTRICT src, const int c);
+int nixCountUnlikely(const char *RESTRICT src, const int c);
+int nixCountDigit(const char *RESTRICT src);
+int nixCountAlpha(const char *RESTRICT src);
+
 int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen);
 int nixCutLast(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen);
 int nixCutLastDelim(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen, const int delim);
