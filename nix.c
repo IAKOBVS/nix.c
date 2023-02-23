@@ -299,6 +299,14 @@ inline int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
 	return 0;
 }
 
+ALWAYS_INLINE int nixCount(const char *RESTRICT src, const int c)
+{
+	int count = 0;
+	while (*src)
+		if (*src++ == c) ++count;
+	return count;
+}
+
 #define MIN_SPLIT_SIZE 8
 
 #define NIX_SPLIT(FUNC_NAME, DELIM) \
