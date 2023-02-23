@@ -342,59 +342,6 @@ ALWAYS_INLINE int nixCountAlpha(const char *RESTRICT src)
 	return count;
 }
 
-
-#define MIN_SPLIT_SIZE 8
-
-#define NIX_SPLIT(FUNC_NAME, DELIM) \
-int FUNC_NAME(const char *RESTRICT str, char ***RESTRICT arr) \
-{ \
-	if (unlikely(!(*arr = malloc(MIN_SPLIT_SIZE * sizeof(char *))))) \
-		return 0; \
-	size_t j = 0; \
-	for (size_t i = 0;; ++j) { \
-		int in = 0; \
-		for (char buf[128];; ++str) { \
-			switch (*str) { \
-			default: \
-				if (unlikely(!in)) \
-					in = 1; \
-				buf[i] = *str; \
-				++i; \
-				continue; \
-			case '\0': \
-				if (in) { \
-					if (unlikely(!((*arr)[j] = malloc(i + 1)))) \
-						goto ERROR_FREE; \
-					memcpy((*arr)[j], buf, i); \
-					(*arr)[j][i] = '\0'; \
-					return j - 1; \
-				} \
-				return j - 1; \
-			DELIM \
-				if (in) { \
-					if (unlikely(!(((*arr)[j] = malloc(i + 1))))) \
-						goto ERROR_FREE; \
-					memcpy((*arr)[j], buf, i); \
-					(*arr)[j][i] = '\0'; \
-				} else { \
-					continue; \
-				} \
-			} \
-			break; \
-		} \
-	} \
-ERROR_FREE: \
-	if (j) \
-		for (size_t i = 0; i < j; ++i, ++(*arr)) \
-			free(*arr); \
-	free(*arr); \
-	perror(CURR_FUNC); \
-	return 0; \
-}
-
-NIX_SPLIT(nixSplitWords, case '\n': case '\t': case '\r': case ' ':) 
-NIX_SPLIT(nixSplitNl, case '\n':)
-
 ALWAYS_INLINE void nixSplitFree(char **RESTRICT arr, size_t arrLen)
 {
 	while (--arrLen)

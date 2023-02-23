@@ -103,12 +103,6 @@ int nixWcNonWords(const char *RESTRICT src);
 /* int nixWcWordTilNlDoubleQuote(const char *RESTRICT src); */
 /* int nixWcWordTilNlTab(const char *RESTRICT src); */
 
-/* /1* split spaces, tabs, etc. to array of strings *1/ */
-/* int nixSplitWords(const char *RESTRICT str, char ***RESTRICT arr); */
-/* /1* split lines to array of strings *1/ */
-/* int nixSplitNl(const char *RESTRICT str, char ***RESTRICT arr); */
-/* void nixSplitFree(char **RESTRICT arr, size_t arrLen); */
-
 #ifdef __cplusplus
 }
 #endif
