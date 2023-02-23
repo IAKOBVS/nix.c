@@ -20,7 +20,11 @@ extern "C" {
 size_t nixSizeOfFile(const char *RESTRICT filename);
 int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen);
 int nixGetLastWord(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen);
+int nixGetLastWordDelim(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen, const int delim);
+int nixGetFirstWordDelim(char *RESTRICT dest, const char *RESTRICT src, const int delim);
+int nixGetFirstWord(char *RESTRICT dest, const char *RESTRICT src);
 int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr);
+int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int nStr, const int delim);
 
 /* flags: */
 /* 'w' = overwrite */

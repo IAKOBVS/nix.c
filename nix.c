@@ -218,6 +218,48 @@ inline int nixGetLastWord(char *RESTRICT dest, const char *RESTRICT src, const s
 	}
 }
 
+ALWAYS_INLINE int nixGetLastWordDelim(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen, const int delim)
+{
+	src += srcLen - 1;
+	while (*--src != delim);
+	while ((*dest++ = *++src));
+	return 1;
+}
+
+inline int nixGetFirstWord(char *RESTRICT dest, const char *RESTRICT src)
+{
+	for (;;) {
+		switch (*src) {
+		case '\n':
+		case '\t':
+		case '\r':
+		case ' ':
+			*dest = '\0';
+			return 1;
+		default:
+			*dest++ = *src++;
+		}
+	}
+}
+
+ALWAYS_INLINE int nixGetFirstWordDelim(char *RESTRICT dest, const char *RESTRICT src, const int delim)
+{
+	while ((*dest++ = *src++) != delim);
+	*--dest = '\0';
+	return 1;
+}
+
+ALWAYS_INLINE int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int nStr, const int delim)
+{
+	while (nStr--) {
+		while (*src != delim) ++src;
+		while (*src == delim) ++src;
+	}
+	while ((*dest++ = *src++) != delim);
+	*--dest = '\0';
+	return 1;
+}
+
 inline int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
 {
 	if (nStr > 1)
