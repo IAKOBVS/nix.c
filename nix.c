@@ -53,6 +53,7 @@ inline int _nixRev(char *RESTRICT dest, const char *RESTRICT src, size_t srcLen)
 	const char *RESTRICT end = src + srcLen - 1;
 	while (end > src)
 		*dest++ = *end--;
+	*dest = '\0';
 	return 1;
 }
 
