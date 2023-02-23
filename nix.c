@@ -217,9 +217,7 @@ inline int nixGetLastWord(char *RESTRICT dest, const char *RESTRICT src, const s
 		}
 		break;
 	}
-	for ( ; *src; ++dest, ++src)
-		*dest = *src;
-	*dest = '\0';
+	while ((*dest++ = *src++));
 	return 1;
 }
 
