@@ -61,8 +61,8 @@ inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t sr
 inline int nixRevThis(char *RESTRICT dest, const size_t srcLen)
 {
 	char *src = malloc(srcLen);
-	if (unlikely(!src))
-		goto ERROR;
+	if (src);
+	else goto ERROR;
 	memcpy(src, dest, srcLen);
 	const char *end = src + srcLen - 1;
 	while (end >= src)
@@ -85,8 +85,8 @@ ALWAYS_INLINE size_t nixSizeOfFile(const char *RESTRICT filename)
 int nixTee(char *RESTRICT dest, const char *RESTRICT flag, const char *RESTRICT filename)
 {
 	FILE *RESTRICT fp = fopen(filename, flag);
-	if (unlikely(!fp))
-		goto ERROR;
+	if (fp);
+	else goto ERROR;
 	fputs(dest, fp);
 	fclose(fp);
 	return 1;
@@ -100,8 +100,8 @@ int nixFind(char *RESTRICT dest, const char *RESTRICT dir)
 {
 	struct dirent *RESTRICT ep;
 	DIR *RESTRICT dp = opendir(dir);
-	if (unlikely(!dp))
-		goto ERROR;
+	if (dp);
+	else goto ERROR;
 	for (char *RESTRICT filename; (ep = readdir(dp)); ) {
 		for (filename = ep->d_name; *filename; ++dest, ++filename)
 			*dest = *filename;
@@ -120,10 +120,10 @@ int nixFindAuto(char **RESTRICT dest, const char *RESTRICT dir)
 {
 	struct dirent *ep;
 	DIR *RESTRICT dp = opendir(dir);
-	if (unlikely(!dp))
-		goto ERROR;
-	if (unlikely(!(*dest = malloc(MIN_MALLOC))))
-		goto ERROR;
+	if (dp);
+	else goto ERROR;
+	if ((*dest = malloc(MIN_MALLOC)));
+	else goto ERROR;
 	size_t mallocSize = MIN_MALLOC;
 	size_t i = 0;
 	char *RESTRICT filename;
@@ -135,8 +135,8 @@ int nixFindAuto(char **RESTRICT dest, const char *RESTRICT dir)
 			do {
 				tmpSize *= 2;
 			} while (tmpLen > mallocSize);
-			if (unlikely(!(*dest = realloc(*dest, tmpSize))))
-				goto ERROR_FREE;
+			if ((*dest = realloc(*dest, tmpSize)));
+			else goto ERROR_FREE;
 			mallocSize = tmpSize;
 		}
 		for ( ; *filename; ++i, ++filename)
@@ -144,8 +144,8 @@ int nixFindAuto(char **RESTRICT dest, const char *RESTRICT dir)
 		(*dest)[i++] = '\n';
 	}
 	closedir(dp);
-	if (unlikely(!(*dest = realloc(*dest, i + 1))))
-		goto ERROR_FREE;
+	if ((*dest = realloc(*dest, i + 1)));
+	else goto ERROR_FREE;
 	(*dest)[--i] = '\0';
 	return i;
 
@@ -159,8 +159,8 @@ ERROR:
 int nixHead(char *RESTRICT dest, const char *RESTRICT filename)
 {
 	FILE *RESTRICT fp = fopen(filename, "r");
-	if (unlikely(!fp))
-		goto ERROR;
+	if (!fp);
+	else goto ERROR;
 	fgets(dest, 256, fp);
 	fclose(fp);
 	return 1;
@@ -174,10 +174,10 @@ ERROR:
 int FUNC_NAME(char *RESTRICT dest, const char *RESTRICT filename, const size_t fileSize) \
 { \
 	FILE *RESTRICT fp = fopen(filename, "r"); \
-	if (unlikely(!fp)) \
-		goto ERROR; \
-	if (unlikely(!FREAD(dest, 1, fileSize, fp))) \
-		goto ERROR_CLOSE; \
+	if (!fp); \
+	else goto ERROR; \
+	if (FREAD(dest, 1, fileSize, fp)); \
+	else goto ERROR_CLOSE; \
 	fclose(fp); \
 	dest[fileSize] = '\0'; \
 	return 1; \
@@ -196,15 +196,15 @@ NIX_CAT(nixCatFast, fread_unlocked)
 int FUNC_NAME(char **RESTRICT dest, const char *RESTRICT filename) \
 { \
 	const size_t fileSize = nixSizeOfFile(filename); \
-	if (unlikely(!fileSize)) \
-		goto ERROR; \
+	if ((fileSize)); \
+	else goto ERROR; \
 	FILE *RESTRICT fp = fopen(filename, "r"); \
-	if (unlikely(!fp)) \
-		goto ERROR; \
-	if (unlikely(!(*dest = malloc(fileSize)))) \
-		goto ERROR_CLOSE; \
-	if (unlikely(!FREAD(*dest, 1, fileSize, fp))) \
-		goto ERROR_CLOSE_FREE; \
+	if (fp); \
+	else goto ERROR; \
+	if ((*dest = malloc(fileSize))); \
+	else goto ERROR_CLOSE; \
+	if (FREAD(*dest, 1, fileSize, fp)); \
+	else goto ERROR_CLOSE_FREE; \
 	fclose(fp); \
 	(*dest)[fileSize] = '\0'; \
 	return 1; \
@@ -297,9 +297,9 @@ ALWAYS_INLINE int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr
 		case '\t':
 		case '\r':
 		case ' ':
-			if (unlikely(--nStr))
-				break;
-			continue;
+			if (--nStr)
+				continue;
+			break;
 		}
 		break;
 	}
@@ -332,7 +332,8 @@ ALWAYS_INLINE int nixCountUnlikelyFunc(const char *RESTRICT src, const int c)
 {
 	int count = 0;
 	while (*src)
-		if (unlikely(*src++ == c)) ++count;
+		if (*src++ != c);
+		else ++count;
 	return count;
 }
 
@@ -358,8 +359,8 @@ inline int nixWcWord(const char *RESTRICT src)
 	for ( ;; ++src) {
 		switch (*src) {
 		default:
-			if (unlikely(!inWord))
-				inWord = 1;
+			if (inWord);
+			else inWord = 1;
 			continue;
 		case '\n':
 		case '\t':
@@ -383,8 +384,8 @@ inline int nixWcWordTilNl(const char *RESTRICT src)
 	for ( ;; ++src) {
 		switch (*src) {
 		default:
-			if (unlikely(!inWord))
-				inWord = 1;
+			if (inWord);
+			else inWord = 1;
 			continue;
 		case '\t':
 		case '\r':
@@ -447,7 +448,8 @@ inline int FUNC_NAME(const char *RESTRICT src) \
 			} \
 			continue; \
 		default: \
-			if (unlikely(!inWord)) \
+			if (inWord); \
+			else \
 				inWord = 1; \
 			continue; \
 		case '\0':; \
@@ -486,7 +488,8 @@ inline int FUNC_NAME(const char *RESTRICT src) \
 			} \
 			continue; \
 		default: \
-			if (unlikely(!inWord)) \
+			if (inWord); \
+			else \
 				inWord = 1; \
 			continue; \
 		case '\n': \
