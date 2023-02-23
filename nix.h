@@ -77,7 +77,7 @@ int nixWcNonWords(const char *RESTRICT src);
 /* int nixWcCharAlphaTab(const char *RESTRICT src); */
 
 /* /1* get number of words in string *1/ */
-/* int nixWcWord(const char *RESTRICT src); */
+int nixWcWord(const char *RESTRICT src);
 /* int nixWcWordComma(const char *RESTRICT src); */
 /* int nixWcWordDot(const char *RESTRICT src); */
 /* int nixWcWordPipe(const char *RESTRICT src); */

@@ -342,6 +342,27 @@ ALWAYS_INLINE int nixCountAlpha(const char *RESTRICT src)
 	return count;
 }
 
+inline int nixWcWord(const char *RESTRICT src)
+{
+	for (int inWord = 0, count = 0;; ++src)
+		switch (*src) {
+		case '\0':
+			return inWord ? ++count : count;
+		default:
+			if (unlikely(!inWord)) inWord = 1;
+			continue;
+		case '\n':
+		case '\t':
+		case '\r':
+		case ' ':
+			if (inWord) {
+				++count;
+				inWord = 0;
+			}
+		}
+}
+
+
 #define NIX_WC(FUNC_NAME, DELIM) \
 inline int FUNC_NAME(const char *RESTRICT src) \
 { \
@@ -408,7 +429,7 @@ inline int FUNC_NAME(const char *RESTRICT src) \
 		} \
 }
 
-NIX_WCWORD(nixWcWord, case ' ':)
+/* NIX_WCWORD(nixWcWord, case ' ':) */
 NIX_WCWORD(nixWcWordComma, case ',':)
 NIX_WCWORD(nixWcWordPipe, case '|':)
 NIX_WCWORD(nixWcWordDot, case '.':)
