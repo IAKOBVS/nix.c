@@ -72,7 +72,7 @@ inline int nixRevThis(char *RESTRICT dest, const size_t srcLen)
 	return 1;
 
 ERROR:
-	perror(CURR_FUNC);
+	perror("nixRevThis");
 	return 0;
 }
 
