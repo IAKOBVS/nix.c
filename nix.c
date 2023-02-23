@@ -202,31 +202,7 @@ ERROR: \
 NIX_CAT_AUTO(nixCatAuto, fread)
 NIX_CAT_AUTO(nixCatAutoFast, fread_unlocked)
 
-inline int nixGetLastWord(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
-{
-	src += srcLen - 1;
-	for (;; --src) {
-		switch (*src) {
-		case '\n':
-		case '\t':
-		case '\r':
-		case ' ':
-			++src;
-			while ((*dest++ = *src++));
-			return 1;
-		}
-	}
-}
-
-ALWAYS_INLINE int nixGetLastWordDelim(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen, const int delim)
-{
-	src += srcLen - 1;
-	while (*--src != delim);
-	while ((*dest++ = *++src));
-	return 1;
-}
-
-inline int nixGetFirstWord(char *RESTRICT dest, const char *RESTRICT src)
+inline int nixCutFirst(char *RESTRICT dest, const char *RESTRICT src)
 {
 	for (;;) {
 		switch (*src) {
@@ -242,12 +218,37 @@ inline int nixGetFirstWord(char *RESTRICT dest, const char *RESTRICT src)
 	}
 }
 
-ALWAYS_INLINE int nixGetFirstWordDelim(char *RESTRICT dest, const char *RESTRICT src, const int delim)
+ALWAYS_INLINE int nixCutFirstDelim(char *RESTRICT dest, const char *RESTRICT src, const int delim)
 {
 	while ((*dest++ = *src++) != delim);
 	*--dest = '\0';
 	return 1;
 }
+
+inline int nixCutLast(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
+{
+	src += srcLen - 1;
+	for (;; --src) {
+		switch (*src) {
+		case '\n':
+		case '\t':
+		case '\r':
+		case ' ':
+			++src;
+			while ((*dest++ = *src++));
+			return 1;
+		}
+	}
+}
+
+ALWAYS_INLINE int nixCutLastDelim(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen, const int delim)
+{
+	src += srcLen - 1;
+	while (*--src != delim);
+	while ((*dest++ = *++src));
+	return 1;
+}
+
 
 ALWAYS_INLINE int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int nStr, const int delim)
 {
@@ -297,121 +298,6 @@ inline int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
 			}
 	return 0;
 }
-
-#define NIX_AWK(FUNC_NAME, DELIM) \
-int FUNC_NAME(int nStr, const char *RESTRICT src, const size_t srcLen, char **dest) \
-{ \
-	char buf[srcLen]; \
-	int j = 0; \
-	switch (nStr) { \
-	case 0: \
-		goto ERROR; \
-	case 1: \
-		for (;;) { \
-			for (;;) { \
-				switch (*src) { \
-				case '\0': \
-					goto SUCCESS; \
-				case '\n': \
-					goto SKIP_LOOPS_1; \
-				case DELIM: \
-					buf[j++] = *src++; \
-					continue; \
-				default: \
-					++src; \
-					continue; \
-				} \
-				break; \
-			} \
-			for (;;) { \
-				switch (*src) { \
-				case '\0': \
-					goto SUCCESS; \
-				case '\n': \
-					goto SKIP_LOOPS_1; \
-				default: \
-					++src; \
-					continue; \
-				} \
-			} \
-SKIP_LOOPS_1: \
-		buf[j++] = '\n'; \
-		++src; \
-		} \
-		break; \
-	default: \
-		for (int n = 1;;) { \
-			do { \
-				for (;;) { \
-					switch (*src) { \
-					case '\0': \
-						goto SUCCESS; \
-					case '\n': \
-						goto SKIP_LOOPS; \
-					case DELIM: \
-						break; \
-					default: \
-						++src; \
-						continue; \
-					} \
-					break; \
-				} \
-				do { \
-					++src; \
-				} while (*src == DELIM); \
-				++n; \
-			} while (n < nStr); \
-			buf[j++] = *src++; \
-			for (;;) { \
-				switch (*src) { \
-				case '\0': \
-					goto SUCCESS; \
-				case '\n': \
-					goto SKIP_LOOPS; \
-				case DELIM: \
-					break; \
-				default: \
-					buf[j++] = *src++; \
-					continue; \
-				} \
-				break; \
-			} \
-			for (;;) { \
-				switch (*src) { \
-				case '\0': \
-					goto SUCCESS; \
-				case '\n': \
-					goto SKIP_LOOPS; \
-				default: \
-					++src; \
-					continue; \
-				} \
-				break; \
-			} \
-SKIP_LOOPS: \
-		buf[j++] = '\n'; \
-		++src; \
-		} \
-	} \
-SUCCESS: \
-	if (unlikely(!(*dest = malloc(j + 1)))) \
-		goto ERROR; \
-	memcpy(*dest, buf, j); \
-	(*dest)[j] = '\0'; \
-	return j; \
- \
-ERROR: \
-	perror(CURR_FUNC); \
-	return 0; \
-} \
-
-NIX_AWK(nixAwk, ' ')
-NIX_AWK(nixAwkComma, ',')
-NIX_AWK(nixAwkDot, '.')
-NIX_AWK(nixAwkQuote, '"')
-NIX_AWK(nixAwkDoubleQuote,  '"')
-NIX_AWK(nixAwkPipe,  '|')
-NIX_AWK(nixAwkTab, '\t')
 
 #define MIN_SPLIT_SIZE 8
 
