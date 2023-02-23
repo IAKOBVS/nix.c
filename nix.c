@@ -49,6 +49,8 @@
 #define MIN_MALLOC 16000
 #define CASE_WHITESPACE case '\n': case '\t': case '\r':
 
+#define IF_ERROR(STATE, DO) if (STATE); else DO
+
 inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
 {
 	const char *end = src + srcLen - 1;
