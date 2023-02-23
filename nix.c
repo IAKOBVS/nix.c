@@ -48,7 +48,7 @@
 #define MIN_MALLOC 16000
 #define CASE_WHITESPACE case '\n': case '\t': case '\r':
 
-inline int _nixRev(char *RESTRICT dest, const char *RESTRICT src, size_t srcLen)
+inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
 {
 	const char *end = src + srcLen - 1;
 	while (end > src)
