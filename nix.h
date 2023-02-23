@@ -19,8 +19,20 @@ extern "C" {
 
 size_t nixSizeOfFile(const char *RESTRICT filename);
 
-int nixCount(const char *RESTRICT src, const int c);
-int nixCountUnlikely(const char *RESTRICT src, const int c);
+#define nixCount(COUNT, SRC, CHAR) \
+	for ( ;; ++src) { \
+		switch (*SRC) { \
+		case CHAR: \
+			++COUNT; \
+		default: \
+			continue; \
+		case '\0':; \
+		} \
+		break; \
+	}
+
+int nixCountFunc(const char *RESTRICT src, const int c);
+int nixCountFuncUnlikely(const char *RESTRICT src, const int c);
 int nixCountDigit(const char *RESTRICT src);
 int nixCountAlpha(const char *RESTRICT src);
 

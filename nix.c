@@ -310,18 +310,6 @@ inline int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
 	return 0;
 }
 
-#define nixCount(COUNT, SRC, CHAR) \
-	for ( ;; ++src) { \
-		switch (*SRC) { \
-		case CHAR: \
-			++COUNT; \
-		default: \
-			continue; \
-		case '\0':; \
-		} \
-		break; \
-	}
-
 ALWAYS_INLINE int nixCountFunc(const char *RESTRICT src, const int c)
 {
 	int count = 0;
