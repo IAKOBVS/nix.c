@@ -468,10 +468,3 @@ NIX_WCWORD_TIL_NL(nixWcWordTilNlDot, case '.':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlQuote, case '\'':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlDoubleQuote, case '"':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlTab, case '\t':)
-
-/* NIX_WCWORD_TILL_NL(nixWcWordTillNlAlpha, case '\t': case '\r': case ' ': continue; default:) */
-/* NIX_WCWORD_TILL_NL(nixWcWordTillNlAlphaComma, case '\t': case '\r': case ',': continue; default:) */
-/* NIX_WCWORD_TILL_NL(nixWcWordTillNlAlphaPipe, case '\t': case '\r': case '|': continue; default:) */
-/* NIX_WCWORD_TILL_NL(nixWcWordTillNlAlphaDot, case '\t': case '\r': case '.': continue; default:) */
-/* NIX_WCWORD_TILL_NL(nixWcWordTillNlAlphaQuote, case '\t': case '\r': case '\'': continue; default:) */
-/* NIX_WCWORD_TILL_NL(nixWcWordTillNlAlphaDoubleQuote, case '\t': case '\r': case '"': continue; default:) */
