@@ -61,6 +61,8 @@ inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t sr
 inline int nixRevThis(char *RESTRICT dest, const size_t srcLen)
 {
 	char *src = malloc(srcLen);
+	if (unlikely(!src))
+		goto ERROR;
 	memcpy(src, dest, srcLen);
 	const char *end = src + srcLen - 1;
 	while (end >= src)
@@ -68,6 +70,10 @@ inline int nixRevThis(char *RESTRICT dest, const size_t srcLen)
 	free(src);
 	*dest = '\0';
 	return 1;
+
+ERROR:
+	perror(CURR_FUNC);
+	return 0;
 }
 
 ALWAYS_INLINE size_t nixSizeOfFile(const char *RESTRICT filename)
@@ -217,18 +223,21 @@ NIX_CAT_AUTO(nixCatAutoFast, fread_unlocked)
 
 ALWAYS_INLINE int nixCutFirst(char *RESTRICT dest, const char *RESTRICT src)
 {
-	for (;;)
+	for (;;) {
 		switch (*src) {
+		default:
+			*dest++ = *src++;
+			continue;
 		case '\n':
 		case '\t':
 		case '\r':
 		case ' ':
-			*dest = '\0';
-		case '\0':
-			return 1;
-		default:
-			*dest++ = *src++;
+		case '\0':;
 		}
+		break;
+	}
+	*dest = '\0';
+	return 1;
 }
 
 ALWAYS_INLINE int nixCutFirstDelim(char *RESTRICT dest, const char *RESTRICT src, const int delim)
@@ -241,17 +250,19 @@ ALWAYS_INLINE int nixCutFirstDelim(char *RESTRICT dest, const char *RESTRICT src
 ALWAYS_INLINE int nixCutLast(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
 {
 	src += srcLen - 1;
-	for (;; --src)
+	for (;; --src) {
 		switch (*src) {
+		default:
+			continue;
 		case '\n':
 		case '\t':
 		case '\r':
-		case ' ':
-			++src;
-			while ((*dest++ = *src++));
-		case '\0':
-			return 1;
+		case ' ':;
 		}
+		break;
+	}
+	while ((*dest++ = *++src));
+	return 1;
 }
 
 ALWAYS_INLINE int nixCutLastDelim(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen, const int delim)
@@ -278,6 +289,8 @@ ALWAYS_INLINE int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr
 {
 	for (;;) {
 		switch (*src++) {
+		default:
+			continue;
 		case '\0':
 			break;
 		case '\n':
@@ -290,18 +303,21 @@ ALWAYS_INLINE int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr
 		}
 		break;
 	}
-	for (;;)
+	for (;;) {
 		switch (*src) {
 		default:
 			*dest++ = *src++;
+			continue;
 		case '\0':
 		case '\n':
 		case '\t':
 		case '\r':
-		case ' ':
-			*dest = '\0';
-			return 1;
+		case ' ':;
 		}
+		break;
+	}
+	*dest = '\0';
+	return 1;
 }
 
 ALWAYS_INLINE int nixCountFunc(const char *RESTRICT src, const int c)
@@ -338,10 +354,9 @@ ALWAYS_INLINE int nixCountAlpha(const char *RESTRICT src)
 
 inline int nixWcWord(const char *RESTRICT src)
 {
-	for (int inWord = 0, count = 0;; ++src)
+	int inWord = 0, count = 0;
+	for ( ;; ++src) {
 		switch (*src) {
-		case '\0':
-			return inWord ? ++count : count;
 		default:
 			if (unlikely(!inWord))
 				inWord = 1;
@@ -354,16 +369,19 @@ inline int nixWcWord(const char *RESTRICT src)
 				++count;
 				inWord = 0;
 			}
+			continue;
+		case '\0':;
 		}
+		break;
+	}
+	return inWord ? ++count : count;
 }
 
 inline int nixWcWordTilNl(const char *RESTRICT src)
 {
-	for (int inWord = 0, count = 0;; ++src)
+	int inWord = 0, count = 0;
+	for ( ;; ++src) {
 		switch (*src) {
-		case '\0':
-		case '\n':
-			return inWord ? ++count : count;
 		default:
 			if (unlikely(!inWord))
 				inWord = 1;
@@ -375,21 +393,29 @@ inline int nixWcWordTilNl(const char *RESTRICT src)
 				++count;
 				inWord = 0;
 			}
+			continue;
+		case '\0':
+		case '\n':;
 		}
+		break;
+	}
+	return inWord ? ++count : count;
 }
 
 #define NIX_WCCHAR(FUNC_NAME, DELIM) \
 inline int FUNC_NAME(const char *RESTRICT src) \
 { \
-	for (int count = 0;; ++src) \
+	int count = 0; \
+	for ( ;; ++src) { \
 		switch (*src) { \
-		case '\0': \
-			return count; \
 		DELIM \
 			continue; \
 		default: \
 			++count; \
+		case '\0':; \
 		} \
+	} \
+	return count; \
 }
 
 NIX_WCCHAR(nixWcChar, case ' ':)
@@ -411,10 +437,9 @@ NIX_WCCHAR(nixWcCharAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':
 #define NIX_WCWORD(FUNC_NAME, DELIM) \
 inline int FUNC_NAME(const char *RESTRICT src) \
 { \
-	for (int inWord = 0, count = 0;; ++src) \
+	int inWord = 0, count = 0; \
+	for ( ;; ++src) { \
 		switch (*src) { \
-		case '\0': \
-			return inWord ? ++count : count; \
 		DELIM \
 			if (inWord) { \
 				++count; \
@@ -424,7 +449,12 @@ inline int FUNC_NAME(const char *RESTRICT src) \
 		default: \
 			if (unlikely(!inWord)) \
 				inWord = 1; \
+			continue; \
+		case '\0':; \
 		} \
+		break; \
+	} \
+	return inWord ? ++count : count; \
 }
 
 /* NIX_WCWORD(nixWcWord, case ' ':) */
@@ -446,20 +476,25 @@ NIX_WCWORD(nixWcWordAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':
 #define NIX_WCWORD_TIL_NL(FUNC_NAME, DELIM) \
 inline int FUNC_NAME(const char *RESTRICT src) \
 { \
-	for (int inWord = 0, count = 0;; ++src) \
+	int inWord = 0, count = 0; \
+	for ( ;; ++src) { \
 		switch (*src) { \
-		case '\n': \
-		case '\0': \
-			return inWord ? ++count : count; \
 		DELIM \
 			if (inWord) { \
 				++count; \
 				inWord = 0; \
 			} \
+			continue; \
 		default: \
 			if (unlikely(!inWord)) \
 				inWord = 1; \
+			continue; \
+		case '\n': \
+		case '\0':; \
 		} \
+		break; \
+	} \
+	return inWord ? ++count : count; \
 }
 
 /* NIX_WCWORD_TIL_NL(nixWcWordTilNl, case ' ':) */
@@ -468,4 +503,3 @@ NIX_WCWORD_TIL_NL(nixWcWordTilNlComma, case ',':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlDot, case '.':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlQuote, case '\'':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlDoubleQuote, case '"':)
-NIX_WCWORD_TIL_NL(nixWcWordTilNlTab, case '\t':)
