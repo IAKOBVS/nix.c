@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <ctype.h>
 
 #include "nix.h"
 
@@ -306,6 +307,31 @@ ALWAYS_INLINE int nixCount(const char *RESTRICT src, const int c)
 		if (*src++ == c) ++count;
 	return count;
 }
+
+ALWAYS_INLINE int nixCountUnlikely(const char *RESTRICT src, const int c)
+{
+	int count = 0;
+	while (*src)
+		if (unlikely(*src++ == c)) ++count;
+	return count;
+}
+
+ALWAYS_INLINE int nixCountDigit(const char *RESTRICT src)
+{
+	int count = 0;
+	while (*src)
+		if (isdigit(*src)) ++count;
+	return count;
+}
+
+ALWAYS_INLINE int nixCountAlpha(const char *RESTRICT src)
+{
+	int count = 0;
+	while (*src)
+		if (isalpha(*src)) ++count;
+	return count;
+}
+
 
 #define MIN_SPLIT_SIZE 8
 
