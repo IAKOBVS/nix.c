@@ -215,7 +215,7 @@ ERROR: \
 NIX_CAT_AUTO(nixCatAuto, fread)
 NIX_CAT_AUTO(nixCatAutoFast, fread_unlocked)
 
-inline int nixCutFirst(char *RESTRICT dest, const char *RESTRICT src)
+ALWAYS_INLINE int nixCutFirst(char *RESTRICT dest, const char *RESTRICT src)
 {
 	for (;;)
 		switch (*src) {
@@ -224,6 +224,7 @@ inline int nixCutFirst(char *RESTRICT dest, const char *RESTRICT src)
 		case '\r':
 		case ' ':
 			*dest = '\0';
+		case '\0':
 			return 1;
 		default:
 			*dest++ = *src++;
@@ -237,7 +238,7 @@ ALWAYS_INLINE int nixCutFirstDelim(char *RESTRICT dest, const char *RESTRICT src
 	return 1;
 }
 
-inline int nixCutLast(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
+ALWAYS_INLINE int nixCutLast(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
 {
 	src += srcLen - 1;
 	for (;; --src)
@@ -248,6 +249,7 @@ inline int nixCutLast(char *RESTRICT dest, const char *RESTRICT src, const size_
 		case ' ':
 			++src;
 			while ((*dest++ = *src++));
+		case '\0':
 			return 1;
 		}
 }
@@ -272,42 +274,34 @@ ALWAYS_INLINE int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int
 	return 1;
 }
 
-inline int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
+ALWAYS_INLINE int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
 {
-	if (nStr > 1)
-		for ( ; nStr; ++src)
-			switch (*src) {
-			case '\0':
-			case ' ':
-			case '\n':
-			case '\t':
-			case '\r':
-				--nStr;
-				for (;;)
-					switch (*src) {
-					case '\0':
-					case ' ':
-					case '\n':
-					case '\t':
-					case '\r':
-						return 1;
-					default:
-						*dest++ = *src++;
-					}
-			}
-	else
-		for (;;)
-			switch (*src) {
-			case '\0':
-			case ' ':
-			case '\n':
-			case '\t':
-			case '\r':
-				return 1;
-			default:
-				*dest++ = *src++;
-			}
-	return 0;
+	for (;;) {
+		switch (*src++) {
+		case '\0':
+			break;
+		case '\n':
+		case '\t':
+		case '\r':
+		case ' ':
+			if (unlikely(--nStr))
+				break;
+			continue;
+		}
+		break;
+	}
+	for (;;)
+		switch (*src) {
+		default:
+			*dest++ = *src++;
+		case '\0':
+		case '\n':
+		case '\t':
+		case '\r':
+		case ' ':
+			*dest = '\0';
+			return 1;
+		}
 }
 
 ALWAYS_INLINE int nixCountFunc(const char *RESTRICT src, const int c)
