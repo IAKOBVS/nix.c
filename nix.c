@@ -51,7 +51,7 @@
 inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
 {
 	const char *end = src + srcLen - 1;
-	while (end > src)
+	while (end >= src)
 		*dest++ = *end--;
 	*dest = '\0';
 	return 1;
