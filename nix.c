@@ -48,12 +48,12 @@
 #define MIN_MALLOC 16000
 #define CASE_WHITESPACE case '\n': case '\t': case '\r':
 
-inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
+inline int _nixRev(char *RESTRICT dest, const char *RESTRICT src, size_t srcLen)
 {
-	for (const char *RESTRICT end = src + srcLen - 1; end > src; ++dest, --end)
-		*dest = *end;
-	*dest = '\0';
-	return 1; 
+	const char *RESTRICT end = src + srcLen - 1;
+	while (end > src)
+		*dest++ = *end--;
+	return 1;
 }
 
 ALWAYS_INLINE size_t nixSizeOfFile(const char *RESTRICT filename)
@@ -204,38 +204,43 @@ NIX_CAT_AUTO(nixCatAutoFast, fread_unlocked)
 inline int nixGetLastWord(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
 {
 	src += srcLen - 1;
-	for (;;) {
+	for (;; --src) {
 		switch (*src) {
-		default:
-			--src;
-			continue;
 		case '\n':
 		case '\t':
 		case '\r':
 		case ' ':
 			++src;
+			while ((*dest++ = *src++));
+			return 1;
 		}
-		break;
 	}
-	while ((*dest++ = *src++));
-	return 1;
 }
 
 inline int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
 {
-	if (nStr > 1) {
-		while (nStr) {
+	if (nStr > 1)
+		for ( ; nStr; ++src)
 			switch (*src) {
-			default:
-				continue;
 			case '\0':
 			case ' ':
 			case '\n':
 			case '\t':
 			case '\r':
 				--nStr;
+				for (;;)
+					switch (*src) {
+					case '\0':
+					case ' ':
+					case '\n':
+					case '\t':
+					case '\r':
+						return 1;
+					default:
+						*dest++ = *src++;
+					}
 			}
-		}
+	else
 		for (;;)
 			switch (*src) {
 			case '\0':
@@ -247,19 +252,7 @@ inline int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
 			default:
 				*dest++ = *src++;
 			}
-	} else {
-		for (;;)
-			switch (*src) {
-			case '\0':
-			case ' ':
-			case '\n':
-			case '\t':
-			case '\r':
-				return 1;
-			default:
-				*dest++ = *src++;
-			}
-	}
+	return 0;
 }
 
 #define NIX_AWK(FUNC_NAME, DELIM) \
@@ -431,8 +424,8 @@ NIX_SPLIT(nixSplitNl, case '\n':)
 
 ALWAYS_INLINE void nixSplitFree(char **RESTRICT arr, size_t arrLen)
 {
-	for ( ; --arrLen; ++*arr)
-		free(*arr);
+	while (--arrLen)
+		free(arr[arrLen]);
 	free(arr);
 }
 
