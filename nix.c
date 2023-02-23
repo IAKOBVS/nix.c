@@ -205,7 +205,7 @@ NIX_CAT_AUTO(nixCatAutoFast, fread_unlocked)
 
 inline int nixCutFirst(char *RESTRICT dest, const char *RESTRICT src)
 {
-	for (;;) {
+	for (;;)
 		switch (*src) {
 		case '\n':
 		case '\t':
@@ -216,7 +216,6 @@ inline int nixCutFirst(char *RESTRICT dest, const char *RESTRICT src)
 		default:
 			*dest++ = *src++;
 		}
-	}
 }
 
 ALWAYS_INLINE int nixCutFirstDelim(char *RESTRICT dest, const char *RESTRICT src, const int delim)
@@ -229,7 +228,7 @@ ALWAYS_INLINE int nixCutFirstDelim(char *RESTRICT dest, const char *RESTRICT src
 inline int nixCutLast(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
 {
 	src += srcLen - 1;
-	for (;; --src) {
+	for (;; --src)
 		switch (*src) {
 		case '\n':
 		case '\t':
@@ -239,7 +238,6 @@ inline int nixCutLast(char *RESTRICT dest, const char *RESTRICT src, const size_
 			while ((*dest++ = *src++));
 			return 1;
 		}
-	}
 }
 
 ALWAYS_INLINE int nixCutLastDelim(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen, const int delim)
