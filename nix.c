@@ -310,15 +310,27 @@ inline int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
 	return 0;
 }
 
-ALWAYS_INLINE int nixCount(const char *RESTRICT src, const int c)
+#define nixCount(COUNT, SRC, CHAR) \
+	for ( ;; ++src) { \
+		switch (*SRC) { \
+		case CHAR: \
+			++COUNT; \
+		default: \
+			continue; \
+		case '\0':; \
+		} \
+		break; \
+	}
+
+ALWAYS_INLINE int nixCountFunc(const char *RESTRICT src, const int c)
 {
 	int count = 0;
 	while (*src)
-		if (*src++ == c) ++count;
+		if (*src == c) ++count;
 	return count;
 }
 
-ALWAYS_INLINE int nixCountUnlikely(const char *RESTRICT src, const int c)
+ALWAYS_INLINE int nixCountUnlikelyFunc(const char *RESTRICT src, const int c)
 {
 	int count = 0;
 	while (*src)
@@ -330,7 +342,7 @@ ALWAYS_INLINE int nixCountDigit(const char *RESTRICT src)
 {
 	int count = 0;
 	while (*src)
-		if (isdigit(*src)) ++count;
+		if (isdigit(*src++)) ++count;
 	return count;
 }
 
@@ -338,7 +350,7 @@ ALWAYS_INLINE int nixCountAlpha(const char *RESTRICT src)
 {
 	int count = 0;
 	while (*src)
-		if (isalpha(*src)) ++count;
+		if (isalpha(*src++)) ++count;
 	return count;
 }
 
@@ -349,7 +361,8 @@ inline int nixWcWord(const char *RESTRICT src)
 		case '\0':
 			return inWord ? ++count : count;
 		default:
-			if (unlikely(!inWord)) inWord = 1;
+			if (unlikely(!inWord))
+				inWord = 1;
 			continue;
 		case '\n':
 		case '\t':
@@ -362,23 +375,26 @@ inline int nixWcWord(const char *RESTRICT src)
 		}
 }
 
-
-#define NIX_WC(FUNC_NAME, DELIM) \
-inline int FUNC_NAME(const char *RESTRICT src) \
-{ \
-	for (int count = 0;; ++src) \
-		switch (*src) { \
-		case '\0': \
-			return count; \
-		DELIM \
-			++count; \
-		} \
-} \
-
-NIX_WC(nixWcNl, case '\n':)
-NIX_WC(nixWcSpace, case ' ':)
-NIX_WC(nixWcTab, case '\t':)
-NIX_WC(nixWcNonWords, case '\n': case '\t': case '\r': case ' ':)
+inline int nixWcWordTilNl(const char *RESTRICT src)
+{
+	for (int inWord = 0, count = 0;; ++src)
+		switch (*src) {
+		case '\0':
+		case '\n':
+			return inWord ? ++count : count;
+		default:
+			if (unlikely(!inWord))
+				inWord = 1;
+			continue;
+		case '\t':
+		case '\r':
+		case ' ':
+			if (inWord) {
+				++count;
+				inWord = 0;
+			}
+		}
+}
 
 #define NIX_WCCHAR(FUNC_NAME, DELIM) \
 inline int FUNC_NAME(const char *RESTRICT src) \
@@ -464,7 +480,7 @@ inline int FUNC_NAME(const char *RESTRICT src) \
 		} \
 }
 
-NIX_WCWORD_TIL_NL(nixWcWordTilNl, case ' ':)
+/* NIX_WCWORD_TIL_NL(nixWcWordTilNl, case ' ':) */
 NIX_WCWORD_TIL_NL(nixWcWordTilNlPipe, case '|':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlComma, case ',':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlDot, case '.':)
