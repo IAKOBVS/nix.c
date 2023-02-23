@@ -342,13 +342,6 @@ ALWAYS_INLINE int nixCountAlpha(const char *RESTRICT src)
 	return count;
 }
 
-ALWAYS_INLINE void nixSplitFree(char **RESTRICT arr, size_t arrLen)
-{
-	while (--arrLen)
-		free(arr[arrLen]);
-	free(arr);
-}
-
 #define NIX_WC(FUNC_NAME, DELIM) \
 inline int FUNC_NAME(const char *RESTRICT src) \
 { \
@@ -395,8 +388,6 @@ NIX_WCCHAR(nixWcCharAlphaDot, case '\n': case '\t': case '\r': case '.':)
 NIX_WCCHAR(nixWcCharAlphaPipe, case '\n': case '\t': case '\r': case '|':)
 NIX_WCCHAR(nixWcCharAlphaQuote, case '\n': case '\t': case '\r': case '\'':)
 NIX_WCCHAR(nixWcCharAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':)
-
-/* case '\\n': case '\\t': case '\\r': */
 
 #define NIX_WCWORD(FUNC_NAME, DELIM) \
 inline int FUNC_NAME(const char *RESTRICT src) \
