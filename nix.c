@@ -58,6 +58,18 @@ inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t sr
 	return 1;
 }
 
+inline int nixRevThis(char *RESTRICT dest, const size_t srcLen)
+{
+	char *src = malloc(srcLen);
+	memcpy(src, dest, srcLen);
+	const char *end = src + srcLen - 1;
+	while (end >= src)
+		*dest++ = *end--;
+	free(src);
+	*dest = '\0';
+	return 1;
+}
+
 ALWAYS_INLINE size_t nixSizeOfFile(const char *RESTRICT filename)
 {
 	struct stat st;
