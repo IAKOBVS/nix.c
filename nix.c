@@ -342,17 +342,13 @@ inline int nixWcWord(const char *RESTRICT src)
 	for ( ;; ++src) {
 		switch (*src) {
 		default:
-			if (inWord);
-			else inWord = 1;
+			inWord = 1;
 			continue;
 		case '\n':
 		case '\t':
 		case '\r':
 		case ' ':
-			if (inWord) {
-				++count;
-				inWord = 0;
-			}
+			count += inWord ? 1 : (inWord = 0);
 			continue;
 		case '\0':;
 		}
@@ -367,16 +363,12 @@ inline int nixWcWordTilNl(const char *RESTRICT src)
 	for ( ;; ++src) {
 		switch (*src) {
 		default:
-			if (inWord);
-			else inWord = 1;
+			inWord = 1;
 			continue;
 		case '\t':
 		case '\r':
 		case ' ':
-			if (inWord) {
-				++count;
-				inWord = 0;
-			}
+			count += inWord ? 1 : (inWord = 0);
 			continue;
 		case '\0':
 		case '\n':;
@@ -425,15 +417,10 @@ inline int FUNC_NAME(const char *RESTRICT src) \
 	for ( ;; ++src) { \
 		switch (*src) { \
 		DELIM \
-			if (inWord) { \
-				++count; \
-				inWord = 0; \
-			} \
+			count += inWord ? 1 : (inWord = 0); \
 			continue; \
 		default: \
-			if (inWord); \
-			else \
-				inWord = 1; \
+			inWord = 1; \
 			continue; \
 		case '\0':; \
 		} \
@@ -465,16 +452,10 @@ inline int FUNC_NAME(const char *RESTRICT src) \
 	for ( ;; ++src) { \
 		switch (*src) { \
 		DELIM \
-			if (inWord) { \
-				++count; \
-				inWord = 0; \
-			} \
+			count += inWord ? 1 : (inWord = 0); \
 			continue; \
 		default: \
-			if (inWord); \
-			else \
-				inWord = 1; \
-			continue; \
+			inWord = 1; \
 		case '\n': \
 		case '\0':; \
 		} \
