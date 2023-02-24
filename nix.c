@@ -51,6 +51,18 @@
 
 #define IF_ERROR(STATE, DO) if (STATE); else DO
 
+ALWAYS_INLINE int nixUpper(char *RESTRICT dest)
+{
+	while ((*dest = (isalpha(*dest)) ? toupper(*dest) : *dest)) ++dest;
+	return 1;
+}
+
+ALWAYS_INLINE int nixLower(char *RESTRICT dest)
+{
+	while ((*dest = (isalpha(*dest)) ? tolower(*dest) : *dest)) ++dest;
+	return 1;
+}
+
 inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
 {
 	for (const char *end = src + srcLen - 1; (*dest++ = end >= src ? *end-- : '\0'); );
