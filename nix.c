@@ -68,7 +68,7 @@ inline int nixRevSelf(char *RESTRICT dest, const size_t srcLen)
 	return 1;
 
 ERROR:
-	perror("nixRevThis");
+	perror("nixRevSelf");
 	return 0;
 }
 
