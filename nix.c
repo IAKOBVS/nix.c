@@ -266,21 +266,13 @@ ALWAYS_INLINE int nixCutLastDelim(char *RESTRICT dest, const char *RESTRICT src,
 
 ALWAYS_INLINE int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int nStr, const int delim)
 {
-	while (nStr--) {
-		while (*src != delim) ++src;
+	while (--nStr) {
+		while (*src != delim && *src) ++src;
 		while (*src == delim) ++src;
 	}
-	while ((*dest++ = *src++) != delim);
-	*--dest = '\0';
+	while (((*dest = *src++) != delim) && *dest++);
+	*dest = '\0';
 	return 1;
-}
-
-int main()
-{
-	char dest[100];
-	char *h = "hello world three";
-	nixCutDelim(dest, h, 2, ' ');
-	puts(dest);
 }
 
 ALWAYS_INLINE int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
@@ -470,3 +462,13 @@ NIX_WCWORD_TIL_NL(nixWcWordTilNlComma, case ',':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlDot, case '.':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlQuote, case '\'':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlDoubleQuote, case '"':)
+
+/* int main(int argc, char **argv) */
+/* { */
+/* 	char dest[100]; */
+/* 	char *buf = "hello world three"; */
+/* 	nixCutDelim(dest, buf, strtol(argv[1], NULL, 10), ' '); */
+/* 	puts(dest); */
+/* 	printf("%zu\n", strlen(dest)); */
+/* } */
+
