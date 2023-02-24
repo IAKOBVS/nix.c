@@ -64,6 +64,7 @@ inline int nixRevSelf(char *RESTRICT dest, const size_t srcLen)
 	else goto ERROR;
 	memcpy(src, dest, srcLen);
 	for (const char *end = src + srcLen - 1; (*dest++ = end >= src ? *end-- : '\0'); );
+	free(src);
 	return 1;
 
 ERROR:
