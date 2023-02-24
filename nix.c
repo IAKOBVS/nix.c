@@ -320,33 +320,21 @@ ALWAYS_INLINE int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr
 ALWAYS_INLINE int nixCountFunc(const char *RESTRICT src, const int c)
 {
 	int count = 0;
-	while (*src)
-		if (*src == c) ++count;
-	return count;
-}
-
-ALWAYS_INLINE int nixCountUnlikelyFunc(const char *RESTRICT src, const int c)
-{
-	int count = 0;
-	while (*src)
-		if (*src++ != c);
-		else ++count;
+	while ((*src == c) && (++count, 1), *src++);
 	return count;
 }
 
 ALWAYS_INLINE int nixCountDigit(const char *RESTRICT src)
 {
 	int count = 0;
-	while (*src)
-		if (isdigit(*src++)) ++count;
+	while (isdigit(*src) && (++count, 1), *src++);
 	return count;
 }
 
 ALWAYS_INLINE int nixCountAlpha(const char *RESTRICT src)
 {
 	int count = 0;
-	while (*src)
-		if (isalpha(*src++)) ++count;
+	while (isalpha(*src) && (++count, 1), *src++);
 	return count;
 }
 
