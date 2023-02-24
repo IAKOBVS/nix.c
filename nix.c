@@ -53,10 +53,7 @@
 
 inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
 {
-	
-	for (const char *end = src + srcLen - 1; end >= src; ++dest, --end)
-		*dest = *end;
-	*dest = '\0';
+	for (const char *end = src + srcLen - 1; (*dest++ = end >= src ? *end-- : '\0'); );
 	return 1;
 }
 
@@ -66,9 +63,7 @@ inline int nixRevSelf(char *RESTRICT dest, const size_t srcLen)
 	if (src);
 	else goto ERROR;
 	memcpy(src, dest, srcLen);
-	for (const char *end = src + srcLen - 1; end >= src; ++dest, --end)
-		*dest = *end;
-	*dest = '\0';
+	for (const char *end = src + srcLen - 1; (*dest++ = end >= src ? *end-- : '\0'); );
 	return 1;
 
 ERROR:
@@ -103,9 +98,8 @@ int nixFind(char *RESTRICT dest, const char *RESTRICT dir)
 	if (dp);
 	else goto ERROR;
 	for (char *RESTRICT filename; (ep = readdir(dp)); ) {
-		for (filename = ep->d_name; *filename; ++dest, ++filename)
-			*dest = *filename;
-		*dest++ = '\n';
+		filename = ep->d_name;
+		while ((*dest++ = *filename ? *filename++ : '\n') != '\n');
 	}
 	closedir(dp);
 	*--dest = '\0';
@@ -137,9 +131,7 @@ int nixFindAuto(char **RESTRICT dest, const char *RESTRICT dir)
 			else goto ERROR_FREE;
 			mallocSize = tmpSize;
 		}
-		for ( ; *filename; ++i, ++filename)
-			(*dest)[i] = *filename;
-		(*dest)[i++] = '\n';
+		while (((*dest)[i++] = *filename ? *filename++ : '\n') != '\n');
 	}
 	closedir(dp);
 	if ((*dest = realloc(*dest, i + 1)));
@@ -275,8 +267,8 @@ ALWAYS_INLINE int nixCutLastDelim(char *RESTRICT dest, const char *RESTRICT src,
 ALWAYS_INLINE int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int nStr, const int delim)
 {
 	while (nStr--) {
-		while (*src != delim) ++src;
-		while (*src == delim) ++src;
+		while (src += *src != delim ? 1 : 0);
+		while (src += *src == delim ? 1 : 0);
 	}
 	while ((*dest++ = *src++) != delim);
 	*--dest = '\0';
