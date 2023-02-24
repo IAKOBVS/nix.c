@@ -275,6 +275,14 @@ ALWAYS_INLINE int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int
 	return 1;
 }
 
+int main()
+{
+	char dest[100];
+	char *h = "hello world three";
+	nixCutDelim(dest, h, 2, ' ');
+	puts(dest);
+}
+
 ALWAYS_INLINE int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
 {
 	for (;;) {
