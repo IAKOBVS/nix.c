@@ -224,7 +224,7 @@ ERROR: \
 NIX_CAT_AUTO(nixCatAuto, fread)
 NIX_CAT_AUTO(nixCatAutoFast, fread_unlocked)
 
-ALWAYS_INLINE int nixCutFirst(char *RESTRICT dest, const char *RESTRICT src)
+inline int nixCutFirst(char *RESTRICT dest, const char *RESTRICT src)
 {
 	for (;;) {
 		switch (*src) {
@@ -250,7 +250,7 @@ ALWAYS_INLINE int nixCutFirstDelim(char *RESTRICT dest, const char *RESTRICT src
 	return 1;
 }
 
-ALWAYS_INLINE int nixCutLast(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
+inline int nixCutLast(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
 {
 	src += srcLen - 1;
 	for (;; --src) {
@@ -277,7 +277,7 @@ ALWAYS_INLINE int nixCutLastDelim(char *RESTRICT dest, const char *RESTRICT src,
 	return 1;
 }
 
-ALWAYS_INLINE int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int nStr, const int delim)
+inline int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int nStr, const int delim)
 {
 	while (--nStr) {
 		while (*src && (*src != delim)) ++src;
@@ -288,7 +288,7 @@ ALWAYS_INLINE int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int
 	return 1;
 }
 
-ALWAYS_INLINE int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
+inline int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
 {
 	for (;;) {
 		switch (*src++) {
