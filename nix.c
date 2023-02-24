@@ -53,9 +53,9 @@
 
 inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
 {
-	const char *end = src + srcLen - 1;
-	while (end >= src)
-		*dest++ = *end--;
+	
+	for (const char *end = src + srcLen - 1; end >= src; ++dest, --end)
+		*dest = *end;
 	*dest = '\0';
 	return 1;
 }
@@ -66,10 +66,8 @@ inline int nixRevThis(char *RESTRICT dest, const size_t srcLen)
 	if (src);
 	else goto ERROR;
 	memcpy(src, dest, srcLen);
-	const char *end = src + srcLen - 1;
-	while (end >= src)
-		*dest++ = *end--;
-	free(src);
+	for (const char *end = src + srcLen - 1; end >= src; ++dest, --end)
+		*dest = *end;
 	*dest = '\0';
 	return 1;
 
@@ -279,8 +277,8 @@ ALWAYS_INLINE int nixCutLastDelim(char *RESTRICT dest, const char *RESTRICT src,
 ALWAYS_INLINE int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int nStr, const int delim)
 {
 	while (nStr--) {
-		while (*src != delim) ++src;
-		while (*src == delim) ++src;
+		while (*src++ != delim);
+		while (*src++ == delim);
 	}
 	while ((*dest++ = *src++) != delim);
 	*--dest = '\0';
