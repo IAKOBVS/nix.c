@@ -464,11 +464,11 @@ NIX_WCWORD_TIL_NL(nixWcWordTilNlDot, case '.':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlQuote, case '\'':)
 NIX_WCWORD_TIL_NL(nixWcWordTilNlDoubleQuote, case '"':)
 
-int main(int argc, char **argv)
-{
-	char dest[100];
-	char *buf = "hello world three four";
-	nixCutDelim(dest, buf, strtol(argv[1], NULL, 10), ' ');
-	printf("%s\n", dest);
-	printf("%zu\n", strlen(dest));
-}
+/* int main(int argc, char **argv) */
+/* { */
+/* 	char dest[100]; */
+/* 	char *buf = "hello world three four"; */
+/* 	nixCutDelim(dest, buf, strtol(argv[1], NULL, 10), ' '); */
+/* 	printf("%s\n", dest); */
+/* 	printf("%zu\n", strlen(dest)); */
+/* } */
