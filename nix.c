@@ -267,8 +267,8 @@ ALWAYS_INLINE int nixCutLastDelim(char *RESTRICT dest, const char *RESTRICT src,
 ALWAYS_INLINE int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int nStr, const int delim)
 {
 	while (nStr--) {
-		while (src += *src != delim ? 1 : 0);
-		while (src += *src == delim ? 1 : 0);
+		while (*src != delim) ++src;
+		while (*src == delim) ++src;
 	}
 	while ((*dest++ = *src++) != delim);
 	*--dest = '\0';
