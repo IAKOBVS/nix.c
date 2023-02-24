@@ -268,17 +268,17 @@ ALWAYS_INLINE int nixCutLast(char *RESTRICT dest, const char *RESTRICT src, cons
 ALWAYS_INLINE int nixCutLastDelim(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen, const int delim)
 {
 	src += srcLen - 1;
-	while (*src != delim) --src;
+	while (*src-- != delim);
+	++src;
 	while ((*dest++ = *++src));
 	return 1;
 }
 
-
 ALWAYS_INLINE int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int nStr, const int delim)
 {
 	while (nStr--) {
-		while (*src++ != delim);
-		while (*src++ == delim);
+		while (*src != delim) ++src;
+		while (*src == delim) ++src;
 	}
 	while ((*dest++ = *src++) != delim);
 	*--dest = '\0';
@@ -289,17 +289,14 @@ ALWAYS_INLINE int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr
 {
 	for (;;) {
 		switch (*src++) {
-		default:
-			continue;
-		case '\0':
-			break;
 		case '\n':
 		case '\t':
 		case '\r':
 		case ' ':
 			if (--nStr)
+		default:
 				continue;
-			break;
+		case '\0':;
 		}
 		break;
 	}
