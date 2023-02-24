@@ -265,13 +265,13 @@ ALWAYS_INLINE int nixCutLastDelim(char *RESTRICT dest, const char *RESTRICT src,
 	return 1;
 }
 
-ALWAYS_INLINE int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int nStr, const int delim)
+ALWAYS_INLINE int nixCutDelimSafe(char *RESTRICT dest, const char *RESTRICT src, int nStr, const int delim)
 {
 	while (--nStr) {
-		while (*src != delim && *src) ++src;
+		while (*src && *src != delim) ++src;
 		while (*src == delim) ++src;
 	}
-	while (((*dest = *src++) != delim) && *dest++);
+	while ((*dest = *src++) && *dest++ != delim);
 	*dest = '\0';
 	return 1;
 }
