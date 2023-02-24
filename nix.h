@@ -37,7 +37,7 @@ int nixCountDigit(const char *RESTRICT src);
 int nixCountAlpha(const char *RESTRICT src);
 
 int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen);
-int nixRevThis(char *RESTRICT dest, const size_t srcLen);
+int nixRevSelf(char *RESTRICT dest, const size_t srcLen);
 
 int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr);
 int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int nStr, const int delim);

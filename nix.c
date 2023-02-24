@@ -60,7 +60,7 @@ inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t sr
 	return 1;
 }
 
-inline int nixRevThis(char *RESTRICT dest, const size_t srcLen)
+inline int nixRevSelf(char *RESTRICT dest, const size_t srcLen)
 {
 	char *src = malloc(srcLen);
 	if (src);
