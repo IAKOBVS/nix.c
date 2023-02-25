@@ -69,13 +69,13 @@ inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t sr
 	return 1;
 }
 
-inline int nixRevSelf(char *RESTRICT dest, const size_t srcLen)
+inline int nixRevSelf(char *RESTRICT dest, const size_t destLen)
 {
-	char *src = malloc(srcLen);
+	char *src = malloc(destLen);
 	if (src);
 	else goto ERROR;
-	memcpy(src, dest, srcLen + 1);
-	for (const char *end = src + srcLen - 1; (*dest++ = end >= src ? *end-- : '\0'); );
+	memcpy(src, dest, destLen);
+	for (const char *end = src + destLen - 1; (*dest++ = end >= src ? *end-- : '\0'); );
 	free(src);
 	return 1;
 
