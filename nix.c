@@ -131,10 +131,10 @@ int nixFindAuto(char **RESTRICT dest, const char *RESTRICT dir)
 		char *RESTRICT filename = ep->d_name;
 		tmpLen = mallocSize + strlen(filename);
 		tmpSize = mallocSize;
-		if (tmpLen > mallocSize) {
+		if (tmpLen > tmpSize) {
 			do {
 				tmpSize *= 2;
-			} while (tmpLen > mallocSize);
+			} while (tmpLen > tmpSize);
 			if (likely((*dest = realloc(*dest, tmpSize))));
 			else goto ERROR_FREE;
 			mallocSize = tmpSize;
