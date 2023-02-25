@@ -65,7 +65,7 @@ ALWAYS_INLINE int nixLower(char *RESTRICT dest)
 
 inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
 {
-	for (const char *end = src + srcLen - 1; (*dest++ = end >= src ? *end-- : '\0'); );
+	for (const char *RESTRICT end = src + srcLen - 1; (*dest++ = end >= src ? *end-- : '\0'); );
 	return 1;
 }
 
