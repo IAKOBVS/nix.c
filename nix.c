@@ -74,7 +74,7 @@ inline int nixRevSelf(char *RESTRICT dest, const size_t srcLen)
 	char *src = malloc(srcLen);
 	if (src);
 	else goto ERROR;
-	memcpy(src, dest, srcLen);
+	memcpy(src, dest, srcLen + 1);
 	for (const char *end = src + srcLen - 1; (*dest++ = end >= src ? *end-- : '\0'); );
 	free(src);
 	return 1;
