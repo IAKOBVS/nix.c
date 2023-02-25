@@ -71,17 +71,12 @@ inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t sr
 
 inline int nixRevSelf(char *RESTRICT dest, const size_t destLen)
 {
-	char *src = malloc(destLen);
-	if (src);
-	else goto ERROR;
-	memcpy(src, dest, destLen);
-	for (const char *end = src + destLen - 1; (*dest++ = end >= src ? *end-- : '\0'); );
-	free(src);
+	for (size_t i = 0, j = destLen - 1; i < j; ++i, --j) {
+		const char tmp = dest[i];
+		dest[i] = dest[j];
+		dest[j] = tmp;
+	}
 	return 1;
-
-ERROR:
-	perror("nixRevSelf");
-	return 0;
 }
 
 ALWAYS_INLINE size_t nixSizeOfFile(const char *RESTRICT filename)
