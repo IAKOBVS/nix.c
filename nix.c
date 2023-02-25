@@ -49,7 +49,7 @@
 #define MIN_MALLOC 16000
 #define CASE_WHITESPACE case '\n': case '\t': case '\r':
 
-#define IF_ERROR(STATE, DO) if (STATE); else DO
+#define IF_ERROR(STATE, DO) if (likely(STATE)); else DO
 
 ALWAYS_INLINE int nixUpper(char *RESTRICT dest)
 {
@@ -88,7 +88,7 @@ ALWAYS_INLINE size_t nixSizeOfFile(const char *RESTRICT filename)
 int nixTee(char *RESTRICT dest, const char *RESTRICT flag, const char *RESTRICT filename)
 {
 	FILE *RESTRICT fp = fopen(filename, flag);
-	if (fp);
+	if (likely(fp));
 	else goto ERROR;
 	fputs(dest, fp);
 	fclose(fp);
@@ -103,7 +103,7 @@ int nixFind(char *RESTRICT dest, const char *RESTRICT dir)
 {
 	struct dirent *RESTRICT ep;
 	DIR *RESTRICT dp = opendir(dir);
-	if (dp);
+	if (likely(dp));
 	else goto ERROR;
 	for (char *RESTRICT filename; (ep = readdir(dp)); ) {
 		filename = ep->d_name;
@@ -122,9 +122,9 @@ int nixFindAuto(char **RESTRICT dest, const char *RESTRICT dir)
 {
 	struct dirent *ep;
 	DIR *RESTRICT dp = opendir(dir);
-	if (dp);
+	if (likely(dp));
 	else goto ERROR;
-	if ((*dest = malloc(MIN_MALLOC)));
+	if (likely((*dest = malloc(MIN_MALLOC))));
 	else goto ERROR;
 	size_t i = 0;
 	for (size_t tmpLen, tmpSize, mallocSize = MIN_MALLOC; (ep = readdir(dp)); ) {
@@ -135,14 +135,14 @@ int nixFindAuto(char **RESTRICT dest, const char *RESTRICT dir)
 			do {
 				tmpSize *= 2;
 			} while (tmpLen > mallocSize);
-			if ((*dest = realloc(*dest, tmpSize)));
+			if (likely((*dest = realloc(*dest, tmpSize))));
 			else goto ERROR_FREE;
 			mallocSize = tmpSize;
 		}
 		while (((*dest)[i++] = *filename ? *filename++ : '\n') != '\n');
 	}
 	closedir(dp);
-	if ((*dest = realloc(*dest, i + 1)));
+	if (likely((*dest = realloc(*dest, i + 1))));
 	else goto ERROR_FREE;
 	(*dest)[--i] = '\0';
 	return i;
@@ -157,7 +157,7 @@ ERROR:
 int nixHead(char *RESTRICT dest, const char *RESTRICT filename)
 {
 	FILE *RESTRICT fp = fopen(filename, "r");
-	if (!fp);
+	if (likely(fp));
 	else goto ERROR;
 	fgets(dest, 256, fp);
 	fclose(fp);
@@ -172,9 +172,9 @@ ERROR:
 int FUNC_NAME(char *RESTRICT dest, const char *RESTRICT filename, const size_t fileSize) \
 { \
 	FILE *RESTRICT fp = fopen(filename, "r"); \
-	if (!fp); \
+	if (likely(fp)); \
 	else goto ERROR; \
-	if (FREAD(dest, 1, fileSize, fp)); \
+	if (likely(FREAD(dest, 1, fileSize, fp))); \
 	else goto ERROR_CLOSE; \
 	fclose(fp); \
 	dest[fileSize] = '\0'; \
@@ -194,14 +194,14 @@ NIX_CAT(nixCatFast, fread_unlocked)
 int FUNC_NAME(char **RESTRICT dest, const char *RESTRICT filename) \
 { \
 	const size_t fileSize = nixSizeOfFile(filename); \
-	if ((fileSize)); \
+	if (likely((fileSize))); \
 	else goto ERROR; \
 	FILE *RESTRICT fp = fopen(filename, "r"); \
-	if (fp); \
+	if (likely(fp)); \
 	else goto ERROR; \
-	if ((*dest = malloc(fileSize))); \
+	if (likely((*dest = malloc(fileSize)))); \
 	else goto ERROR_CLOSE; \
-	if (FREAD(*dest, 1, fileSize, fp)); \
+	if (likely(FREAD(*dest, 1, fileSize, fp))); \
 	else goto ERROR_CLOSE_FREE; \
 	fclose(fp); \
 	(*dest)[fileSize] = '\0'; \
