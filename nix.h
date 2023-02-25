@@ -17,8 +17,6 @@
 extern "C" {
 #endif
 
-size_t nixSizeOfFile(const char *RESTRICT filename);
-
 #define nixCount(COUNT, SRC, CHAR)        \
 	do {                              \
 		for ( ;; ++src) {         \
@@ -32,6 +30,8 @@ size_t nixSizeOfFile(const char *RESTRICT filename);
 			break;            \
 		}                         \
 	} while (0)
+
+size_t nixSizeOfFile(const char *RESTRICT filename);
 
 int nixCountFunc(const char *RESTRICT src, const int c);
 int nixCountFuncUnlikely(const char *RESTRICT src, const int c);
@@ -49,9 +49,11 @@ int nixCutFirstDelim(char *RESTRICT dest, const char *RESTRICT src, const int de
 int nixCutLast(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen);
 int nixCutLastDelim(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen, const int delim);
 
-/* flags: */
-/* 'w' = overwrite */
-/* 'a' = append */
+/*
+flags:
+'w' = overwrite
+'a' = append
+*/
 int nixTee(char *RESTRICT dest, const char *RESTRICT flag, const char *RESTRICT filename);
 
 /* get first line of file */
