@@ -95,7 +95,6 @@ int nixTee(char *RESTRICT dest, const char *RESTRICT flag, const char *RESTRICT 
 	return 1;
 
 ERROR:
-	perror(CURR_FUNC);
 	return 0;
 }
 
@@ -114,7 +113,6 @@ int nixFind(char *RESTRICT dest, const char *RESTRICT dir)
 	return 1;
 
 ERROR:
-	perror(CURR_FUNC);
 	return 0;
 }
 
@@ -148,7 +146,6 @@ int nixFindAuto(char **RESTRICT dest, const char *RESTRICT dir)
 ERROR_FREE:
 	free(*dest);
 ERROR:
-	perror(CURR_FUNC);
 	return 0;
 }
 
@@ -156,14 +153,10 @@ int nixHead(char *RESTRICT dest, const char *RESTRICT filename)
 {
 	FILE *RESTRICT fp = fopen(filename, "r");
 	if (likely(fp));
-	else goto ERROR;
+	else return 0;
 	fgets(dest, 256, fp);
 	fclose(fp);
 	return 1;
-
-ERROR:
-	perror(CURR_FUNC);
-	return 0;
 }
 
 #define NIX_CAT(FUNC_NAME, FREAD) \
@@ -181,7 +174,6 @@ int FUNC_NAME(char *RESTRICT dest, const char *RESTRICT filename, const size_t f
 ERROR_CLOSE: \
 	fclose(fp); \
 ERROR: \
-	perror(CURR_FUNC); \
 	return 0; \
 }
 
@@ -210,7 +202,6 @@ ERROR_CLOSE_FREE: \
 ERROR_CLOSE: \
 	fclose(fp); \
 ERROR: \
-	perror(CURR_FUNC); \
 	return 0; \
 }
 
