@@ -41,7 +41,6 @@ int nixRevAuto(char **RESTRICT dest, const char *RESTRICT src, const size_t srcL
 int nixRevSelfHeap(char *RESTRICT dest, const size_t srcLen);
 int nixRevSelf(char *RESTRICT dest, const size_t srcLen);
 
-int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr);
 int nixCutDelim(char *RESTRICT dest, const char *RESTRICT src, int nStr, const int delim);
 int nixCutFirst(char *RESTRICT dest, const char *RESTRICT src);
 int nixCutFirstDelim(char *RESTRICT dest, const char *RESTRICT src, const int delim);
