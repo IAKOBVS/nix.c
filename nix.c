@@ -157,50 +157,50 @@ int nix_head(char *RESTRICT dest, const char *RESTRICT filename)
 	return 1;
 }
 
-#define NIX_CAT(FUNC_NAME, FREAD)                                                       \
-int FUNC_NAME(char *RESTRICT dest, const char *RESTRICT filename, const size_t file_size)\
-{                                                                                       \
-	FILE *RESTRICT fp = fopen(filename, "r");                                       \
-	if (likely(fp));                                                                \
-	else goto ERROR;                                                                \
-	if (likely(FREAD(dest, 1, file_size, fp)));                                      \
-	else goto ERROR_CLOSE;                                                          \
-	fclose(fp);                                                                     \
-	dest[file_size] = '\0';                                                          \
-	return 1;                                                                       \
-                                                                                        \
-ERROR_CLOSE:                                                                            \
-	fclose(fp);                                                                     \
-ERROR:                                                                                  \
-	return 0;                                                                       \
+#define NIX_CAT(FUNC_NAME, FREAD)                                                         \
+int FUNC_NAME(char *RESTRICT dest, const char *RESTRICT filename, const size_t file_size) \
+{                                                                                         \
+	FILE *RESTRICT fp = fopen(filename, "r");                                         \
+	if (likely(fp));                                                                  \
+	else goto ERROR;                                                                  \
+	if (likely(FREAD(dest, 1, file_size, fp)));                                       \
+	else goto ERROR_CLOSE;                                                            \
+	fclose(fp);                                                                       \
+	dest[file_size] = '\0';                                                           \
+	return 1;                                                                         \
+                                                                                          \
+ERROR_CLOSE:                                                                              \
+	fclose(fp);                                                                       \
+ERROR:                                                                                    \
+	return 0;                                                                         \
 }
 
 NIX_CAT(nix_cat, fread)
 NIX_CAT(nix_cat_fast, fread_unlocked)
 
-#define NIX_CAT_AUTO(FUNC_NAME, FREAD)                            \
-int FUNC_NAME(char **RESTRICT dest, const char *RESTRICT filename)\
-{                                                                 \
-	const size_t file_size = nix_size_of_file(filename);          \
+#define NIX_CAT_AUTO(FUNC_NAME, FREAD)                             \
+int FUNC_NAME(char **RESTRICT dest, const char *RESTRICT filename) \
+{                                                                  \
+	const size_t file_size = nix_size_of_file(filename);       \
 	if (likely((file_size)));                                  \
-	else goto ERROR;                                          \
-	FILE *RESTRICT fp = fopen(filename, "r");                 \
-	if (likely(fp));                                          \
-	else goto ERROR;                                          \
+	else goto ERROR;                                           \
+	FILE *RESTRICT fp = fopen(filename, "r");                  \
+	if (likely(fp));                                           \
+	else goto ERROR;                                           \
 	if (likely((*dest = malloc(file_size))));                  \
-	else goto ERROR_CLOSE;                                    \
+	else goto ERROR_CLOSE;                                     \
 	if (likely(FREAD(*dest, 1, file_size, fp)));               \
-	else goto ERROR_CLOSE_FREE;                               \
-	fclose(fp);                                               \
+	else goto ERROR_CLOSE_FREE;                                \
+	fclose(fp);                                                \
 	(*dest)[file_size] = '\0';                                 \
-	return 1;                                                 \
-                                                                  \
-ERROR_CLOSE_FREE:                                                 \
-	free(*dest);                                              \
-ERROR_CLOSE:                                                      \
-	fclose(fp);                                               \
-ERROR:                                                            \
-	return 0;                                                 \
+	return 1;                                                  \
+                                                                   \
+ERROR_CLOSE_FREE:                                                  \
+	free(*dest);                                               \
+ERROR_CLOSE:                                                       \
+	fclose(fp);                                                \
+ERROR:                                                             \
+	return 0;                                                  \
 }
 
 NIX_CAT_AUTO(nix_cat_auto, fread)
@@ -354,20 +354,20 @@ inline int nix_wc_word_til_nl(const char *RESTRICT src)
 	return in_word ? ++count : count;
 }
 
-#define NIX_WCCHAR(FUNC_NAME, DELIM)          \
-inline int FUNC_NAME(const char *RESTRICT src)\
-{                                             \
-	int count = 0;                        \
-	for ( ;; ++src) {                     \
-		switch (*src) {               \
-		DELIM                         \
-			continue;             \
-		default:                      \
-			++count;              \
-		case '\0':;                   \
-		}                             \
-	}                                     \
-	return count;                         \
+#define NIX_WCCHAR(FUNC_NAME, DELIM)           \
+inline int FUNC_NAME(const char *RESTRICT src) \
+{                                              \
+	int count = 0;                         \
+	for ( ;; ++src) {                      \
+		switch (*src) {                \
+		DELIM                          \
+			continue;              \
+		default:                       \
+			++count;               \
+		case '\0':;                    \
+		}                              \
+	}                                      \
+	return count;                          \
 }
 
 NIX_WCCHAR(nix_wc_char, case ' ':)
@@ -386,23 +386,23 @@ NIX_WCCHAR(nix_wc_char_alpha_pipe, case '\n': case '\t': case '\r': case '|':)
 NIX_WCCHAR(nix_wc_char_alpha_quote, case '\n': case '\t': case '\r': case '\'':)
 NIX_WCCHAR(nix_wc_char_alpha_double_quote, case '\n': case '\t': case '\r': case '"':)
 
-#define NIX_WCWORD(FUNC_NAME, DELIM)                       \
-inline int FUNC_NAME(const char *RESTRICT src)             \
-{                                                          \
-	int in_word = 0, count = 0;                         \
-	for ( ;; ++src) {                                  \
-		switch (*src) {                            \
-		DELIM                                      \
-			count += in_word ? 1 : (in_word = 0);\
-			continue;                          \
-		default:                                   \
-			in_word = 1;                        \
-			continue;                          \
-		case '\0':;                                \
-		}                                          \
-		break;                                     \
-	}                                                  \
-	return in_word ? ++count : count;                   \
+#define NIX_WCWORD(FUNC_NAME, DELIM)                          \
+inline int FUNC_NAME(const char *RESTRICT src)                \
+{                                                             \
+	int in_word = 0, count = 0;                           \
+	for ( ;; ++src) {                                     \
+		switch (*src) {                               \
+		DELIM                                         \
+			count += in_word ? 1 : (in_word = 0); \
+			continue;                             \
+		default:                                      \
+			in_word = 1;                          \
+			continue;                             \
+		case '\0':;                                   \
+		}                                             \
+		break;                                        \
+	}                                                     \
+	return in_word ? ++count : count;                     \
 }
 
 /* NIX_WCWORD(nix_wc_word, case ' ':) */
