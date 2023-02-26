@@ -49,27 +49,27 @@
 #define MIN_MALLOC 16000
 #define CASE_WHITESPACE case '\n': case '\t': case '\r':
 
-ALWAYS_INLINE int nixUpper(char *RESTRICT dest)
+ALWAYS_INLINE int nix_upper(char *RESTRICT dest)
 {
 	while ((*dest = (isalpha(*dest)) ? toupper(*dest) : *dest)) ++dest;
 	return 1;
 }
 
-ALWAYS_INLINE int nixLower(char *RESTRICT dest)
+ALWAYS_INLINE int nix_lower(char *RESTRICT dest)
 {
 	while ((*dest = (isalpha(*dest)) ? tolower(*dest) : *dest)) ++dest;
 	return 1;
 }
 
-inline int nixRev(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
+inline int nix_rev(char *RESTRICT dest, const char *RESTRICT src, const size_t src_len)
 {
-	for (const char *RESTRICT end = src + srcLen - 1; (*dest++ = end >= src ? *end-- : '\0'); );
+	for (const char *RESTRICT end = src + src_len - 1; (*dest++ = end >= src ? *end-- : '\0'); );
 	return 1;
 }
 
-inline int nixRevSelf(char *RESTRICT dest, const size_t destLen)
+inline int nix_rev_self(char *RESTRICT dest, const size_t dest_len)
 {
-	for (size_t i = 0, j = destLen - 1; i < j; ++i, --j) {
+	for (size_t i = 0, j = dest_len - 1; i < j; ++i, --j) {
 		const char tmp = dest[i];
 		dest[i] = dest[j];
 		dest[j] = tmp;
@@ -77,13 +77,13 @@ inline int nixRevSelf(char *RESTRICT dest, const size_t destLen)
 	return 1;
 }
 
-ALWAYS_INLINE size_t nixSizeOfFile(const char *RESTRICT filename)
+ALWAYS_INLINE size_t nix_size_of_file(const char *RESTRICT filename)
 {
 	struct stat st;
 	return (!stat(filename, &st) ? st.st_size : 0);
 }
 
-int nixTee(char *RESTRICT dest, const char *RESTRICT flag, const char *RESTRICT filename)
+int nix_tee(char *RESTRICT dest, const char *RESTRICT flag, const char *RESTRICT filename)
 {
 	FILE *RESTRICT fp = fopen(filename, flag);
 	if (likely(fp));
@@ -96,7 +96,7 @@ ERROR:
 	return 0;
 }
 
-int nixFind(char *RESTRICT dest, const char *RESTRICT dir)
+int nix_find(char *RESTRICT dest, const char *RESTRICT dir)
 {
 	struct dirent *RESTRICT ep;
 	DIR *RESTRICT dp = opendir(dir);
@@ -114,7 +114,7 @@ ERROR:
 	return 0;
 }
 
-int nixFindAuto(char **RESTRICT dest, const char *RESTRICT dir)
+int nix_find_auto(char **RESTRICT dest, const char *RESTRICT dir)
 {
 	struct dirent *ep;
 	DIR *RESTRICT dp = opendir(dir);
@@ -123,14 +123,14 @@ int nixFindAuto(char **RESTRICT dest, const char *RESTRICT dir)
 	if (likely((*dest = malloc(MIN_MALLOC))));
 	else goto ERROR;
 	size_t i = 0;
-	for (size_t tmpLen, mallocSize = MIN_MALLOC; (ep = readdir(dp)); ) {
+	for (size_t tmp_len, malloc_size = MIN_MALLOC; (ep = readdir(dp)); ) {
 		char *RESTRICT filename = ep->d_name;
-		tmpLen = mallocSize + strlen(filename);
-		if (tmpLen > mallocSize) {
+		tmp_len = malloc_size + strlen(filename);
+		if (tmp_len > malloc_size) {
 			do {
-				mallocSize *= 2;
-			} while (tmpLen > mallocSize);
-			if (likely((*dest = realloc(*dest, mallocSize))));
+				malloc_size *= 2;
+			} while (tmp_len > malloc_size);
+			if (likely((*dest = realloc(*dest, malloc_size))));
 			else goto ERROR_FREE;
 		}
 		while (((*dest)[i++] = *filename ? *filename++ : '\n') != '\n');
@@ -147,7 +147,7 @@ ERROR:
 	return 0;
 }
 
-int nixHead(char *RESTRICT dest, const char *RESTRICT filename)
+int nix_head(char *RESTRICT dest, const char *RESTRICT filename)
 {
 	FILE *RESTRICT fp = fopen(filename, "r");
 	if (likely(fp));
@@ -158,15 +158,15 @@ int nixHead(char *RESTRICT dest, const char *RESTRICT filename)
 }
 
 #define NIX_CAT(FUNC_NAME, FREAD)                                                       \
-int FUNC_NAME(char *RESTRICT dest, const char *RESTRICT filename, const size_t fileSize)\
+int FUNC_NAME(char *RESTRICT dest, const char *RESTRICT filename, const size_t file_size)\
 {                                                                                       \
 	FILE *RESTRICT fp = fopen(filename, "r");                                       \
 	if (likely(fp));                                                                \
 	else goto ERROR;                                                                \
-	if (likely(FREAD(dest, 1, fileSize, fp)));                                      \
+	if (likely(FREAD(dest, 1, file_size, fp)));                                      \
 	else goto ERROR_CLOSE;                                                          \
 	fclose(fp);                                                                     \
-	dest[fileSize] = '\0';                                                          \
+	dest[file_size] = '\0';                                                          \
 	return 1;                                                                       \
                                                                                         \
 ERROR_CLOSE:                                                                            \
@@ -175,24 +175,24 @@ ERROR:                                                                          
 	return 0;                                                                       \
 }
 
-NIX_CAT(nixCat, fread)
-NIX_CAT(nixCatFast, fread_unlocked)
+NIX_CAT(nix_cat, fread)
+NIX_CAT(nix_cat_fast, fread_unlocked)
 
 #define NIX_CAT_AUTO(FUNC_NAME, FREAD)                            \
 int FUNC_NAME(char **RESTRICT dest, const char *RESTRICT filename)\
 {                                                                 \
-	const size_t fileSize = nixSizeOfFile(filename);          \
-	if (likely((fileSize)));                                  \
+	const size_t file_size = nix_size_of_file(filename);          \
+	if (likely((file_size)));                                  \
 	else goto ERROR;                                          \
 	FILE *RESTRICT fp = fopen(filename, "r");                 \
 	if (likely(fp));                                          \
 	else goto ERROR;                                          \
-	if (likely((*dest = malloc(fileSize))));                  \
+	if (likely((*dest = malloc(file_size))));                  \
 	else goto ERROR_CLOSE;                                    \
-	if (likely(FREAD(*dest, 1, fileSize, fp)));               \
+	if (likely(FREAD(*dest, 1, file_size, fp)));               \
 	else goto ERROR_CLOSE_FREE;                               \
 	fclose(fp);                                               \
-	(*dest)[fileSize] = '\0';                                 \
+	(*dest)[file_size] = '\0';                                 \
 	return 1;                                                 \
                                                                   \
 ERROR_CLOSE_FREE:                                                 \
@@ -203,10 +203,10 @@ ERROR:                                                            \
 	return 0;                                                 \
 }
 
-NIX_CAT_AUTO(nixCatAuto, fread)
-NIX_CAT_AUTO(nixCatAutoFast, fread_unlocked)
+NIX_CAT_AUTO(nix_cat_auto, fread)
+NIX_CAT_AUTO(nix_cat_auto_fast, fread_unlocked)
 
-inline int nixCutFirst(char *RESTRICT dest, const char *RESTRICT src)
+inline int nix_cut_first(char *RESTRICT dest, const char *RESTRICT src)
 {
 	for (;;) {
 		switch (*src) {
@@ -225,16 +225,16 @@ inline int nixCutFirst(char *RESTRICT dest, const char *RESTRICT src)
 	return 1;
 }
 
-ALWAYS_INLINE int nixCutFirstDelim(char *RESTRICT dest, const char *RESTRICT src, const int delim)
+ALWAYS_INLINE int nix_cut_first_delim(char *RESTRICT dest, const char *RESTRICT src, const int delim)
 {
 	while ((*dest++ = *src++) != delim);
 	*--dest = '\0';
 	return 1;
 }
 
-inline int nixCutLast(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen)
+inline int nix_cut_last(char *RESTRICT dest, const char *RESTRICT src, const size_t src_len)
 {
-	src += srcLen - 1;
+	src += src_len - 1;
 	for (;; --src) {
 		switch (*src) {
 		default:
@@ -250,16 +250,16 @@ inline int nixCutLast(char *RESTRICT dest, const char *RESTRICT src, const size_
 	return 1;
 }
 
-ALWAYS_INLINE int nixCutLastDelim(char *RESTRICT dest, const char *RESTRICT src, const size_t srcLen, const int delim)
+ALWAYS_INLINE int nix_cut_last_delim(char *RESTRICT dest, const char *RESTRICT src, const size_t src_len, const int delim)
 {
-	src += srcLen - 1;
+	src += src_len - 1;
 	while (*src-- != delim);
 	++src;
 	while ((*dest++ = *++src));
 	return 1;
 }
 
-inline int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
+inline int nix_cut(char *RESTRICT dest, const char *RESTRICT src, int n_str)
 {
 	for (;;) {
 		switch (*src++) {
@@ -267,7 +267,7 @@ inline int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
 		case '\t':
 		case '\r':
 		case ' ':
-			if (--nStr)
+			if (--n_str)
 		default:
 				continue;
 		case '\0':;
@@ -291,67 +291,67 @@ inline int nixCut(char *RESTRICT dest, const char *RESTRICT src, int nStr)
 	return 1;
 }
 
-ALWAYS_INLINE int nixCountFunc(const char *RESTRICT src, const int c)
+ALWAYS_INLINE int nix_count_func(const char *RESTRICT src, const int c)
 {
 	int count = 0;
 	while ((count += (*src == c) ? 1 : 0), *src++);
 	return count;
 }
 
-ALWAYS_INLINE int nixCountDigit(const char *RESTRICT src)
+ALWAYS_INLINE int nix_count_digit(const char *RESTRICT src)
 {
 	int count = 0;
 	while ((count += isdigit(*src) ? 1 : 0), *src++);
 	return count;
 }
 
-ALWAYS_INLINE int nixCountAlpha(const char *RESTRICT src)
+ALWAYS_INLINE int nix_count_alpha(const char *RESTRICT src)
 {
 	int count = 0;
 	while ((count += isalpha(*src) ? 1 : 0), *src++);
 	return count;
 }
 
-inline int nixWcWord(const char *RESTRICT src)
+inline int nix_wc_word(const char *RESTRICT src)
 {
-	int inWord = 0, count = 0;
+	int in_word = 0, count = 0;
 	for ( ;; ++src) {
 		switch (*src) {
 		default:
-			inWord = 1;
+			in_word = 1;
 			continue;
 		case '\n':
 		case '\t':
 		case '\r':
 		case ' ':
-			count += inWord ? 1 : (inWord = 0);
+			count += in_word ? 1 : (in_word = 0);
 			continue;
 		case '\0':;
 		}
 		break;
 	}
-	return inWord ? ++count : count;
+	return in_word ? ++count : count;
 }
 
-inline int nixWcWordTilNl(const char *RESTRICT src)
+inline int nix_wc_word_til_nl(const char *RESTRICT src)
 {
-	int inWord = 0, count = 0;
+	int in_word = 0, count = 0;
 	for ( ;; ++src) {
 		switch (*src) {
 		default:
-			inWord = 1;
+			in_word = 1;
 			continue;
 		case '\t':
 		case '\r':
 		case ' ':
-			count += inWord ? 1 : (inWord = 0);
+			count += in_word ? 1 : (in_word = 0);
 			continue;
 		case '\0':
 		case '\n':;
 		}
 		break;
 	}
-	return inWord ? ++count : count;
+	return in_word ? ++count : count;
 }
 
 #define NIX_WCCHAR(FUNC_NAME, DELIM)          \
@@ -370,88 +370,88 @@ inline int FUNC_NAME(const char *RESTRICT src)\
 	return count;                         \
 }
 
-NIX_WCCHAR(nixWcChar, case ' ':)
-NIX_WCCHAR(nixWcCharComma, case ',':)
-NIX_WCCHAR(nixWcCharDot, case '.':)
-NIX_WCCHAR(nixWcCharPipe, case '|':)
-NIX_WCCHAR(nixWcCharQuote, case '\'':)
-NIX_WCCHAR(nixWcCharDoubleQuote, case '"':)
-NIX_WCCHAR(nixWcCharTab, case '\t':)
-NIX_WCCHAR(nixWcCharNl, case '\n':)
+NIX_WCCHAR(nix_wc_char, case ' ':)
+NIX_WCCHAR(nix_wc_char_comma, case ',':)
+NIX_WCCHAR(nix_wc_char_dot, case '.':)
+NIX_WCCHAR(nix_wc_char_pipe, case '|':)
+NIX_WCCHAR(nix_wc_char_quote, case '\'':)
+NIX_WCCHAR(nix_wc_char_double_quote, case '"':)
+NIX_WCCHAR(nix_wc_char_tab, case '\t':)
+NIX_WCCHAR(nix_wc_char_nl, case '\n':)
 
-NIX_WCCHAR(nixWcCharAlpha, case '\n': case '\t': case '\r': case ' ':)
-NIX_WCCHAR(nixWcCharAlphaComma, case '\n': case '\t': case '\r': case ',':)
-NIX_WCCHAR(nixWcCharAlphaDot, case '\n': case '\t': case '\r': case '.':)
-NIX_WCCHAR(nixWcCharAlphaPipe, case '\n': case '\t': case '\r': case '|':)
-NIX_WCCHAR(nixWcCharAlphaQuote, case '\n': case '\t': case '\r': case '\'':)
-NIX_WCCHAR(nixWcCharAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':)
+NIX_WCCHAR(nix_wc_char_alpha, case '\n': case '\t': case '\r': case ' ':)
+NIX_WCCHAR(nix_wc_char_alpha_comma, case '\n': case '\t': case '\r': case ',':)
+NIX_WCCHAR(nix_wc_char_alpha_dot, case '\n': case '\t': case '\r': case '.':)
+NIX_WCCHAR(nix_wc_char_alpha_pipe, case '\n': case '\t': case '\r': case '|':)
+NIX_WCCHAR(nix_wc_char_alpha_quote, case '\n': case '\t': case '\r': case '\'':)
+NIX_WCCHAR(nix_wc_char_alpha_double_quote, case '\n': case '\t': case '\r': case '"':)
 
 #define NIX_WCWORD(FUNC_NAME, DELIM)                       \
 inline int FUNC_NAME(const char *RESTRICT src)             \
 {                                                          \
-	int inWord = 0, count = 0;                         \
+	int in_word = 0, count = 0;                         \
 	for ( ;; ++src) {                                  \
 		switch (*src) {                            \
 		DELIM                                      \
-			count += inWord ? 1 : (inWord = 0);\
+			count += in_word ? 1 : (in_word = 0);\
 			continue;                          \
 		default:                                   \
-			inWord = 1;                        \
+			in_word = 1;                        \
 			continue;                          \
 		case '\0':;                                \
 		}                                          \
 		break;                                     \
 	}                                                  \
-	return inWord ? ++count : count;                   \
+	return in_word ? ++count : count;                   \
 }
 
-/* NIX_WCWORD(nixWcWord, case ' ':) */
-NIX_WCWORD(nixWcWordComma, case ',':)
-NIX_WCWORD(nixWcWordPipe, case '|':)
-NIX_WCWORD(nixWcWordDot, case '.':)
-NIX_WCWORD(nixWcWordQuote, case '\'':)
-NIX_WCWORD(nixWcWordDoubleQuote, case '"':)
-NIX_WCWORD(nixWcWordTab, case '\t':)
-NIX_WCWORD(nixWcWordNl, case '\n':)
+/* NIX_WCWORD(nix_wc_word, case ' ':) */
+NIX_WCWORD(nix_wc_word_comma, case ',':)
+NIX_WCWORD(nix_wc_word_pipe, case '|':)
+NIX_WCWORD(nix_wc_word_dot, case '.':)
+NIX_WCWORD(nix_wc_word_quote, case '\'':)
+NIX_WCWORD(nix_wc_word_double_quote, case '"':)
+NIX_WCWORD(nix_wc_word_tab, case '\t':)
+NIX_WCWORD(nix_wc_word_nl, case '\n':)
 
-NIX_WCWORD(nixWcWordAlpha, case '\n': case '\t': case '\r': case ' ':)
-NIX_WCWORD(nixWcWordAlphaComma, case '\n': case '\t': case '\r': case ',':)
-NIX_WCWORD(nixWcWordAlphaPipe, case '\n': case '\t': case '\r': case '|':)
-NIX_WCWORD(nixWcWordAlphaDot, case '\n': case '\t': case '\r': case '.':)
-NIX_WCWORD(nixWcWordAlphaQuote, case '\n': case '\t': case '\r': case '\'':)
-NIX_WCWORD(nixWcWordAlphaDoubleQuote, case '\n': case '\t': case '\r': case '"':)
+NIX_WCWORD(nix_wc_word_alpha, case '\n': case '\t': case '\r': case ' ':)
+NIX_WCWORD(nix_wc_word_alpha_comma, case '\n': case '\t': case '\r': case ',':)
+NIX_WCWORD(nix_wc_word_alpha_pipe, case '\n': case '\t': case '\r': case '|':)
+NIX_WCWORD(nix_wc_word_alpha_dot, case '\n': case '\t': case '\r': case '.':)
+NIX_WCWORD(nix_wc_word_alpha_quote, case '\n': case '\t': case '\r': case '\'':)
+NIX_WCWORD(nix_wc_word_alpha_double_quote, case '\n': case '\t': case '\r': case '"':)
 
 #define NIX_WCWORD_TIL_NL(FUNC_NAME, DELIM)                 \
 inline int FUNC_NAME(const char *RESTRICT src)              \
 {                                                           \
-	int inWord = 0, count = 0;                          \
+	int in_word = 0, count = 0;                          \
 	for ( ;; ++src) {                                   \
 		switch (*src) {                             \
 		DELIM                                       \
-			count += inWord ? 1 : (inWord = 0); \
+			count += in_word ? 1 : (in_word = 0); \
 			continue;                           \
 		default:                                    \
-			inWord = 1;                         \
+			in_word = 1;                         \
 		case 'n':                                   \
 		case '\0':;                                 \
 		}                                           \
 		break;                                      \
 	}                                                   \
-	return inWord ? ++count : count;                    \
+	return in_word ? ++count : count;                    \
 }
 
-/* NIX_WCWORD_TIL_NL(nixWcWordTilNl, case ' ':) */
-NIX_WCWORD_TIL_NL(nixWcWordTilNlPipe, case '|':)
-NIX_WCWORD_TIL_NL(nixWcWordTilNlComma, case ',':)
-NIX_WCWORD_TIL_NL(nixWcWordTilNlDot, case '.':)
-NIX_WCWORD_TIL_NL(nixWcWordTilNlQuote, case '\'':)
-NIX_WCWORD_TIL_NL(nixWcWordTilNlDoubleQuote, case '"':)
+/* NIX_WCWORD_TIL_NL(nix_wc_word_til_nl, case ' ':) */
+NIX_WCWORD_TIL_NL(nix_wc_word_til_nl_pipe, case '|':)
+NIX_WCWORD_TIL_NL(nix_wc_word_til_nl_comma, case ',':)
+NIX_WCWORD_TIL_NL(nix_wc_word_til_nl_dot, case '.':)
+NIX_WCWORD_TIL_NL(nix_wc_word_til_nl_quote, case '\'':)
+NIX_WCWORD_TIL_NL(nix_wc_word_til_nl_double_quote, case '"':)
 
 /* int main(int argc, char **argv) */
 /* { */
 /* 	char dest[100]; */
 /* 	char *buf = "hello world three four"; */
-/* 	nixCutDelim(dest, buf, strtol(argv[1], NULL, 10), ' '); */
+/* 	nix_cut_delim(dest, buf, strtol(argv[1], NULL, 10), ' '); */
 /* 	printf("%s\n", dest); */
 /* 	printf("%zu\n", strlen(dest)); */
 /* } */
