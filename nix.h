@@ -1,17 +1,8 @@
 #ifndef NIX_H_DEF
 #define NIX_H_DEF
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-# define RESTRICT restrict
-#elif defined(__GNUC__) || defined(__clang__)
-# define RESTRICT __restrict__
-#elif defined(_MSC_VER)
-# define RESTRICT __restrict
-#else
-# define RESTRICT
-#endif
-
 #include <stddef.h>
+#include "macros.h"
 
 #ifdef __cplusplus
 extern "C" {
