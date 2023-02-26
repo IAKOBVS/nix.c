@@ -411,12 +411,3 @@ NIX_WCWORD_TIL_NL(nix_wc_word_til_nl_comma, case ',':)
 NIX_WCWORD_TIL_NL(nix_wc_word_til_nl_dot, case '.':)
 NIX_WCWORD_TIL_NL(nix_wc_word_til_nl_quote, case '\'':)
 NIX_WCWORD_TIL_NL(nix_wc_word_til_nl_double_quote, case '"':)
-
-/* int main(int argc, char **argv) */
-/* { */
-/* 	char dest[100]; */
-/* 	char *buf = "hello world three four"; */
-/* 	nix_cut_delim(dest, buf, strtol(argv[1], NULL, 10), ' '); */
-/* 	printf("%s\n", dest); */
-/* 	printf("%zu\n", strlen(dest)); */
-/* } */
