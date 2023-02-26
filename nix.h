@@ -115,6 +115,4 @@ int nix_wc_word(const char *RESTRICT src);
 }
 #endif
 
-#undef RESTRICT
-
 #endif
