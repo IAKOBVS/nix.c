@@ -421,23 +421,23 @@ NIX_WCWORD(nix_wc_word_alpha_dot, case '\n': case '\t': case '\r': case '.':)
 NIX_WCWORD(nix_wc_word_alpha_quote, case '\n': case '\t': case '\r': case '\'':)
 NIX_WCWORD(nix_wc_word_alpha_double_quote, case '\n': case '\t': case '\r': case '"':)
 
-#define NIX_WCWORD_TIL_NL(FUNC_NAME, DELIM)                 \
-inline int FUNC_NAME(const char *RESTRICT src)              \
-{                                                           \
-	int in_word = 0, count = 0;                          \
-	for ( ;; ++src) {                                   \
-		switch (*src) {                             \
-		DELIM                                       \
+#define NIX_WCWORD_TIL_NL(FUNC_NAME, DELIM)                   \
+inline int FUNC_NAME(const char *RESTRICT src)                \
+{                                                             \
+	int in_word = 0, count = 0;                           \
+	for ( ;; ++src) {                                     \
+		switch (*src) {                               \
+		DELIM                                         \
 			count += in_word ? 1 : (in_word = 0); \
-			continue;                           \
-		default:                                    \
-			in_word = 1;                         \
-		case 'n':                                   \
-		case '\0':;                                 \
-		}                                           \
-		break;                                      \
-	}                                                   \
-	return in_word ? ++count : count;                    \
+			continue;                             \
+		default:                                      \
+			in_word = 1;                          \
+		case 'n':                                     \
+		case '\0':;                                   \
+		}                                             \
+		break;                                        \
+	}                                                     \
+	return in_word ? ++count : count;                     \
 }
 
 /* NIX_WCWORD_TIL_NL(nix_wc_word_til_nl, case ' ':) */
