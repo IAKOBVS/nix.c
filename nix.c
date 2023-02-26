@@ -49,8 +49,6 @@
 #define MIN_MALLOC 16000
 #define CASE_WHITESPACE case '\n': case '\t': case '\r':
 
-#define IF_ERROR(STATE, DO) if (likely(STATE)); else DO
-
 ALWAYS_INLINE int nixUpper(char *RESTRICT dest)
 {
 	while ((*dest = (isalpha(*dest)) ? toupper(*dest) : *dest)) ++dest;
