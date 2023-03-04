@@ -16,13 +16,13 @@
 
 ALWAYS_INLINE int nix_upper(char *RESTRICT dest)
 {
-	while ((*dest = (isalpha(*dest)) ? toupper(*dest) : *dest)) ++dest;
+	while (isalpha(*dest) && toupper(*dest)) ++dest;
 	return 1;
 }
 
 ALWAYS_INLINE int nix_lower(char *RESTRICT dest)
 {
-	while ((*dest = (isalpha(*dest)) ? tolower(*dest) : *dest)) ++dest;
+	while (isalpha(*dest) && tolower(*dest)) ++dest;
 	return 1;
 }
 
