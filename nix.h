@@ -8,20 +8,6 @@
 extern "C" {
 #endif
 
-#define nix_count(COUNT, SRC, CHAR)       \
-	do {                              \
-		for ( ;; ++src) {         \
-			switch (*SRC) {   \
-			case CHAR:        \
-				++COUNT;  \
-			default:          \
-				continue; \
-			case '\0':;       \
-			}                 \
-			break;            \
-		}                         \
-	} while (0)
-
 size_t nix_sizeof_file(const char *RESTRICT filename);
 
 int nix_count_func(const char *RESTRICT src, const int c);

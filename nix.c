@@ -122,22 +122,22 @@ int nix_head(char *RESTRICT dest, const char *RESTRICT filename)
 	return 1;
 }
 
-#define NIX_CAT(FUNC_NAME, FREAD)                                                            \
-int FUNC_NAME(char *RESTRICT dest, const char *RESTRICT filename, const size_t file_size)    \
-{                                                                                            \
-	FILE *RESTRICT fp = fopen(filename, "r");                                            \
-	if (unlikely(!fp))                                                                   \
-		goto ERROR;                                                                  \
-	if (unlikely(!FREAD(dest, 1, file_size, fp)))                                        \
-		goto ERROR_CLOSE;                                                            \
-	fclose(fp);                                                                          \
-	dest[file_size] = '\0';                                                              \
-	return 1;                                                                            \
-                                                                                             \
-ERROR_CLOSE:                                                                                 \
-	fclose(fp);                                                                          \
-ERROR:                                                                                       \
-	return 0;                                                                            \
+#define NIX_CAT(FUNC_NAME, FREAD)                                                             \
+int FUNC_NAME(char *RESTRICT dest, const char *RESTRICT filename, const size_t file_size)     \
+{                                                                                             \
+	FILE *RESTRICT fp = fopen(filename, "r");                                             \
+	if (unlikely(!fp))                                                                    \
+		goto ERROR;                                                                   \
+	if (unlikely(!FREAD(dest, 1, file_size, fp)))                                         \
+		goto ERROR_CLOSE;                                                             \
+	fclose(fp);                                                                           \
+	dest[file_size] = '\0';                                                               \
+	return 1;                                                                             \
+                                                                                              \
+ERROR_CLOSE:                                                                                  \
+	fclose(fp);                                                                           \
+ERROR:                                                                                        \
+	return 0;                                                                             \
 }
 
 NIX_CAT(nix_cat, fread)
@@ -256,26 +256,17 @@ inline int nix_cut(char *RESTRICT dest, const char *RESTRICT src, int n_str)
 	return 1;
 }
 
-ALWAYS_INLINE int nix_count_func(const char *RESTRICT src, const int c)
-{
-	int count = 0;
-	while ((count += (*src == c) ? 1 : 0), *src++);
-	return count;
-}
+#define NIX_COUNT(T, expr, ...)                    \
+ALWAYS_INLINE int nix_count##T(__VA_ARGS__)        \
+{                                                  \
+	int count = 0;                             \
+	while ((count += (expr) ? 1 : 0), *src++); \
+	return count;                              \
+}                                                  \
 
-ALWAYS_INLINE int nix_count_digit(const char *RESTRICT src)
-{
-	int count = 0;
-	while ((count += isdigit(*src) ? 1 : 0), *src++);
-	return count;
-}
-
-ALWAYS_INLINE int nix_count_alpha(const char *RESTRICT src)
-{
-	int count = 0;
-	while ((count += isalpha(*src) ? 1 : 0), *src++);
-	return count;
-}
+NIX_COUNT( , *src == c, const char *RESTRICT src, const int c)
+NIX_COUNT(_digit, isdigit(*src), const char *RESTRICT src)
+NIX_COUNT(_alpha, isalpha(*src), const char *RESTRICT src)
 
 inline int nix_wc_word(const char *RESTRICT src)
 {
