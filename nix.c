@@ -51,14 +51,7 @@ ALWAYS_INLINE size_t nix_size_of_file(const char *RESTRICT filename)
 int nix_tee(char *RESTRICT dest, const char *RESTRICT flag, const char *RESTRICT filename)
 {
 	FILE *RESTRICT fp = fopen(filename, flag);
-	if (unlikely(!fp))
-		goto ERROR;
-	fputs(dest, fp);
-	fclose(fp);
-	return 1;
-
-ERROR:
-	return 0;
+	return (likely(fp)) ? (fputs(dest, fp), fclose(fp), 1) : 0;
 }
 
 int nix_find(char *RESTRICT dest, const char *RESTRICT dir)
