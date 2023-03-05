@@ -8,22 +8,40 @@
 #include "nix.h"
 #include "macros.h"
 
+#define CASE_DIGIT case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9'
+#define CASE_LOWER case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z'
+#define CASE_UPPER	case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z'
+#define CASE_WHITESPACE case '\n': case '\t': case '\r':
+
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
 #define MIN_MALLOC 16000
-#define CASE_WHITESPACE case '\n': case '\t': case '\r':
 
-ALWAYS_INLINE int nix_upper(char *RESTRICT dest)
+ALWAYS_INLINE void nix_upper(char *RESTRICT dest)
 {
-	while (isalpha(*dest) && toupper(*dest)) ++dest;
-	return 1;
+	for (;;) {
+		switch (*dest) {
+		CASE_LOWER:
+			*dest = toupper(*dest);
+		case '\0':
+			break;
+		}
+		break;
+	}
 }
 
-ALWAYS_INLINE int nix_lower(char *RESTRICT dest)
+ALWAYS_INLINE void nix_lower(char *RESTRICT dest)
 {
-	while (isalpha(*dest) && tolower(*dest)) ++dest;
-	return 1;
+	for (;;) {
+		switch (*dest) {
+		CASE_UPPER:
+			*dest = tolower(*dest);
+		case '\0':
+			break;
+		}
+		break;
+	}
 }
 
 inline int nix_rev(char *RESTRICT dest, const char *RESTRICT src, const size_t src_len)
