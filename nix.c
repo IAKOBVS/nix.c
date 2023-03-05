@@ -11,7 +11,7 @@
 #define CASE_DIGIT case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9'
 #define CASE_LOWER case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z'
 #define CASE_UPPER case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z'
-#define CASE_WHITESPACE case '\n': case '\t': case '\r'
+#define CASE_WHITESPACE case '\n': case '\t': case '\r': case ' '
 #define CASE_ALPHANUM CASE_DIGIT: CASE_LOWER:
 
 #define MAX(a,b) ((a)>(b)?(a):(b))
@@ -25,8 +25,8 @@ ALWAYS_INLINE void nix_upper(char *RESTRICT dest)
 		switch (*dest) {
 		CASE_LOWER:
 			*dest = toupper(*dest);
-		case '\0':
-			break;
+			continue;
+		case '\0':;
 		}
 		break;
 	}
@@ -38,27 +38,25 @@ ALWAYS_INLINE void nix_lower(char *RESTRICT dest)
 		switch (*dest) {
 		CASE_UPPER:
 			*dest = tolower(*dest);
-		case '\0':
-			break;
+			continue;
+		case '\0':;
 		}
 		break;
 	}
 }
 
-inline int nix_rev(char *RESTRICT dest, const char *RESTRICT src, const size_t src_len)
+ALWAYS_INLINE void nix_rev(char *RESTRICT dest, const char *RESTRICT src, const size_t src_len)
 {
-	for (const char *RESTRICT end = src + src_len - 1; (*dest++ = end >= src ? *end-- : '\0'); );
-	return 1;
+	for (const char *RESTRICT end = src + src_len - 1; (*dest++ = (end >= src) ? *end-- : '\0'); );
 }
 
-inline int nix_rev_self(char *RESTRICT dest, const size_t dest_len)
+inline void nix_rev_self(char *RESTRICT dest, const size_t dest_len)
 {
 	for (size_t i = 0, j = dest_len - 1; i < j; ++i, --j) {
 		const char tmp = dest[i];
 		dest[i] = dest[j];
 		dest[j] = tmp;
 	}
-	return 1;
 }
 
 ALWAYS_INLINE size_t nix_size_of_file(const char *RESTRICT filename)
@@ -70,7 +68,12 @@ ALWAYS_INLINE size_t nix_size_of_file(const char *RESTRICT filename)
 int nix_tee(char *RESTRICT dest, const char *RESTRICT flag, const char *RESTRICT filename)
 {
 	FILE *RESTRICT fp = fopen(filename, flag);
-	return (likely(fp)) ? (fputs(dest, fp), fclose(fp), 1) : 0;
+	if (likely(fp)) {
+		fputs(dest, fp);
+		fclose(fp);
+		return 1;
+	}
+	return 0;
 }
 
 int nix_find(char *RESTRICT dest, const char *RESTRICT dir)
@@ -190,10 +193,7 @@ inline int nix_cut_first(char *RESTRICT dest, const char *RESTRICT src)
 		default:
 			*dest++ = *src++;
 			continue;
-		case '\n':
-		case '\t':
-		case '\r':
-		case ' ':
+		CASE_WHITESPACE:
 		case '\0':;
 		}
 		break;
@@ -216,10 +216,7 @@ inline int nix_cut_last(char *RESTRICT dest, const char *RESTRICT src, const siz
 		switch (*src) {
 		default:
 			continue;
-		case '\n':
-		case '\t':
-		case '\r':
-		case ' ':;
+		CASE_WHITESPACE:;
 		}
 		break;
 	}
@@ -240,10 +237,7 @@ inline int nix_cut(char *RESTRICT dest, const char *RESTRICT src, int n_str)
 {
 	for (;;) {
 		switch (*src++) {
-		case '\n':
-		case '\t':
-		case '\r':
-		case ' ':
+		CASE_WHITESPACE:
 			if (--n_str)
 		default:
 				continue;
@@ -257,10 +251,7 @@ inline int nix_cut(char *RESTRICT dest, const char *RESTRICT src, int n_str)
 			*dest++ = *src++;
 			continue;
 		case '\0':
-		case '\n':
-		case '\t':
-		case '\r':
-		case ' ':;
+		CASE_WHITESPACE:;
 		}
 		break;
 	}
@@ -288,10 +279,7 @@ inline int nix_wc_word(const char *RESTRICT src)
 		default:
 			in_word = 1;
 			continue;
-		case '\n':
-		case '\t':
-		case '\r':
-		case ' ':
+		CASE_WHITESPACE:
 			count += in_word ? 1 : (in_word = 0);
 			continue;
 		case '\0':;
