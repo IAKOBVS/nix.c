@@ -52,10 +52,10 @@ ALWAYS_INLINE void nix_rev(char *RESTRICT dest, const char *RESTRICT src, const 
 
 inline void nix_rev_self(char *RESTRICT dest, const size_t dest_len)
 {
-	for (size_t i = 0, j = dest_len - 1; i < j; ++i, --j) {
-		const char tmp = dest[i];
-		dest[i] = dest[j];
-		dest[j] = tmp;
+	for (size_t start = 0, end = dest_len - 1; start < end; ++start, --end) {
+		const char tmp = dest[start];
+		dest[start] = dest[end];
+		dest[end] = tmp;
 	}
 }
 
