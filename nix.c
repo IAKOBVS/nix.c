@@ -12,7 +12,8 @@
 #define CASE_LOWER case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z'
 #define CASE_UPPER case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z'
 #define CASE_WHITESPACE case '\n': case '\t': case '\r': case ' '
-#define CASE_ALPHANUM CASE_DIGIT: CASE_LOWER:
+#define CASE_ALPHA CASE_LOWER: CASE_UPPER
+#define CASE_ALPHANUM CASE_DIGIT: CASE_ALPHA
 
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
@@ -259,17 +260,34 @@ inline int nix_cut(char *RESTRICT dest, const char *RESTRICT src, int n_str)
 	return 1;
 }
 
-#define NIX_COUNT(T, expr, ...)                    \
-ALWAYS_INLINE int nix_count##T(__VA_ARGS__)        \
-{                                                  \
-	int count = 0;                             \
-	while ((count += (expr) ? 1 : 0), *src++); \
-	return count;                              \
-}                                                  \
+ALWAYS_INLINE int nix_count_c(const char* RESTRICT src, const int c)
+{
+	int count = 0;
+	while ((count += (*src == c) ? 1 : 0), *src++);
+	return count;
+}
 
-NIX_COUNT( , *src == c, const char *RESTRICT src, const int c)
-NIX_COUNT(_digit, isdigit(*src), const char *RESTRICT src)
-NIX_COUNT(_alpha, isalpha(*src), const char *RESTRICT src)
+#define NIX_COUNT(T, CASE)                                \
+ALWAYS_INLINE int nix_count_##T(const char *RESTRICT src) \
+{                                                         \
+	int count = 0;                                    \
+	for (;; ++src) {                                  \
+		switch (*src) {                           \
+		CASE:                                     \
+			++count;                          \
+		default:                                  \
+			continue;                         \
+		case '\0':;                               \
+		}                                         \
+		break;                                    \
+	}                                                 \
+	return count;                                     \
+}
+
+NIX_COUNT(digit, CASE_DIGIT)
+NIX_COUNT(alpha, CASE_ALPHA)
+NIX_COUNT(alphanum, CASE_ALPHANUM)
+NIX_COUNT(whitespace, CASE_WHITESPACE)
 
 inline int nix_wc_word(const char *RESTRICT src)
 {
@@ -392,7 +410,7 @@ inline int FUNC_NAME(const char *RESTRICT src)                   \
 			continue;                                \
 		default:                                         \
 			in_word = 1;                             \
-		case 'n':                                        \
+		case '\n':                                       \
 		case '\0':;                                      \
 		}                                                \
 		break;                                           \
