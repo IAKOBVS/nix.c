@@ -16,8 +16,7 @@ int nix_count_digit(const char *RESTRICT src);
 int nix_count_alpha(const char *RESTRICT src);
 
 void nix_rev(char *RESTRICT dest, const char *RESTRICT src, const size_t src_len);
-/* void nix_rev_auto(char **RESTRICT dest, const char *RESTRICT src, const size_t src_len); */
-/* void nix_rev_self_heap(char *RESTRICT dest, const size_t src_len); */
+#define nix_rev_auto(dest_arr, src) nix_rev(dest_arr, src, strlen(src))
 void nix_rev_self(char *RESTRICT dest, const size_t src_len);
 
 int nix_cut_delim(char *RESTRICT dest, const char *RESTRICT src, int n_str, const int delim);

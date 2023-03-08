@@ -273,14 +273,15 @@ NIX_COUNT(_alpha, isalpha(*src), const char *RESTRICT src)
 
 inline int nix_wc_word(const char *RESTRICT src)
 {
-	int in_word = 0, count = 0;
+	int in_word = 0;
+	int count = 0;
 	for ( ;; ++src) {
 		switch (*src) {
 		default:
 			in_word = 1;
 			continue;
 		CASE_WHITESPACE:
-			count += in_word ? 1 : (in_word = 0);
+			count += in_word ? 1 : (in_word = 0, 0);
 			continue;
 		case '\0':;
 		}
@@ -291,7 +292,8 @@ inline int nix_wc_word(const char *RESTRICT src)
 
 inline int nix_wc_word_til_nl(const char *RESTRICT src)
 {
-	int in_word = 0, count = 0;
+	int in_word = 0;
+	int count = 0;
 	for ( ;; ++src) {
 		switch (*src) {
 		default:
@@ -300,7 +302,7 @@ inline int nix_wc_word_til_nl(const char *RESTRICT src)
 		case '\t':
 		case '\r':
 		case ' ':
-			count += in_word ? 1 : (in_word = 0);
+			count += in_word ? 1 : (in_word = 0, 0);
 			continue;
 		case '\0':
 		case '\n':;
@@ -342,23 +344,24 @@ NIX_WCCHAR(nix_wc_char_alpha_pipe, case '\n': case '\t': case '\r': case '|':)
 NIX_WCCHAR(nix_wc_char_alpha_quote, case '\n': case '\t': case '\r': case '\'':)
 NIX_WCCHAR(nix_wc_char_alpha_double_quote, case '\n': case '\t': case '\r': case '"':)
 
-#define NIX_WCWORD(FUNC_NAME, DELIM)                          \
-inline int FUNC_NAME(const char *RESTRICT src)                \
-{                                                             \
-	int in_word = 0, count = 0;                           \
-	for ( ;; ++src) {                                     \
-		switch (*src) {                               \
-		DELIM                                         \
-			count += in_word ? 1 : (in_word = 0); \
-			continue;                             \
-		default:                                      \
-			in_word = 1;                          \
-			continue;                             \
-		case '\0':;                                   \
-		}                                             \
-		break;                                        \
-	}                                                     \
-	return in_word ? ++count : count;                     \
+#define NIX_WCWORD(FUNC_NAME, DELIM)                             \
+inline int FUNC_NAME(const char *RESTRICT src)                   \
+{                                                                \
+	int in_word = 0;                                         \
+	int count = 0;                                           \
+	for ( ;; ++src) {                                        \
+		switch (*src) {                                  \
+		DELIM                                            \
+			count += in_word ? 1 : (in_word = 0, 0); \
+			continue;                                \
+		default:                                         \
+			in_word = 1;                             \
+			continue;                                \
+		case '\0':;                                      \
+		}                                                \
+		break;                                           \
+	}                                                        \
+	return in_word ? ++count : count;                        \
 }
 
 /* NIX_WCWORD(nix_wc_word, case ' ':) */
@@ -377,23 +380,24 @@ NIX_WCWORD(nix_wc_word_alpha_dot, case '\n': case '\t': case '\r': case '.':)
 NIX_WCWORD(nix_wc_word_alpha_quote, case '\n': case '\t': case '\r': case '\'':)
 NIX_WCWORD(nix_wc_word_alpha_double_quote, case '\n': case '\t': case '\r': case '"':)
 
-#define NIX_WCWORD_TIL_NL(FUNC_NAME, DELIM)                   \
-inline int FUNC_NAME(const char *RESTRICT src)                \
-{                                                             \
-	int in_word = 0, count = 0;                           \
-	for ( ;; ++src) {                                     \
-		switch (*src) {                               \
-		DELIM                                         \
-			count += in_word ? 1 : (in_word = 0); \
-			continue;                             \
-		default:                                      \
-			in_word = 1;                          \
-		case 'n':                                     \
-		case '\0':;                                   \
-		}                                             \
-		break;                                        \
-	}                                                     \
-	return in_word ? ++count : count;                     \
+#define NIX_WCWORD_TIL_NL(FUNC_NAME, DELIM)                      \
+inline int FUNC_NAME(const char *RESTRICT src)                   \
+{                                                                \
+	int in_word = 0;                                         \
+	int count = 0;                                           \
+	for ( ;; ++src) {                                        \
+		switch (*src) {                                  \
+		DELIM                                            \
+			count += in_word ? 1 : (in_word = 0, 0); \
+			continue;                                \
+		default:                                         \
+			in_word = 1;                             \
+		case 'n':                                        \
+		case '\0':;                                      \
+		}                                                \
+		break;                                           \
+	}                                                        \
+	return in_word ? ++count : count;                        \
 }
 
 /* NIX_WCWORD_TIL_NL(nix_wc_word_til_nl, case ' ':) */
