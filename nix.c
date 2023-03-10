@@ -58,7 +58,9 @@ ALWAYS_INLINE void nix_lower(char *RESTRICT dest)
 
 ALWAYS_INLINE void nix_rev(char *RESTRICT dest, const char *RESTRICT src, const size_t src_len)
 {
-	for (const char *RESTRICT end = strchr(src, '\0'); (*dest++ = (end >= src) ? *end-- : '\0'); );
+	const char *RESTRICT end = strchr(src, '\0');
+	while (end >= src)
+		*dest++ = *end--;
 }
 
 inline void nix_rev_self(char *RESTRICT dest, const size_t dest_len)
