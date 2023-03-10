@@ -171,28 +171,28 @@ ERROR:                                                                          
 NIX_CAT(nix_cat, fread)
 NIX_CAT(nix_cat_fast, fread_unlocked)
 
-#define NIX_CAT_AUTO(FUNC_NAME, FREAD)                                                            \
-int FUNC_NAME(char **RESTRICT dest, const char *RESTRICT filename, size_t file_size)              \
-{                                                                                                 \
-	file_size = nix_sizeof_file(filename);                                                    \
-	if (unlikely(!(file_size)))                                                               \
-		goto ERROR;                                                                       \
-	FILE *RESTRICT fp = fopen(filename, "r");                                                 \
-	if (unlikely(!fp))                                                                        \
-		goto ERROR;                                                                       \
-	if (unlikely(!(*dest = malloc(file_size + 1))))                                           \
-		goto ERROR_CLOSE;                                                                 \
-	FREAD(*dest, 1, file_size, fp);                                                           \
-	fclose(fp);                                                                               \
-	(*dest)[file_size] = '\0';                                                                \
-	return file_size;                                                                         \
-                                                                                                  \
-ERROR_CLOSE_FREE:                                                                                 \
-	free(*dest);                                                                              \
-ERROR_CLOSE:                                                                                      \
-	fclose(fp);                                                                               \
-ERROR:                                                                                            \
-	return 0;                                                                                 \
+#define NIX_CAT_AUTO(FUNC_NAME, FREAD)                                                               \
+int FUNC_NAME(char **RESTRICT dest, const char *RESTRICT filename)                                   \
+{                                                                                                    \
+	const size_t file_size = nix_sizeof_file(filename);                                          \
+	if (unlikely(!(file_size)))                                                                  \
+		goto ERROR;                                                                          \
+	FILE *RESTRICT fp = fopen(filename, "r");                                                    \
+	if (unlikely(!fp))                                                                           \
+		goto ERROR;                                                                          \
+	if (unlikely(!(*dest = malloc(file_size + 1))))                                              \
+		goto ERROR_CLOSE;                                                                    \
+	FREAD(*dest, 1, file_size, fp);                                                              \
+	fclose(fp);                                                                                  \
+	(*dest)[file_size] = '\0';                                                                   \
+	return file_size;                                                                            \
+                                                                                                     \
+ERROR_CLOSE_FREE:                                                                                    \
+	free(*dest);                                                                                 \
+ERROR_CLOSE:                                                                                         \
+	fclose(fp);                                                                                  \
+ERROR:                                                                                               \
+	return 0;                                                                                    \
 }
 
 NIX_CAT_AUTO(nix_cat_auto, fread)
