@@ -38,8 +38,8 @@ int nix_head(char *RESTRICT dest, const char *RESTRICT filename);
 /* read file into string */
 int nix_cat(char *RESTRICT dest, const char *RESTRICT filename, size_t file_size);
 int nix_cat_fast(char *RESTRICT dest, const char *RESTRICT filename, size_t file_size);
-int nix_cat_auto(char **RESTRICT dest, const char *RESTRICT filename, size_t file_size);
-int nix_cat_auto_fast(char **RESTRICT dest, const char *RESTRICT filename, size_t file_size);
+int nix_cat_auto(char **RESTRICT dest, const char *RESTRICT filename);
+int nix_cat_auto_fast(char **RESTRICT dest, const char *RESTRICT filename);
 
 /* find files in directory */
 int nix_find(char *RESTRICT dest, const char *RESTRICT dir);
