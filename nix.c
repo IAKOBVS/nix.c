@@ -8,22 +8,22 @@
 #include "nix.h"
 #include "macros.h"
 
-#define CASE_VOWEL_LOWER case 'a': case 'i': case 'u': case 'e': case 'o'
-#define CASE_VOWEL_UPPER case 'A': case 'I': case 'U': case 'E': case 'O'
+#define CASE_VOWEL_LOWER case 'a': case 'i': case 'u': case 'e': case 'o':
+#define CASE_VOWEL_UPPER case 'A': case 'I': case 'U': case 'E': case 'O':
 #define CASE_VOWEL CASE_VOWEL_UPPER: CASE_VOWEL_LOWER
 
-#define CASE_CONSONANT_LOWER case 'b': case 'c': case 'd': case 'f': case 'g': case 'h': case 'j': case 'k': case 'l': case 'm': case 'n': case 'p': case 'q': case 'r': case 's': case 't': case 'v': case 'w': case 'x': case 'y': case 'z'
-#define CASE_CONSONANT_UPPER case 'B': case 'C': case 'D': case 'F': case 'G': case 'H': case 'J': case 'K': case 'L': case 'M': case 'N': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'V': case 'W': case 'X': case 'Y': case 'Z'
+#define CASE_CONSONANT_LOWER case 'b': case 'c': case 'd': case 'f': case 'g': case 'h': case 'j': case 'k': case 'l': case 'm': case 'n': case 'p': case 'q': case 'r': case 's': case 't': case 'v': case 'w': case 'x': case 'y': case 'z':
+#define CASE_CONSONANT_UPPER case 'B': case 'C': case 'D': case 'F': case 'G': case 'H': case 'J': case 'K': case 'L': case 'M': case 'N': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'V': case 'W': case 'X': case 'Y': case 'Z':
 #define CASE_CONSONANT CASE_CONSONANT_UPPER: CASE_CONSONANT_LOWER
 
-#define CASE_DIGIT case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9'
-#define CASE_LOWER case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z'
-#define CASE_UPPER case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z'
+#define CASE_DIGIT case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+#define CASE_LOWER case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': case 'y': case 'z':
+#define CASE_UPPER case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': case 'Y': case 'Z':
 
-#define CASE_ALPHA CASE_LOWER: CASE_UPPER
-#define CASE_ALPHANUM CASE_DIGIT: CASE_ALPHA
+#define CASE_ALPHA CASE_LOWER CASE_UPPER
+#define CASE_ALPHANUM CASE_DIGIT CASE_ALPHA
 
-#define CASE_WHITESPACE case '\n': case '\t': case '\r': case ' '
+#define CASE_WHITESPACE case '\n': case '\t': case '\r': case ' ':
 
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
@@ -34,7 +34,7 @@ ALWAYS_INLINE void nix_upper(char *RESTRICT dest)
 {
 	for (;;) {
 		switch (*dest) {
-		CASE_LOWER:
+		CASE_LOWER
 			*dest = toupper(*dest);
 			continue;
 		case '\0':;
@@ -47,7 +47,7 @@ ALWAYS_INLINE void nix_lower(char *RESTRICT dest)
 {
 	for (;;) {
 		switch (*dest) {
-		CASE_UPPER:
+		CASE_UPPER
 			*dest = tolower(*dest);
 			continue;
 		case '\0':;
@@ -205,7 +205,7 @@ inline int nix_cut_first(char *RESTRICT dest, const char *RESTRICT src)
 		default:
 			*dest++ = *src++;
 			continue;
-		CASE_WHITESPACE:
+		CASE_WHITESPACE
 		case '\0':;
 		}
 		break;
@@ -228,7 +228,7 @@ inline int nix_cut_last(char *RESTRICT dest, const char *RESTRICT src, const siz
 		switch (*src) {
 		default:
 			continue;
-		CASE_WHITESPACE:;
+		CASE_WHITESPACE;
 		}
 		break;
 	}
@@ -249,7 +249,7 @@ inline int nix_cut(char *RESTRICT dest, const char *RESTRICT src, int n_str)
 {
 	for (;;) {
 		switch (*src++) {
-		CASE_WHITESPACE:
+		CASE_WHITESPACE
 			if (--n_str)
 		default:
 				continue;
@@ -263,7 +263,7 @@ inline int nix_cut(char *RESTRICT dest, const char *RESTRICT src, int n_str)
 			*dest++ = *src++;
 			continue;
 		case '\0':
-		CASE_WHITESPACE:;
+		CASE_WHITESPACE;
 		}
 		break;
 	}
@@ -284,7 +284,7 @@ ALWAYS_INLINE int nix_count_##T(const char *RESTRICT src) \
 	int count = 0;                                    \
 	for (;; ++src) {                                  \
 		switch (*src) {                           \
-		CASE:                                     \
+		CASE                                     \
 			++count;                          \
 		default:                                  \
 			continue;                         \
@@ -309,7 +309,7 @@ inline int nix_wc_word(const char *RESTRICT src)
 		default:
 			in_word = 1;
 			continue;
-		CASE_WHITESPACE:
+		CASE_WHITESPACE
 			count += in_word ? 1 : (in_word = 0, 0);
 			continue;
 		case '\0':;

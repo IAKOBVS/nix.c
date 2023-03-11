@@ -30,7 +30,7 @@ flags:
 'w' = overwrite
 'a' = append
 */
-int nix_tee(char *RESTRICT s, const char *RESTRICT flag, const char *RESTRICT filename);
+int nix_tee(const char *RESTRICT s, const char *RESTRICT flag, const char *RESTRICT filename);
 
 /* get first line of file */
 int nix_head(char *RESTRICT dest, const char *RESTRICT filename);
