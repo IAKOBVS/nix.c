@@ -78,11 +78,11 @@ ALWAYS_INLINE size_t nix_sizeof_file(const char *RESTRICT filename)
 	return (!stat(filename, &st) ? st.st_size : 0);
 }
 
-int nix_tee(char *RESTRICT dest, const char *RESTRICT flag, const char *RESTRICT filename)
+int nix_tee(const char *RESTRICT s, const char *RESTRICT flag, const char *RESTRICT filename)
 {
 	FILE *RESTRICT fp = fopen(filename, flag);
 	if (likely(fp)) {
-		fputs(dest, fp);
+		fputs(s, fp);
 		fclose(fp);
 		return 1;
 	}
